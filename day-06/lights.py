@@ -4,21 +4,25 @@ for x in range(1000):
         coord = (x, y)
         lights[coord] = (False, 0)
 
+def turn_state(is_on, level):
+    if on_off == 'on':
+        return (True, level + 1)
+    if on_off == 'off':
+        return (False, max([0, level - 1]))
+
+def toggle_state(is_on, level):
+    return (not is_on, level + 2)
+
 with open('input.txt', 'r') as f:
     for line in f.readlines():
         instruction = line.strip()
         tokens = instruction.split()
         if tokens[0] == 'turn':
             _, on_off, start, _, end = tokens
-            def set_state(is_on, level):
-                if on_off == 'on':
-                    return (True, level + 1)
-                if on_off == 'off':
-                    return (False, max([0, level - 1]))
+            state_func = turn_state
         if tokens[0] == 'toggle':
             _, start, _, end = tokens
-            def set_state(is_on, level):
-                return (not is_on, level + 2)
+            state_func = toggle_state
  
         x_min, y_min = start.split(',')
         x_max, y_max = end.split(',')
@@ -27,7 +31,7 @@ with open('input.txt', 'r') as f:
             for y in range(int(y_min), int(y_max) + 1):
                 coord = (x, y)
                 is_on, level = lights[coord]
-                lights[coord] = set_state(is_on, level)
+                lights[coord] = state_func(is_on, level)
 
 num_on = len([x for x in lights.values() if x[0]])
 
