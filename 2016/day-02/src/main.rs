@@ -2,15 +2,16 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-type ButtonLocations = HashMap<i32, (i32, i32)>;
+type Button = char;
+type ButtonLocations = HashMap<Button, (i32, i32)>;
 
 const MAX_X: i32 = 3;
 const MAX_Y: i32 = 3;
 
-const KEYPAD: [[i32; MAX_X as usize]; MAX_Y as usize] = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
+const KEYPAD: [[Button; MAX_X as usize]; MAX_Y as usize] = [
+    ['1', '2', '3'],
+    ['4', '5', '6'],
+    ['7', '8', '9'],
 ];
 
 
@@ -37,9 +38,10 @@ fn load_moves(filename: &'static str) -> Vec<String> {
     lines
 }
 
-fn get_button(button_locations: &ButtonLocations, start: i32, moveset: String) -> i32 {
+fn get_button(button_locations: &ButtonLocations,
+              start: Button,
+              moveset: String) -> Button {
     let mut button = start;
-    let mut old_button;
     let location = button_locations.get(&button).unwrap();
     let mut x = location.0;
     let mut y = location.1;
@@ -57,17 +59,15 @@ fn get_button(button_locations: &ButtonLocations, start: i32, moveset: String) -
         y += dy;
         y = if y < 0 { 0 } else { y };
         y = if y >= MAX_Y { MAX_Y - 1 } else { y };
-        old_button = button;
         button = KEYPAD[y as usize][x as usize];
-        println!("From {} we go {} to {} ({}, {}).", old_button, c, button, x, y);
     }
     button
 }
 
 fn main() {
     let all_moves = load_moves("input.txt");
-    let mut buttons: Vec<i32> = Vec::new();
-    let previous_button = 5;
+    let mut buttons: Vec<Button> = Vec::new();
+    let previous_button = '5';
     let button_locations = get_button_locations();
     for moveset in all_moves {
         let button = get_button(&button_locations, previous_button, moveset);      
