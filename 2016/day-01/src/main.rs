@@ -1,7 +1,8 @@
-use std::io::prelude::*;
-use std::io::BufReader;
+use std::collections::HashSet;
 use std::fmt;
 use std::fs::File;
+use std::io::prelude::*;
+use std::io::BufReader;
 
 #[derive(Debug)]
 enum Heading {
@@ -16,14 +17,23 @@ struct Walker {
     x: i32,  // + east, - west
     y: i32,  // + north, - south
     heading: Heading,
+    locations: HashSet<(i32, i32)>,
+    bunny_hq: Option<(i32, i32)>,
 }
 
 impl Walker {
     fn new() -> Walker {
-        Walker { x:0, y:0, heading: Heading::East }
+        Walker {
+            x:0,
+            y:0,
+            heading: Heading::East,
+            locations: HashSet::new(),
+            bunny_hq: None,
+        }
     }
 
     fn follow(&mut self, instructions: Vec<String>) {
+        self.check_for_bunny_hq();
         for instr in instructions {
             self.follow_instruction(&instr);
         }
@@ -62,12 +72,26 @@ impl Walker {
     }
 
     fn walk(&mut self, distance: i32) {
-        match self.heading {
-            Heading::East => self.x += distance,
-            Heading::North => self.y += distance,
-            Heading::West => self.x -= distance,
-            Heading::South => self.y -= distance,
+        for _ in 0..distance {
+            match self.heading {
+                Heading::East => self.x += 1,
+                Heading::North => self.y += 1,
+                Heading::West => self.x -= 1,
+                Heading::South => self.y -= 1,
+            }
+            self.check_for_bunny_hq();
         }
+    }
+
+    fn check_for_bunny_hq(&mut self) {
+        let location = (self.x, self.y);
+        if self.locations.contains(&location) {
+            match self.bunny_hq {
+                Some(_) => (),
+                None => self.bunny_hq = Some(location),
+            }
+        }
+        self.locations.insert(location);
     }
 
     fn distance(&self) -> i32 {
@@ -98,6 +122,15 @@ fn main() {
     let mut walker = Walker::new();
     walker.follow(instructions);
     println!("{} is {} blocks from the start", walker, &walker.distance());
+    match walker.bunny_hq {
+        Some((x, y)) => {
+            let bunny = x.abs() + y.abs();
+            println!("Easter bunny is {} blocks from the start", bunny);
+        },
+        None => {
+            println!("Could not find the easter bunny :(");
+        }
+    }
 }
 
 #[test]
