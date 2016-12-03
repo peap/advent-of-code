@@ -3,23 +3,24 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 type Button = char;
-type ButtonLocations = HashMap<Button, (i32, i32)>;
+type KeyPad = Vec<Vec<Button>>;
+type ButtonLocations = HashMap<Button, (usize, usize)>;
+type MoveSet = Vec<String>;
 
-const MAX_X: i32 = 3;
-const MAX_Y: i32 = 3;
+const MX: i32 = 3;
+const MY: i32 = 3;
 
-const KEYPAD: [[Button; MAX_X as usize]; MAX_Y as usize] = [
+const KEYPAD: [[Button; MX as usize]; MY as usize] = [
     ['1', '2', '3'],
     ['4', '5', '6'],
     ['7', '8', '9'],
 ];
 
-
 fn get_button_locations() -> ButtonLocations {
     let mut locations = HashMap::new();
     for (y, row) in KEYPAD.iter().enumerate() {
         for (x, button) in row.iter().enumerate() {
-            locations.insert(button.clone(), (x as i32, y as i32));
+            locations.insert(button.clone(), (x, y));
         }
     }
     locations
@@ -43,8 +44,8 @@ fn get_button(button_locations: &ButtonLocations,
               moveset: String) -> Button {
     let mut button = start;
     let location = button_locations.get(&button).unwrap();
-    let mut x = location.0;
-    let mut y = location.1;
+    let mut x = location.0 as i32;
+    let mut y = location.1 as i32;
     for c in moveset.chars() {
         let (dx, dy) = match c {
             'U' => ( 0, -1),
@@ -53,15 +54,26 @@ fn get_button(button_locations: &ButtonLocations,
             'R' => ( 1,  0),
             _ => panic!("Unknown move, {}", c),
         };
-        x += dx;
-        x = if x < 0 { 0 } else { x };
-        x = if x >= MAX_X { MAX_X - 1 } else { x };
-        y += dy;
-        y = if y < 0 { 0 } else { y };
-        y = if y >= MAX_Y { MAX_Y - 1 } else { y };
+
+        if dx < 0 {
+            x = if x == 0 { 0 } else { x + dx }
+        } else {
+            x += dx;
+            x = if x >= MX { MX - 1 } else { x };
+        }
+        if dy < 0 {
+            y = if y == 0 { 0 } else { y + dy }
+        } else {
+            y += dy;
+            y = if y >= MY { MY - 1 } else { y };
+        }
         button = KEYPAD[y as usize][x as usize];
     }
     button
+}
+
+fn get_code(keypad: KeyPad, start: Button, moveset: MoveSet) -> String {
+    "".to_string()
 }
 
 fn main() {
