@@ -2,29 +2,20 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
+const MAX_X: i32 = 3;
+const MAX_Y: i32 = 3;
+
 type Button = char;
-type KeyPad = Vec<Vec<Button>>;
 type ButtonLocations = HashMap<Button, (usize, usize)>;
 type MoveSet = Vec<String>;
 
-const MX: i32 = 3;
-const MY: i32 = 3;
+type KeyPad = [[Button; MAX_X as usize]; MAX_Y as usize];
 
-const KEYPAD: [[Button; MX as usize]; MY as usize] = [
+const KEYPAD1: KeyPad = [
     ['1', '2', '3'],
     ['4', '5', '6'],
     ['7', '8', '9'],
 ];
-
-fn get_button_locations() -> ButtonLocations {
-    let mut locations = HashMap::new();
-    for (y, row) in KEYPAD.iter().enumerate() {
-        for (x, button) in row.iter().enumerate() {
-            locations.insert(button.clone(), (x, y));
-        }
-    }
-    locations
-}
 
 fn load_moves(filename: &'static str) -> Vec<String> {
     let file = File::open(filename).unwrap();
@@ -39,7 +30,28 @@ fn load_moves(filename: &'static str) -> Vec<String> {
     lines
 }
 
+fn get_code(keypad: KeyPad, start: Button, all_moves: MoveSet) -> String {
+    let button_locations = get_button_locations(keypad);
+    let mut buttons: Vec<Button> = Vec::new();
+    for moveset in all_moves {
+        let button = get_button(&button_locations, keypad, start, moveset);
+        buttons.push(button);
+    }
+    buttons.iter().map(|x| x.to_string()).collect::<String>()
+}
+
+fn get_button_locations(keypad: KeyPad) -> ButtonLocations {
+    let mut locations = HashMap::new();
+    for (y, row) in keypad.iter().enumerate() {
+        for (x, button) in row.iter().enumerate() {
+            locations.insert(button.clone(), (x, y));
+        }
+    }
+    locations
+}
+
 fn get_button(button_locations: &ButtonLocations,
+              keypad: KeyPad,
               start: Button,
               moveset: String) -> Button {
     let mut button = start;
@@ -59,32 +71,21 @@ fn get_button(button_locations: &ButtonLocations,
             x = if x == 0 { 0 } else { x + dx }
         } else {
             x += dx;
-            x = if x >= MX { MX - 1 } else { x };
+            x = if x >= MAX_X { MAX_X - 1 } else { x };
         }
         if dy < 0 {
             y = if y == 0 { 0 } else { y + dy }
         } else {
             y += dy;
-            y = if y >= MY { MY - 1 } else { y };
+            y = if y >= MAX_Y { MAX_Y - 1 } else { y };
         }
-        button = KEYPAD[y as usize][x as usize];
+        button = keypad[y as usize][x as usize];
     }
     button
 }
 
-fn get_code(keypad: KeyPad, start: Button, moveset: MoveSet) -> String {
-    "".to_string()
-}
-
 fn main() {
     let all_moves = load_moves("input.txt");
-    let mut buttons: Vec<Button> = Vec::new();
-    let previous_button = '5';
-    let button_locations = get_button_locations();
-    for moveset in all_moves {
-        let button = get_button(&button_locations, previous_button, moveset);      
-        buttons.push(button);
-    }
-    let code: String = buttons.iter().map(|x| x.to_string()).collect();
-    println!("The code is {}.", code);
+    let code = get_code(KEYPAD1, '5', all_moves);
+    println!("The first code is {}.", code);
 }
