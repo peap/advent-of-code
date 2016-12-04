@@ -8,10 +8,12 @@ struct Triangle {
 }
 
 impl Triangle {
+    fn from_array(sides: [i32; 3]) -> Triangle {
+        Triangle { a: sides[0], b: sides[1], c: sides[2] }
+    }
+
     fn from_line(line: String) -> Triangle {
-        let a = line[..5].trim().parse::<i32>().unwrap();
-        let b = line[5..10].trim().parse::<i32>().unwrap();
-        let c = line[10..].trim().parse::<i32>().unwrap();
+        let (a, b, c) = parse_line(line);
         Triangle { a: a, b: b, c: c }
     }
 
@@ -22,7 +24,14 @@ impl Triangle {
     }
 }
 
-fn load_triangles(filename: &'static str) -> Vec<Triangle> {
+fn parse_line(line: String) -> (i32, i32, i32) {
+    let a = line[..5].trim().parse::<i32>().unwrap();
+    let b = line[5..10].trim().parse::<i32>().unwrap();
+    let c = line[10..].trim().parse::<i32>().unwrap();
+    (a, b, c)
+}
+
+fn load_triangles_1(filename: &'static str) -> Vec<Triangle> {
     let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
     let mut triangles = Vec::new();
@@ -35,12 +44,44 @@ fn load_triangles(filename: &'static str) -> Vec<Triangle> {
     triangles
 }
 
+fn load_triangles_2(filename: &'static str) -> Vec<Triangle> {
+    let file = File::open(filename).unwrap();
+    let reader = BufReader::new(file);
+    let mut triangles = Vec::new();
+    let mut idx = 0;
+    let mut t1 = [0; 3];
+    let mut t2 = [0; 3];
+    let mut t3 = [0; 3];
+    for line in reader.lines() {
+        match line {
+            Ok(text) => {
+                let (a, b, c) = parse_line(text);
+                t1[idx] = a;
+                t2[idx] = b;
+                t3[idx] = c;
+            }
+            _ => ()
+        }
+        idx += 1;
+        if idx == 3 {
+            triangles.push(Triangle::from_array(t1));
+            triangles.push(Triangle::from_array(t2));
+            triangles.push(Triangle::from_array(t3));
+            idx = 0;
+        }
+    }
+    triangles
+}
+
 fn count_valid(triangles: &Vec<Triangle>) -> i32 {
     triangles.iter().fold(0, |count, t| if t.is_valid() { count + 1 } else { count })
 }
 
 fn main() {
-    let triangles = load_triangles("input.txt");
-    let num_valid = count_valid(&triangles);
-    println!("Loaded {} triangles; {} are valid.", triangles.len(), num_valid);
+    let triangles1 = load_triangles_1("input.txt");
+    let num1 = count_valid(&triangles1);
+    println!("Part 1: {} triangles; {} are valid.", &triangles1.len(), num1);
+    let triangles2 = load_triangles_2("input.txt");
+    let num2 = count_valid(&triangles2);
+    println!("Part 2: {} triangles; {} are valid.", &triangles2.len(), num2);
 }
