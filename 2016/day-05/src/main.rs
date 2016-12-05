@@ -3,7 +3,7 @@ extern crate crypto;
 use crypto::md5::Md5;
 use crypto::digest::Digest;
 
-fn get_password(id: &str) -> String {
+fn get_password(id: &str, length: usize) -> String {
     let key_base = id.as_bytes();
     let mut password_chars: Vec<char> = Vec::new();
     let mut hasher = Md5::new();
@@ -15,8 +15,8 @@ fn get_password(id: &str) -> String {
         // Check sum of first five digits in hex representation. Thanks, gkbrk!
         // See: https://gist.github.com/gkbrk/2e4835e3a17b3fb6e1e7
         if hashed[0] as i32 + hashed[1] as i32 + (hashed[2] >> 4) as i32 == 0 {
-            password_chars.push(hashed[2] as char);
-            if password_chars.len() >= 8 {
+            password_chars.push(hasher.result_str().chars().nth(5).unwrap());
+            if password_chars.len() >= length {
                 break;
             }
         }
@@ -27,11 +27,11 @@ fn get_password(id: &str) -> String {
 
 fn main() {
     let id1 = "ffykfhsq";
-    let password1 = get_password(id1);
+    let password1 = get_password(id1, 8);
     println!("Part 1: {} --> {}", id1, password1);
 }
 
 #[test]
 fn test_aoc_example() {
-    assert_eq!(get_password("abc"), "18f47a30");
+    assert_eq!(get_password("abc", 8), "18f47a30");
 }
