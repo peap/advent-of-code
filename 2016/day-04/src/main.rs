@@ -6,6 +6,8 @@ use std::io::{BufRead, BufReader};
 
 use regex::Regex;
 
+const MIN_LETTER: u8 = 'a' as u8;
+const NAMED: &'static str = "northpole-object-storage";
 
 struct Room {
     name: String,
@@ -57,6 +59,24 @@ impl Room {
                                    .collect();
         self.checksum == expected
     }
+
+    pub fn decrypt(&self) -> String {
+        let mut rotated: Vec<char> = Vec::new();
+        for c in self.name.chars() {
+            if c == '-' {
+                rotated.push(c);
+                continue;
+            }
+            let to_rotate = (self.sector % 26) as u8;
+            let code = (
+                ((c as u8)
+                    .checked_sub(MIN_LETTER)).expect("Got a letter < 'a'.")
+                    .checked_add(to_rotate).expect("Overflow after sector addition!")
+            ) % 26;
+            rotated.push((code + MIN_LETTER) as u8 as char);
+        }
+        rotated.into_iter().collect()
+    }
 }
 
 fn load_rooms(filename: &'static str) -> Vec<Room> {
@@ -88,4 +108,8 @@ fn main() {
         "Part 1: {} of {} rooms are valid; sector sum is {}",
         valid.len(), rooms.len(), sum,
     );
+    let sector = valid.iter()
+                     .find(|room| room.decrypt().starts_with(NAMED)).unwrap()
+                     .get_sector();
+    println!("Part 2: northpole-object-store is in sector {}", sector);
 }
