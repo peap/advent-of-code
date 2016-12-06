@@ -15,9 +15,8 @@ fn load_signals(filename: &'static str) -> Vec<String> {
     signals
 }
 
-fn decode_signal(signals: Vec<String>) -> String {
+fn get_count_maps(signals: Vec<String>) -> Vec<HashMap<char, i32>> {
     let width = signals[0].as_bytes().len();
-    let mut signal: Vec<char> = Vec::with_capacity(width);
     let mut counts: Vec<HashMap<char, i32>> = Vec::new();
     for _ in 0..width {
         counts.push(HashMap::with_capacity(26));
@@ -32,6 +31,11 @@ fn decode_signal(signals: Vec<String>) -> String {
             }
         }
     }
+    counts
+}
+
+fn decode_signal_1(counts: &Vec<HashMap<char, i32>>) -> String {
+    let mut signal: Vec<char> = Vec::new();
     for count in counts {
         let mut max_num = 0;
         let mut max_char = 0 as char;
@@ -46,8 +50,27 @@ fn decode_signal(signals: Vec<String>) -> String {
     signal.into_iter().collect::<String>()
 }
 
+fn decode_signal_2(counts: &Vec<HashMap<char, i32>>) -> String {
+    let mut signal: Vec<char> = Vec::new();
+    for count in counts {
+        let mut min_num = 100;
+        let mut max_char = 0 as char;
+        for (chr, num) in count.iter() {
+            if num < &min_num {
+                max_char = chr.clone();
+                min_num = num.clone();
+            }
+        }
+        signal.push(max_char);
+    }
+    signal.into_iter().collect::<String>()
+}
+
 fn main() {
     let signals = load_signals("input.txt");
-    let signal_1 = decode_signal(signals);
+    let count_maps = get_count_maps(signals);
+    let signal_1 = decode_signal_1(&count_maps);
+    let signal_2 = decode_signal_2(&count_maps);
     println!("Part 1: the signal is {}", signal_1);
+    println!("Part 2: the signal is {}", signal_2);
 }
