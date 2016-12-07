@@ -19,7 +19,7 @@ impl IPv7 {
         let mut last_four: [char; 4] = [0 as char; 4];
         for (i, chr) in self.address.chars().enumerate() {
             if i < 3 {
-                last_four[i+1] = chr;
+                last_four[i + 1] = chr;
                 continue;
             };
             // shift
@@ -31,9 +31,8 @@ impl IPv7 {
                 in_brackets = false;
                 continue;
             }
-            if last_four[0] == last_four[3] &&
-                    last_four[1] == last_four[2] &&
-                    last_four[0] != last_four[1] {
+            if last_four[0] == last_four[3] && last_four[1] == last_four[2] &&
+               last_four[0] != last_four[1] {
                 if in_brackets {
                     tls_compliant = false;
                     break;
@@ -54,8 +53,7 @@ impl IPv7 {
         // supernet, [hypernet], etc. There can be multiple hypernets, but none
         // of the addresses *start* with a hypernet, so we can assume that even
         // indices of the split are supernets and odd are hypernets.
-        let parts: Vec<&str> =
-            self.address.split(|c: char| c == '[' || c == ']').collect();
+        let parts: Vec<&str> = self.address.split(|c: char| c == '[' || c == ']').collect();
         let mut supernets: Vec<&str> = Vec::new();
         let mut hypernets: Vec<&str> = Vec::new();
         for (i, part) in parts.iter().enumerate() {
@@ -82,9 +80,9 @@ impl IPv7 {
             for bab in bab_candidates {
                 let bytes = bab.as_bytes();
                 let aba: String = [bytes[1], bytes[0], bytes[1]]
-                                      .iter()
-                                      .map(|c| c.clone() as char)
-                                      .collect();
+                    .iter()
+                    .map(|c| c.clone() as char)
+                    .collect();
                 for supernet in supernets.iter() {
                     if supernet.contains(&aba) {
                         found_match = true;
@@ -104,7 +102,7 @@ impl IPv7 {
         let mut last3: [char; 3] = [0 as char; 3];
         for (i, chr) in net.chars().enumerate() {
             if i < 2 {
-                last3[i+1] = chr;
+                last3[i + 1] = chr;
                 continue;
             }
             last3 = [last3[1], last3[2], chr];
@@ -133,6 +131,10 @@ fn main() {
     let ipaddrs = load_ipaddrs("input.txt");
     let num_tls = ipaddrs.iter().filter(|a| a.supports_tls()).count();
     let num_ssl = ipaddrs.iter().filter(|a| a.supports_ssl()).count();
-    println!("Part 1: {}/{} IPv7 addrs support TLS", num_tls, ipaddrs.len());
-    println!("Part 2: {}/{} IPv7 addrs support SSL", num_ssl, ipaddrs.len());
+    println!("Part 1: {}/{} IPv7 addrs support TLS",
+             num_tls,
+             ipaddrs.len());
+    println!("Part 2: {}/{} IPv7 addrs support SSL",
+             num_ssl,
+             ipaddrs.len());
 }
