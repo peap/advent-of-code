@@ -120,6 +120,28 @@ impl Display {
         }
         count
     }
+
+    fn print(&self) {
+        for _ in 0..(self.width + 2) {
+            print!("-");
+        }
+        print!("\n");
+        for row in self.pixels.iter() {
+            print!("|");
+            for pixel in row {
+                if *pixel {
+                    print!("*");
+                } else {
+                    print!(" ");
+                }
+            }
+            print!("|\n");
+        }
+        for _ in 0..(self.width + 2) {
+            print!("-");
+        }
+        print!("\n");
+    }
 }
 
 fn load_instructions(filename: &'static str) -> Vec<Instruction> {
@@ -135,19 +157,19 @@ fn load_instructions(filename: &'static str) -> Vec<Instruction> {
     instructions
 }
 
-fn part_1(instructions: &Vec<Instruction>) -> u32 {
-    let mut display = Display::new(50, 6);
-    display.process(&instructions);
-    display.num_on()
-}
-
 fn main() {
     let instructions = load_instructions("input.txt");
-    println!("Part 1: The display has {} lights on.", part_1(&instructions));
+    let mut display = Display::new(50, 6);
+    display.process(&instructions);
+    println!("Part 1: The display has {} lights on.", display.num_on());
+    println!("Part 2: ...");
+    display.print();
 }
 
 #[test]
 fn test_part_1() {
     let instructions = load_instructions("input.txt");
-    assert_eq!(part_1(&instructions), 123);
+    let mut display = Display::new(50, 6);
+    display.process(&instructions);
+    assert_eq!(display.num_on(), 123);
 }
