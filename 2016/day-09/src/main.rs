@@ -135,3 +135,10 @@ fn test_whitespace_is_skipped_in_marker_sequence() {
     let expected = "X(3x3)AB(3x3)ABCY".to_string();
     assert_eq!(expected, decompress(compressed));
 }
+
+#[test]
+fn test_part1_answer() {
+    let sequence = load_compressed_sequence("input.txt");
+    let expanded = decompress(sequence);
+    assert_eq!(expanded.len(), 120765);
+}
