@@ -47,13 +47,19 @@ fn decompress(sequence: String) -> String {
                     let mut seq = String::with_capacity(n_chars);
                     for _ in 0..n_chars {
                         match chars.next() {
-                            Some(c) => seq.push(c),
+                            Some(c) => {
+                                if !c.is_whitespace() {
+                                    seq.push(c);
+                                }
+                            }
                             None => (),
                         }
                     }
                     for _ in 0..n_times {
                         decompressed.push_str(&seq);
                     }
+                } else if chr.is_whitespace() {
+                    continue;
                 } else {
                     decompressed.push(chr)
                 }
@@ -113,5 +119,19 @@ fn test_example_5() {
 fn test_example_6() {
     let compressed = "X(8x2)(3x3)ABCY".to_string();
     let expected = "X(3x3)ABC(3x3)ABCY".to_string();
+    assert_eq!(expected, decompress(compressed));
+}
+
+#[test]
+fn test_whitespace_is_skipped() {
+    let compressed = "X(8x2)(3x3)ABCY Z".to_string();
+    let expected = "X(3x3)ABC(3x3)ABCYZ".to_string();
+    assert_eq!(expected, decompress(compressed));
+}
+
+#[test]
+fn test_whitespace_is_skipped_in_marker_sequence() {
+    let compressed = "X(8x2)(3x3)A BCY".to_string();
+    let expected = "X(3x3)AB(3x3)ABCY".to_string();
     assert_eq!(expected, decompress(compressed));
 }
