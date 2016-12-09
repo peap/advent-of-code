@@ -12,7 +12,7 @@ fn load_compressed_sequence(filename: &'static str) -> String {
     sequence
 }
 
-fn decompress(sequence: String) -> String {
+fn decompress<'a>(sequence: &'a str) -> String {
     let mut decompressed = String::with_capacity(sequence.len());
     let mut chars = sequence.chars();
     loop {
@@ -74,64 +74,64 @@ fn decompress(sequence: String) -> String {
 
 fn main() {
     let sequence = load_compressed_sequence("input.txt");
-    let compressed_len = sequence.len();
-    let expanded = decompress(sequence);
+    let compressed_len = &sequence.len();
+    let expanded = decompress(&sequence);
     let expanded_len = expanded.len();
     println!("Part 1: Expanded {} characters to {}.", compressed_len, expanded_len);
 }
 
 #[test]
 fn test_example_1() {
-    let compressed = "ADVENT".to_string();
+    let compressed = "ADVENT";
     let expected = "ADVENT".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_example_2() {
-    let compressed = "A(1x5)BC".to_string();
+    let compressed = "A(1x5)BC";
     let expected = "ABBBBBC".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_example_3() {
-    let compressed = "(3x3)XYZ".to_string();
+    let compressed = "(3x3)XYZ";
     let expected = "XYZXYZXYZ".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_example_4() {
-    let compressed = "A(2x2)BCD(2x2)EFG".to_string();
+    let compressed = "A(2x2)BCD(2x2)EFG";
     let expected = "ABCBCDEFEFG".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_example_5() {
-    let compressed = "(6x1)(1x3)A".to_string();
+    let compressed = "(6x1)(1x3)A";
     let expected = "(1x3)A".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_example_6() {
-    let compressed = "X(8x2)(3x3)ABCY".to_string();
+    let compressed = "X(8x2)(3x3)ABCY";
     let expected = "X(3x3)ABC(3x3)ABCY".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_whitespace_is_skipped() {
-    let compressed = "X(8x2)(3x3)ABCY Z".to_string();
+    let compressed = "X(8x2)(3x3)ABCY Z";
     let expected = "X(3x3)ABC(3x3)ABCYZ".to_string();
     assert_eq!(expected, decompress(compressed));
 }
 
 #[test]
 fn test_whitespace_is_skipped_in_marker_sequence() {
-    let compressed = "X(8x2)(3x3)A BCY".to_string();
+    let compressed = "X(8x2)(3x3)A BCY";
     let expected = "X(3x3)AB(3x3)ABCY".to_string();
     assert_eq!(expected, decompress(compressed));
 }
@@ -139,6 +139,6 @@ fn test_whitespace_is_skipped_in_marker_sequence() {
 #[test]
 fn test_part1_answer() {
     let sequence = load_compressed_sequence("input.txt");
-    let expanded = decompress(sequence);
+    let expanded = decompress(&sequence);
     assert_eq!(expanded.len(), 120765);
 }
