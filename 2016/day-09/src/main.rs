@@ -2,13 +2,13 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 
 #[derive(Debug)]
-enum Mode {
+pub enum Mode {
     BuildMode,
     CountMode,
 }
 
 #[derive(Debug, PartialEq)]
-enum Decompressed {
+pub enum Decompressed {
     Built(String),
     Counted(usize),
 }
@@ -22,7 +22,7 @@ impl Decompressed {
     }
 }
 
-fn load_compressed_sequence(filename: &'static str) -> String {
+pub fn load_compressed_sequence(filename: &'static str) -> String {
     let mut sequence = String::new();
     let f = File::open(filename).unwrap();
     let mut reader = BufReader::new(f);
@@ -33,7 +33,7 @@ fn load_compressed_sequence(filename: &'static str) -> String {
     sequence
 }
 
-fn decompress<'a>(sequence: &'a str,
+pub fn decompress<'a>(sequence: &'a str,
                   mode: Mode,
                   recursize: bool) -> Decompressed {
     use Mode::*;
@@ -128,144 +128,151 @@ fn main() {
     println!("Part 2: Expanded {} characters to {}.", compressed_len, len_2);
 }
 
-#[test]
-fn test_example_1() {
-    use Decompressed::*;
-    let compressed = "ADVENT";
-    let expected = Built("ADVENT".to_string());
-    assert_eq!(expected,decompress(compressed, Mode::BuildMode, false));
-}
+#[cfg(test)]
+mod tests {
 
-#[test]
-fn test_example_1_count() {
-    use Decompressed::*;
-    let compressed = "ADVENT";
-    let expected = Counted("ADVENT".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    use super::*;
 
-#[test]
-fn test_example_2() {
-    use Decompressed::*;
-    let compressed = "A(1x5)BC";
-    let expected = Built("ABBBBBC".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_example_1() {
+        use Decompressed::*;
+        let compressed = "ADVENT";
+        let expected = Built("ADVENT".to_string());
+        assert_eq!(expected,decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_example_2_count() {
-    use Decompressed::*;
-    let compressed = "A(1x5)BC";
-    let expected = Counted("ABBBBBC".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_example_1_count() {
+        use Decompressed::*;
+        let compressed = "ADVENT";
+        let expected = Counted("ADVENT".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_example_3() {
-    use Decompressed::*;
-    let compressed = "(3x3)XYZ";
-    let expected = Built("XYZXYZXYZ".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_example_2() {
+        use Decompressed::*;
+        let compressed = "A(1x5)BC";
+        let expected = Built("ABBBBBC".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_example_3_count() {
-    use Decompressed::*;
-    let compressed = "(3x3)XYZ";
-    let expected = Counted("XYZXYZXYZ".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_example_2_count() {
+        use Decompressed::*;
+        let compressed = "A(1x5)BC";
+        let expected = Counted("ABBBBBC".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_example_4() {
-    use Decompressed::*;
-    let compressed = "A(2x2)BCD(2x2)EFG";
-    let expected = Built("ABCBCDEFEFG".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_example_3() {
+        use Decompressed::*;
+        let compressed = "(3x3)XYZ";
+        let expected = Built("XYZXYZXYZ".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_example_4_count() {
-    use Decompressed::*;
-    let compressed = "A(2x2)BCD(2x2)EFG";
-    let expected = Counted("ABCBCDEFEFG".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_example_3_count() {
+        use Decompressed::*;
+        let compressed = "(3x3)XYZ";
+        let expected = Counted("XYZXYZXYZ".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_example_5() {
-    use Decompressed::*;
-    let compressed = "(6x1)(1x3)A";
-    let expected = Built("(1x3)A".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_example_4() {
+        use Decompressed::*;
+        let compressed = "A(2x2)BCD(2x2)EFG";
+        let expected = Built("ABCBCDEFEFG".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_example_5_count() {
-    use Decompressed::*;
-    let compressed = "(6x1)(1x3)A";
-    let expected = Counted("(1x3)A".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_example_4_count() {
+        use Decompressed::*;
+        let compressed = "A(2x2)BCD(2x2)EFG";
+        let expected = Counted("ABCBCDEFEFG".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_example_6() {
-    use Decompressed::*;
-    let compressed = "X(8x2)(3x3)ABCY";
-    let expected = Built("X(3x3)ABC(3x3)ABCY".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_example_5() {
+        use Decompressed::*;
+        let compressed = "(6x1)(1x3)A";
+        let expected = Built("(1x3)A".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_example_6_count() {
-    use Decompressed::*;
-    let compressed = "X(8x2)(3x3)ABCY";
-    let expected = Counted("X(3x3)ABC(3x3)ABCY".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_example_5_count() {
+        use Decompressed::*;
+        let compressed = "(6x1)(1x3)A";
+        let expected = Counted("(1x3)A".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_whitespace_is_skipped() {
-    use Decompressed::*;
-    let compressed = "X(8x2)(3x3)ABCY Z";
-    let expected = Built("X(3x3)ABC(3x3)ABCYZ".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_example_6() {
+        use Decompressed::*;
+        let compressed = "X(8x2)(3x3)ABCY";
+        let expected = Built("X(3x3)ABC(3x3)ABCY".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_whitespace_is_skipped_count() {
-    use Decompressed::*;
-    let compressed = "X(8x2)(3x3)ABCY Z";
-    let expected = Counted("X(3x3)ABC(3x3)ABCYZ".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_example_6_count() {
+        use Decompressed::*;
+        let compressed = "X(8x2)(3x3)ABCY";
+        let expected = Counted("X(3x3)ABC(3x3)ABCY".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_whitespace_is_skipped_in_marker_sequence() {
-    use Decompressed::*;
-    let compressed = "X(8x2)(3x3)A BCY";
-    let expected = Built("X(3x3)AB(3x3)ABCY".to_string());
-    assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
-}
+    #[test]
+    fn test_whitespace_is_skipped() {
+        use Decompressed::*;
+        let compressed = "X(8x2)(3x3)ABCY Z";
+        let expected = Built("X(3x3)ABC(3x3)ABCYZ".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_whitespace_is_skipped_in_marker_sequence_count() {
-    use Decompressed::*;
-    let compressed = "X(8x2)(3x3)A BCY";
-    let expected = Counted("X(3x3)AB(3x3)ABCY".len());
-    assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
-}
+    #[test]
+    fn test_whitespace_is_skipped_count() {
+        use Decompressed::*;
+        let compressed = "X(8x2)(3x3)ABCY Z";
+        let expected = Counted("X(3x3)ABC(3x3)ABCYZ".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
 
-#[test]
-fn test_part1_answer() {
-    let sequence = load_compressed_sequence("input.txt");
-    let expanded = decompress(&sequence, Mode::BuildMode, false);
-    assert_eq!(expanded.len(), 120765);
-}
+    #[test]
+    fn test_whitespace_is_skipped_in_marker_sequence() {
+        use Decompressed::*;
+        let compressed = "X(8x2)(3x3)A BCY";
+        let expected = Built("X(3x3)AB(3x3)ABCY".to_string());
+        assert_eq!(expected, decompress(compressed, Mode::BuildMode, false));
+    }
 
-#[test]
-fn test_part1_answer_count() {
-    let sequence = load_compressed_sequence("input.txt");
-    let expanded = decompress(&sequence, Mode::CountMode, false);
-    assert_eq!(expanded.len(), 120765);
+    #[test]
+    fn test_whitespace_is_skipped_in_marker_sequence_count() {
+        use Decompressed::*;
+        let compressed = "X(8x2)(3x3)A BCY";
+        let expected = Counted("X(3x3)AB(3x3)ABCY".len());
+        assert_eq!(expected, decompress(compressed, Mode::CountMode, false));
+    }
+
+    #[test]
+    fn test_part1_answer() {
+        let sequence = load_compressed_sequence("input.txt");
+        let expanded = decompress(&sequence, Mode::BuildMode, false);
+        assert_eq!(expanded.len(), 120765);
+    }
+
+    #[test]
+    fn test_part1_answer_count() {
+        let sequence = load_compressed_sequence("input.txt");
+        let expanded = decompress(&sequence, Mode::CountMode, false);
+        assert_eq!(expanded.len(), 120765);
+    }
+
 }
