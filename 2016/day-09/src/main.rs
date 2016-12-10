@@ -62,6 +62,37 @@ pub fn parse_marker(chars: &mut Chars) -> (usize, usize) {
     (n_chars, n_times)
 }
 
+fn decompress_recursive_count<'a>(sequence: &'a str) -> Decompressed {
+    let mut count = 0;
+    let mut chars = sequence.chars();
+    loop {
+        match chars.next() {
+            Some(chr) => {
+                if chr == '(' {
+                    let (n_chars, n_times) = parse_marker(&mut chars);
+                    let mut seq = String::with_capacity(n_chars);
+                    for _ in 0..n_chars {
+                        match chars.next() {
+                            Some(c) => seq.push(c),
+                            None => (),
+                        }
+                    }
+                    match decompress_recursive_count(&seq) {
+                        Decompressed::Counted(num) => count += n_times * num,
+                        _ => (),
+                    }
+                } else if chr.is_whitespace() {
+                    continue;
+                } else {
+                    count += 1;
+                }
+            }
+            None => break,
+        }
+    }
+    Decompressed::Counted(count)
+}
+
 pub fn decompress<'a>(sequence: &'a str,
                   mode: Mode,
                   recursive: bool) -> Decompressed {
@@ -72,6 +103,12 @@ pub fn decompress<'a>(sequence: &'a str,
     let mut decompressed = String::with_capacity(sequence.len());
     let mut count = 0;
     let mut fully_expanded = true;
+
+
+    if recursive && mode == CountMode {
+        // bail!
+        return decompress_recursive_count(sequence);
+    }
 
     {
         // introduced in this inner scope so that the mutable borrow in add_char
@@ -95,8 +132,6 @@ pub fn decompress<'a>(sequence: &'a str,
                                 Some(c) => {
                                     if c == '(' {
                                         fully_expanded = false;
-                                        if recursive && mode == CountMode {
-                                        }
                                     }
                                     if !c.is_whitespace() {
                                         seq.push(c);
@@ -400,6 +435,13 @@ mod tests {
         let compressed = "(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN";
         let expected_count = Counted(445);
         assert_eq!(expected_count, decompress(compressed, CountMode, true));
+    }
+
+    #[test]
+    fn test_part2_answer() {
+        let sequence = load_compressed_sequence("input.txt");
+        let expanded = decompress(&sequence, CountMode, true);
+        assert_eq!(expanded.len(), 11658395076);
     }
 
 }
