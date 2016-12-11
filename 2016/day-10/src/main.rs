@@ -203,14 +203,22 @@ pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option
                     let mut receiver = bots.get_mut(&id).unwrap();
                     receiver.receive_chip(low_chip);
                 }
-                Recipient::Output(_) => (),
+                Recipient::Output(n) => {
+                    if n <= 2 {
+                        println!("Output {}: Chip {:?}", n, low_chip);
+                    }
+                },
             };
             match high_recip {
                 Recipient::Bot(id) => {
                     let mut receiver = bots.get_mut(&id).unwrap();
                     receiver.receive_chip(high_chip);
                 }
-                Recipient::Output(_) => (),
+                Recipient::Output(n) => {
+                    if n <= 2 {
+                        println!("Output {}: Chip {:?}", n, high_chip);
+                    }
+                },
             };
         }
         active_bot_ids = match get_active_bot_ids(&bots) {
@@ -233,6 +241,8 @@ fn main() {
     } else {
         println!("Part 1: couldn't identify the bot :/");
     }
+    // keep going until the end to see where all the chips go
+    pass_chips_until(&mut bots, |_| false);
 }
 
 #[cfg(test)]
