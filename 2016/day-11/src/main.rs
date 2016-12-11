@@ -1,4 +1,6 @@
-#[derive(Debug, Eq, PartialEq)]
+use std::collections::HashSet;
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Isotope {
     Tm,  // Thulium
     Pu,  // Plutonium,
@@ -7,43 +9,48 @@ enum Isotope {
     Ru,  // Ruthenium,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Item {
     Generator(Isotope),
     Microchip(Isotope),
 }
 
-impl Item {
-    fn compatible_with(&self, other: &Item) -> bool {
-        use Item::*;
-        match self {
-            &Generator(ref iso) => {
-                match other {
-                    &Generator(_) => true,
-                    &Microchip(ref iso2) => iso == iso2,
-                }
-            }
-            &Microchip(ref iso) => {
-                match other {
-                    &Generator(ref iso2) => iso == iso2,
-                    &Microchip(_) => true,
-                }
-            }
-        }
-    }
-}
-
 struct Floor {
-    items: Vec<Item>,
+    generators: HashSet<Isotope>,
+    microchips: HashSet<Isotope>,
 }
 
 impl Floor {
     fn new(items: Vec<Item>) -> Floor {
-        Floor { items: items }
+        use Item::*;
+        let mut generators = HashSet::new();
+        let mut microchips = HashSet::new();
+        for item in items.iter() {
+            match item {
+                &Generator(ref iso) => generators.insert(iso.clone()),
+                &Microchip(ref iso) => microchips.insert(iso.clone()),
+            };
+        }
+        Floor {
+            generators: generators,
+            microchips: microchips,
+        }
+    }
+
+    fn is_safe_for_microchips(&self) -> bool {
+        if self.generators.len() == 0 {
+            return true;
+        }
+        for isotope in self.microchips.iter() {
+            if !self.generators.contains(isotope) {
+                return false;
+            }
+        }
+        true
     }
 }
 
-struct Building {
+pub struct Building {
     floors: Vec<Floor>,
 }
 
@@ -55,9 +62,18 @@ impl Building {
         }
         Building { floors: floors }
     }
+
+    fn is_safe_for_microchips(&self) -> bool {
+        for floor in self.floors.iter() {
+            if !floor.is_safe_for_microchips() {
+                return false
+            }
+        }
+        true
+    }
 }
 
-fn get_initial_building() -> Building {
+pub fn get_initial_building() -> Building {
     use Isotope::*;
     use Item::*;
     // From input.txt:
@@ -71,5 +87,17 @@ fn get_initial_building() -> Building {
 
 
 fn main() {
-    let mut building = get_initial_building();
+    let building = get_initial_building();
+    println!("Initial building safe: {}", building.is_safe_for_microchips());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_initial_building_is_safe() {
+        let building = get_initial_building();
+        assert!(building.is_safe_for_microchips());
+    }
 }
