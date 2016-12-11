@@ -1,16 +1,43 @@
 extern crate regex;
 
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 enum Chip {
     Value(u32),
     Empty,
 }
 
-#[derive(Debug, PartialEq)]
+impl Ord for Chip {
+    fn cmp(&self, other: &Chip) -> Ordering {
+        use Chip::*;
+        match *self {
+            Empty => {
+                match *other {
+                    Empty => Ordering::Equal,
+                    Value(_) => Ordering::Less,
+                }
+            }
+            Value(n) => {
+                match *other {
+                    Empty => Ordering::Greater,
+                    Value(m) => n.cmp(&m),
+                }
+            }
+        }
+    }
+}
+
+impl PartialOrd for Chip {
+    fn partial_cmp(&self, other: &Chip) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 enum Recipient {
     Bot(u32),
     Output(u32),
@@ -57,18 +84,39 @@ impl Bot {
         self.id
     }
 
+    pub fn give_low_to(&self) -> Recipient {
+        self.give_low_to.clone()
+    }
+
+    pub fn give_high_to(&self) -> Recipient {
+        self.give_high_to.clone()
+    }
+
     pub fn hands_full(&self) -> bool {
         self.chips[0] != Chip::Empty && self.chips[1] != Chip::Empty
     }
 
-    pub fn take_chip(&mut self, chip: Chip) {
+    pub fn receive_chip(&mut self, chip: Chip) {
         if self.chips[0] == Chip::Empty {
             self.chips[0] = chip;
         } else if self.chips[1] == Chip::Empty {
             self.chips[1] = chip;
+            self.chips.sort();
         } else {
             panic!("Bot {} already has two chips!", self.id());
         }
+    }
+
+    pub fn release_low_chip(&mut self) -> Chip {
+        let chip = self.chips[0].clone();
+        self.chips[0] = Chip::Empty;
+        chip
+    }
+
+    pub fn release_high_chip(&mut self) -> Chip {
+        let chip = self.chips[1].clone();
+        self.chips[1] = Chip::Empty;
+        chip
     }
 }
 
@@ -109,16 +157,80 @@ fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
         let bot_id: u32 = caps.at(2).unwrap().parse().unwrap();
         let mut bot = bots.get_mut(&bot_id)
             .expect("Trying to give value to nonexistant bot.");
-        bot.take_chip(Chip::Value(value));
+        bot.receive_chip(Chip::Value(value));
     }
     bots
 }
 
-fn main() {
-    let bots = load_bots("input.txt");
+fn get_active_bot_ids(bots: &HashMap<u32, Bot>) -> Option<Vec<u32>> {
+    let mut active_bots = Vec::new();
     for (bot_id, bot) in bots.iter() {
         if bot.hands_full() {
-            println!("Bot {} has its hands full.", bot.id());
+            active_bots.push(*bot_id);
         }
+    }
+    match active_bots.len() {
+        0 => None,
+        _ => Some(active_bots),
+    }
+}
+
+fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option<u32>
+        where F: Fn(&Bot) -> bool {
+    let mut active_bot_ids = match get_active_bot_ids(&bots) {
+        Some(ids) => ids,
+        None => panic!("Expected one bot to be active at the start!"),
+    };
+    loop {
+        for id in active_bot_ids {
+            let low_chip: Chip;
+            let high_chip: Chip;
+            let low_recip: Recipient;
+            let high_recip: Recipient;
+            {
+                // Introduce scope to let this mutable borrow expire.
+                let mut bot = bots.get_mut(&id).unwrap();
+                if predicate(bot) {
+                    return Some(id);
+                }
+                low_chip = bot.release_low_chip();
+                low_recip = bot.give_low_to();
+                high_chip = bot.release_high_chip();
+                high_recip = bot.give_high_to();
+            }
+            match low_recip {
+                Recipient::Bot(id) => {
+                    let mut receiver = bots.get_mut(&id).unwrap();
+                    receiver.receive_chip(low_chip);
+                }
+                Recipient::Output(_) => (),
+            };
+            match high_recip {
+                Recipient::Bot(id) => {
+                    let mut receiver = bots.get_mut(&id).unwrap();
+                    receiver.receive_chip(high_chip);
+                }
+                Recipient::Output(_) => (),
+            };
+        }
+        active_bot_ids = match get_active_bot_ids(&bots) {
+            Some(ids) => ids,
+            None => break,
+        }
+    }
+    None
+}
+
+
+fn main() {
+    let mut bots = load_bots("input.txt");
+    let part1_pred = |b: &Bot| {
+        b.chips[0] == Chip::Value(17) &&
+        b.chips[1] == Chip::Value(61)
+    };
+    if let Some(part1_bot_id) = pass_chips_until(&mut bots, part1_pred) {
+        println!("Part 1: Bot {} compares the 17 and 61 chips.", part1_bot_id);
+    } else {
+        println!("Part 1: couldn't identify the bot :/");
     }
 }
