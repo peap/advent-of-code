@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-enum Chip {
+pub enum Chip {
     Value(u32),
     Empty,
 }
@@ -38,7 +38,7 @@ impl PartialOrd for Chip {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-enum Recipient {
+pub enum Recipient {
     Bot(u32),
     Output(u32),
 }
@@ -54,7 +54,7 @@ impl Recipient {
     }
 }
 
-struct Bot {
+pub struct Bot {
     id: u32,
     chips: [Chip; 2],
     give_low_to: Recipient,
@@ -131,7 +131,7 @@ fn get_value_regex() -> regex::Regex {
         .expect("Invalid value regex.")
 }
 
-fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
+pub fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
     let mut bots = HashMap::new();
     let mut starting_values: Vec<String> = Vec::new(); // process after bots
     let bot_re = get_bot_regex();
@@ -175,7 +175,7 @@ fn get_active_bot_ids(bots: &HashMap<u32, Bot>) -> Option<Vec<u32>> {
     }
 }
 
-fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option<u32>
+pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option<u32>
         where F: Fn(&Bot) -> bool {
     let mut active_bot_ids = match get_active_bot_ids(&bots) {
         Some(ids) => ids,
@@ -233,4 +233,21 @@ fn main() {
     } else {
         println!("Part 1: couldn't identify the bot :/");
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part_1_answer() {
+        let mut bots = load_bots("input.txt");
+        let part1_pred = |b: &Bot| {
+            b.chips[0] == Chip::Value(17) &&
+            b.chips[1] == Chip::Value(61)
+        };
+        let result = pass_chips_until(&mut bots, part1_pred);
+        assert_eq!(result, Some(98));
+    }
+
 }
