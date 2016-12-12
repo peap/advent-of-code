@@ -219,44 +219,55 @@ impl Building {
             return states;
         }
         let ref elevator_floor = self.floors[self.elevator];
+        let mut possible_floors: Vec<usize> = Vec::new();
         let n = self.elevator;
         if self.elevator_can_go_down() {
             states.push(self.clone_and_move(None, None, n - 1));
+            possible_floors.push(n - 1);
         }
         if self.elevator_can_go_up() {
             states.push(self.clone_and_move(None, None, n + 1));
+            possible_floors.push(n + 1);
         }
-        for iso in elevator_floor.generators.iter() {
-            let n = self.elevator;
-            if self.elevator_can_go_down() {
-                let item = Generator(iso.clone());
-                let possibility = self.clone_and_move(Some(item), None, n - 1);
+        let gens: Vec<Isotope> = elevator_floor.generators.clone().into_iter().collect();
+        for (i, iso) in gens.iter().enumerate() {
+            let item = Generator(iso.clone());
+            for f in possible_floors.iter() {
+                let possibility = self.clone_and_move(Some(item), None, *f);
                 if possibility.is_safe_for_microchips() {
                     states.push(possibility);
                 }
             }
-            if self.elevator_can_go_up() {
-                let item = Generator(iso.clone());
-                let possibility = self.clone_and_move(Some(item), None, n + 1);
-                if possibility.is_safe_for_microchips() {
-                    states.push(possibility);
+            for j in i..gens.len() {
+                let item2 = Generator(gens[j]);
+                for f in possible_floors.iter() {
+                    let possibility = self.clone_and_move(Some(item),
+                                                          Some(item2),
+                                                          *f);
+                    if possibility.is_safe_for_microchips() {
+                        states.push(possibility);
+                    }
                 }
             }
         }
-        for iso in elevator_floor.microchips.iter() {
-            let n = self.elevator;
-            if self.elevator_can_go_down() {
-                let item = Microchip(iso.clone());
-                let possibility = self.clone_and_move(Some(item), None, n - 1);
+        let chps: Vec<Isotope> = elevator_floor.microchips.clone().into_iter().collect();
+        for (i, iso) in chps.iter().enumerate() {
+            let item = Microchip(iso.clone());
+            for f in possible_floors.iter() {
+                let possibility = self.clone_and_move(Some(item), None, *f);
                 if possibility.is_safe_for_microchips() {
                     states.push(possibility);
                 }
             }
-            if self.elevator_can_go_up() {
-                let item = Microchip(iso.clone());
-                let possibility = self.clone_and_move(Some(item), None, n + 1);
-                if possibility.is_safe_for_microchips() {
-                    states.push(possibility);
+            for j in i..chps.len() {
+                let item2 = Microchip(chps[j]);
+                for f in possible_floors.iter() {
+                    let possibility = self.clone_and_move(Some(item),
+                                                          Some(item2),
+                                                          *f);
+                    if possibility.is_safe_for_microchips() {
+                        states.push(possibility);
+                    }
                 }
             }
         }
@@ -526,6 +537,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_example_building() {
         let building = get_example_building();
         let num_moves = minimize_elevator_trips(building);
