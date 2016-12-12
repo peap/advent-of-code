@@ -9,6 +9,8 @@ pub enum Isotope {
     Ru,  // Ruthenium,
     Sr,  // Strontium,
     Tm,  // Thulium
+    Elerium,
+    Dilithium,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -177,7 +179,7 @@ impl Building {
         // matters, not the particulars of which isotope is where. So, add them
         // to the building hash as pairs.
         let mut iso_pairs: Vec<Vec<usize>> = Vec::new();
-        for iso in vec![Pm, Pu, Ru, Sr, Tm] {
+        for iso in vec![Pm, Pu, Ru, Sr, Tm, Elerium, Dilithium] {
             let generator_floor = self.find_item(Generator(iso));
             let microchip_floor = self.find_item(Microchip(iso));
             if generator_floor.is_some() && microchip_floor.is_some() {
@@ -306,6 +308,20 @@ pub fn get_initial_building() -> Building {
     ])
 }
 
+pub fn get_initial_building_for_part_two() -> Building {
+    use Isotope::*;
+    use Item::*;
+    // From input.txt:
+    Building::with_items(vec![
+        vec![Generator(Tm), Microchip(Tm), Generator(Pu), Generator(Sr),
+             Generator(Elerium), Microchip(Elerium),
+             Generator(Dilithium), Microchip(Dilithium)],
+        vec![Microchip(Pu), Microchip(Sr)],
+        vec![Generator(Pm), Microchip(Pm), Generator(Ru), Microchip(Ru)],
+        vec![],
+    ])
+}
+
 pub fn minimize_elevator_trips(building: Building) -> u32 {
     if building.has_everything_on_top_floor() {
         return 0;
@@ -357,6 +373,10 @@ fn main() {
     let building = get_initial_building();
     let num_moves = minimize_elevator_trips(building);
     println!("Part 1: takes at least {} moves", num_moves);
+    // my building, part 2
+    let building = get_initial_building_for_part_two();
+    let num_moves = minimize_elevator_trips(building);
+    println!("Part 2: takes at least {} moves", num_moves);
 }
 
 #[cfg(test)]
@@ -606,5 +626,12 @@ mod tests {
         let building = get_initial_building();
         let num_moves = minimize_elevator_trips(building);
         assert_eq!(num_moves, 31);
+    }
+
+    #[test]
+    fn test_part_2_answer() {
+        let building = get_initial_building_for_part_two();
+        let num_moves = minimize_elevator_trips(building);
+        assert_eq!(num_moves, 55);
     }
 }
