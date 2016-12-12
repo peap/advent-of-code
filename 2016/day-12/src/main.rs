@@ -174,8 +174,13 @@ fn load_instructions<'a>(filename: &'a str) -> Vec<Instruction> {
 
 fn main() {
     let instructions = load_instructions("input.txt");
+    // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);
-    println!("Part 1: The value in register 'a' is {}.",
-             computer.get_register('a'));
+    println!("Part 1: The value in register 'a' is {}.", computer.get_register('a'));
+    // Part 2
+    let mut computer2 = Computer::new();
+    computer2.copy(Value::Integer(1), Value::Register('c'));
+    computer2.process(&instructions);
+    println!("Part 2: The value in register 'a' is {}.", computer2.get_register('a'));
 }
