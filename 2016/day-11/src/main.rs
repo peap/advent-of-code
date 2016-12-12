@@ -218,56 +218,42 @@ impl Building {
         if self.has_everything_on_top_floor() {
             return states;
         }
-        let ref elevator_floor = self.floors[self.elevator];
+        let ref curr_floor = self.floors[self.elevator];
         let mut possible_floors: Vec<usize> = Vec::new();
-        let n = self.elevator;
         if self.elevator_can_go_down() {
-            states.push(self.clone_and_move(None, None, n - 1));
-            possible_floors.push(n - 1);
+            possible_floors.push(self.elevator - 1);
         }
         if self.elevator_can_go_up() {
-            states.push(self.clone_and_move(None, None, n + 1));
-            possible_floors.push(n + 1);
+            possible_floors.push(self.elevator + 1);
         }
-        let gens: Vec<Isotope> = elevator_floor.generators.clone().into_iter().collect();
-        for (i, iso) in gens.iter().enumerate() {
-            let item = Generator(iso.clone());
-            for f in possible_floors.iter() {
-                let possibility = self.clone_and_move(Some(item), None, *f);
-                if possibility.is_safe_for_microchips() {
-                    states.push(possibility);
-                }
-            }
-            for j in i..gens.len() {
-                let item2 = Generator(gens[j]);
+        {
+            let mut add_state = |item1, item2| {
                 for f in possible_floors.iter() {
-                    let possibility = self.clone_and_move(Some(item),
-                                                          Some(item2),
-                                                          *f);
+                    let possibility = self.clone_and_move(item1, item2, *f);
                     if possibility.is_safe_for_microchips() {
                         states.push(possibility);
                     }
                 }
-            }
-        }
-        let chps: Vec<Isotope> = elevator_floor.microchips.clone().into_iter().collect();
-        for (i, iso) in chps.iter().enumerate() {
-            let item = Microchip(iso.clone());
-            for f in possible_floors.iter() {
-                let possibility = self.clone_and_move(Some(item), None, *f);
-                if possibility.is_safe_for_microchips() {
-                    states.push(possibility);
+            };
+            let gens: Vec<_> = curr_floor.generators.clone().into_iter().collect();
+            let chps: Vec<_> = curr_floor.microchips.clone().into_iter().collect();
+            for (i, iso) in gens.iter().enumerate() {
+                let item = Some(Generator(iso.clone()));
+                add_state(item, None);
+                if chps.contains(&iso) {
+                    add_state(item, Some(Microchip(iso.clone())));
+                }
+                for j in (i+1)..gens.len() {
+                    let item2 = Some(Generator(gens[j].clone()));
+                    add_state(item, item2);
                 }
             }
-            for j in i..chps.len() {
-                let item2 = Microchip(chps[j]);
-                for f in possible_floors.iter() {
-                    let possibility = self.clone_and_move(Some(item),
-                                                          Some(item2),
-                                                          *f);
-                    if possibility.is_safe_for_microchips() {
-                        states.push(possibility);
-                    }
+            for (i, iso) in chps.iter().enumerate() {
+                let item = Some(Microchip(iso.clone()));
+                add_state(item, None);
+                for j in (i+1)..chps.len() {
+                    let item2 = Some(Microchip(chps[j].clone()));
+                    add_state(item, item2);
                 }
             }
         }
@@ -314,13 +300,12 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
     while !bq.is_empty() {
         // println!("There are {} moves to process.", bq.len());
         let new_building = bq.pop_front().unwrap();
-        // println!("{}", new_building);
         if !unique_buildings.contains_key(&new_building) {
             unique_buildings.insert(new_building.clone(), new_building.n_moves());
         }
         if new_building.has_everything_on_top_floor() {
             let num = new_building.n_moves().clone();
-            // println!("Finished a building in {} moves!", num);
+            println!("Finished a building in {} moves!", num);
             if num < min {
                 min = num;
             }
@@ -344,15 +329,17 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
 }
 
 fn main() {
-    use Isotope::*;
-    use Item::*;
-    let building = Building::with_items(vec![
-        vec![Generator(Pu), Microchip(Pu)],
-        vec![],
-    ]);
-    let num_moves = minimize_elevator_trips(building);
-    // let building = get_initial_building();
+    // use Isotope::*;
+    // use Item::*;
+    // let building = Building::with_items(vec![
+    //     vec![Generator(Pu), Microchip(Pu)],
+    //     vec![],
+    // ]);
     // let num_moves = minimize_elevator_trips(building);
+    let building = get_example_building();
+    let num_moves = minimize_elevator_trips(building);
+//    let building = get_initial_building();
+//    let num_moves = minimize_elevator_trips(building);
     println!("Part 1: takes at least {} moves", num_moves);
 }
 
@@ -515,8 +502,8 @@ mod tests {
         use Isotope::*;
         use Item::*;
         let building = Building::with_items(vec![
-            vec![],
             vec![Generator(Pu)],
+            vec![],
             vec![],
         ]);
         assert!(!building.has_everything_on_top_floor());
@@ -533,11 +520,10 @@ mod tests {
             vec![],
         ]);
         let num_moves = minimize_elevator_trips(building);
-        assert_eq!(num_moves, 3);
+        assert_eq!(num_moves, 1);
     }
 
     #[test]
-    #[ignore]
     fn test_example_building() {
         let building = get_example_building();
         let num_moves = minimize_elevator_trips(building);
