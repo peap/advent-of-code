@@ -323,7 +323,7 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
             break;
         }
         let new_building = bq.pop_front().unwrap();
-        if bq.len() % 100000 < 5 {
+        if bq.len() % 250000 < 5 {
             println!("There are {} moves to process; working on move #{}.",
                      bq.len(),
                      new_building.n_moves());
@@ -333,21 +333,15 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
         }
         if new_building.has_everything_on_top_floor() {
             // doing BFS, so this is the answer
-            let num = new_building.n_moves().clone();
-            println!("Finished a building in {} moves!", num);
-            return num;
+            return new_building.n_moves();
         } else {
             let next_states = new_building.get_next_states();
             for bldg in next_states {
                 match unique_buildings.get(&bldg) {
-                    Some(previous_n_moves) => {
-                        if previous_n_moves < &bldg.n_moves() {
-                            continue;
-                        }
-                    }
+                    Some(_) => continue,
                     None => (),
                 }
-                // unique_buildings.insert(bldg.clone(), bldg.n_moves());
+                unique_buildings.insert(bldg.clone(), bldg.n_moves());
                 bq.push_back(bldg);
             }
         }
@@ -356,9 +350,9 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
 }
 
 fn main() {
-    // the example building
-//   let building = get_example_building();
-//   let num_moves = minimize_elevator_trips(building);
+//    // the example building
+//    let building = get_example_building();
+//    let num_moves = minimize_elevator_trips(building);
     // my building
     let building = get_initial_building();
     let num_moves = minimize_elevator_trips(building);
@@ -608,10 +602,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_part_1_answer() {
         let building = get_initial_building();
         let num_moves = minimize_elevator_trips(building);
-        assert_eq!(num_moves, 25); // TODO: find answer :)
+        assert_eq!(num_moves, 31);
     }
 }
