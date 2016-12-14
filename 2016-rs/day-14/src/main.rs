@@ -4,7 +4,7 @@ use crypto::md5::Md5;
 use crypto::digest::Digest;
 
 pub const MY_SALT: &'static str = "ngcjuoqr";
-const NEXTN: u64 = 1000;
+const MAX_AGE: u64 = 1000;
 
 pub fn find_consecutive<'a>(n: u32, string: &'a str) -> Option<char> {
     let mut last = 0 as char;
@@ -23,57 +23,70 @@ pub fn find_consecutive<'a>(n: u32, string: &'a str) -> Option<char> {
     None
 }
 
-pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str) -> u64 {
-    let salt_bytes = salt.as_bytes();
+pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str, extra: u32) -> u64 {
     let mut potentials_keys: Vec<(String, char, u64)> = Vec::new();
-    let mut completed_keys: Vec<usize> = Vec::new();
-    let mut keys: Vec<String> = Vec::new();
+    let mut no_longer_potential: Vec<usize> = Vec::new();
+    let mut keys: Vec<u64> = Vec::new();
     let mut hasher = Md5::new();
     let mut output = String::new();
     for i in 0..std::u64::MAX {
-        hasher.input(salt_bytes);
-        hasher.input(i.to_string().as_bytes());
+        hasher.reset();
+        hasher.input_str(salt);
+        hasher.input_str(&i.to_string());
         output = hasher.result_str();
+        for _ in 0..extra {
+            hasher.reset();
+            hasher.input_str(&output);
+            output = hasher.result_str();
+        }
         // look for 5 in a row
         if let Some(char5) = find_consecutive(5, &output) {
             // compare previous 3-in-a-row finds and see if this 5-er makes
             // them a real key
-            for (j, &(ref key, ref char3, ref idx)) in
+            for (j, &(_, ref char3, ref idx)) in
                     potentials_keys.iter().enumerate() {
-                if *char3 == char5 && i - idx <= NEXTN {
-                    keys.push(key.clone());
-                    completed_keys.push(j);
+                let age = i - idx;
+                if *char3 == char5 && age <= MAX_AGE {
+                    no_longer_potential.push(j);
+                    keys.push(*idx);
+                    keys.sort();
                 }
-                if i - idx > NEXTN {
+                if age > MAX_AGE {
                     // this match is too old now
-                    completed_keys.push(j);
+                    no_longer_potential.push(j);
                 }
-                if keys.len() == n {
-                    // finished!
-                    return *idx;
+                if keys.len() >= n {
+                    if let Some(last) = keys.last() {
+                        // make sure we've gone at least MAX_AGE past the last
+                        // triple, looking for quintuples
+                        if last + MAX_AGE < i {
+                            return keys[n - 1];
+                        }
+                    }
                 }
             }
             // sort the indices that we need to remove from potentials_keys so
             // that we process them in order and can safely subtract off the
             // number of keys we've taken out so far (k)
-            completed_keys.sort();
-            for (k, idx) in completed_keys.iter().enumerate() {
+            no_longer_potential.sort();
+            for (k, idx) in no_longer_potential.iter().enumerate() {
                 potentials_keys.remove(*idx - k);
             }
-            completed_keys.clear();
+            no_longer_potential.clear();
         }
         // look for new triples
         if let Some(char3) = find_consecutive(3, &output) {
             potentials_keys.push((output, char3, i));
         }
-        hasher.reset();
     }
     u64::max_value()
 }
 
 fn main() {
-    let index = get_index_that_produces_n_keys(64, MY_SALT);
+    let index = get_index_that_produces_n_keys(64, MY_SALT, 0);
     println!("Part 1: index #{} produces the 64th key", index);
+    let index2 = get_index_that_produces_n_keys(64, MY_SALT, 2016);
+    println!("Part 2: index #{} produces the 64th key", index2);
 }
 
 #[cfg(test)]
@@ -91,14 +104,27 @@ mod tests {
     }
 
     #[test]
-    fn test_example() {
-        let index = get_index_that_produces_n_keys(64, "abc");
+    fn test_example_1() {
+        let index = get_index_that_produces_n_keys(64, "abc", 0);
         assert_eq!(index, 22728);
     }
 
     #[test]
     fn test_part_1() {
-        let index = get_index_that_produces_n_keys(64, MY_SALT);
+        let index = get_index_that_produces_n_keys(64, MY_SALT, 0);
         assert_eq!(index, 18626);
     }
+
+    #[test]
+    fn test_example_2() {
+        let index = get_index_that_produces_n_keys(64, "abc", 2016);
+        assert_eq!(index, 22551);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let index = get_index_that_produces_n_keys(64, MY_SALT, 2016);
+        assert_eq!(index, 20092);
+    }
+
 }
