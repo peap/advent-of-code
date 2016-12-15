@@ -1,9 +1,23 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate regex;
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+
+lazy_static! {
+    static ref BOT_REGEX: regex::Regex = {
+        regex::Regex::new("^bot ([0-9]+) gives low to (output|bot) ([0-9]+) \
+                          and high to (output|bot) ([0-9]+)$")
+            .expect("Invalid bot regex.")
+    };
+    static ref VALUE_REGEX: regex::Regex = {
+        regex::Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$")
+            .expect("Invalid value regex.")
+    };
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Chip {
@@ -63,8 +77,7 @@ pub struct Bot {
 
 impl Bot {
     fn from_text(text: String) -> Bot {
-        let bot_re = get_bot_regex();
-        let caps = bot_re.captures(&text).expect("No bot regex captures.");
+        let caps = BOT_REGEX.captures(&text).expect("No bot regex captures.");
         let bot_id: u32 = caps.at(1).unwrap().parse().expect("Non-numeric bot ID.");
         let low_recip_type = caps.at(2).unwrap();
         let low_recip_id = caps.at(3).unwrap();
@@ -120,30 +133,17 @@ impl Bot {
     }
 }
 
-fn get_bot_regex() -> regex::Regex {
-    regex::Regex::new("^bot ([0-9]+) gives low to (output|bot) ([0-9]+) \
-                      and high to (output|bot) ([0-9]+)$")
-        .expect("Invalid bot regex.")
-}
-
-fn get_value_regex() -> regex::Regex {
-    regex::Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$")
-        .expect("Invalid value regex.")
-}
-
 pub fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
     let mut bots = HashMap::new();
     let mut starting_values: Vec<String> = Vec::new(); // process after bots
-    let bot_re = get_bot_regex();
-    let value_re = get_value_regex();
     let f = File::open(filename).expect("Could not find input file.");
     let reader = BufReader::new(f);
     for line in reader.lines() {
         let text = line.expect("Error reading input file.");
-        if bot_re.is_match(&text) {
+        if BOT_REGEX.is_match(&text) {
             let bot = Bot::from_text(text);
             bots.insert(bot.id(), bot);
-        } else if value_re.is_match(&text) {
+        } else if VALUE_REGEX.is_match(&text) {
             // file this away until the end, after we know about all the bots
             starting_values.push(text)
         } else {
@@ -151,7 +151,7 @@ pub fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
         }
     }
     for text in starting_values {
-        let caps = value_re.captures(&text)
+        let caps = VALUE_REGEX.captures(&text)
             .expect("Found match to value regex, but no captures.");
         let value: u32 = caps.at(1).unwrap().parse().unwrap();
         let bot_id: u32 = caps.at(2).unwrap().parse().unwrap();
