@@ -1,0 +1,7 @@
+[package]
+name = "day-15"
+version = "0.1.0"
+authors = ["Eric Petersen <eric@huskers.unl.edu>"]
+
+[dependencies]
+lazy_static = "0.2"
