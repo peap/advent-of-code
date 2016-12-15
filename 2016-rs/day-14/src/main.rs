@@ -10,15 +10,12 @@ pub fn find_consecutive<'a>(n: u32, string: &'a str) -> Option<char> {
     let mut last = 0 as char;
     let mut count: u32 = 0;
     for c in string.chars() {
-        if c == last {
-            count += 1;
-        } else {
-            last = c;
-            count = 1;
-        }
+        count = if c == last { count + 1 } else { 1 };
         if count == n {
+            // Only care about first set of n consecutive letters.
             return Some(c);
         }
+        last = c;
     }
     None
 }
