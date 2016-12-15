@@ -111,5 +111,5 @@ fn main() {
     let sector = valid.iter()
                      .find(|room| room.decrypt().starts_with(NAMED)).unwrap()
                      .get_sector();
-    println!("Part 2: northpole-object-store is in sector {}", sector);
+    println!("Part 2: northpole-object-storage is in sector {}", sector);
 }
