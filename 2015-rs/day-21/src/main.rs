@@ -45,10 +45,10 @@ pub struct Combatant {
 impl Combatant {
     fn new_player<'a>(weapon: &'a Item, armor: &'a Item, rings: Vec<&'a Item>)
             -> Self {
-        let mut gold = 0;
         let mut damage = weapon.1;
-        gold += weapon.0;
         let mut armor_pts = armor.2;
+        let mut gold = 0;
+        gold += weapon.0;
         gold += armor.0;
         for ring in rings.iter() {
             gold += ring.0;
@@ -89,8 +89,9 @@ impl Combatant {
     }
 }
 
-pub fn minimize_gold_to_defeat_boss() -> i32 {
+pub fn min_and_max_to_defeat_and_lose() -> (i32, i32) {
     let mut minimum_gold: i32 = i32::max_value();
+    let mut maximum_gold: i32 = i32::min_value();
     let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE, BOSS_ARMOR);
     for weapon in WEAPONS.iter() {
         for armor in ARMORS.iter() {
@@ -100,24 +101,29 @@ pub fn minimize_gold_to_defeat_boss() -> i32 {
                 let mut player1 = Combatant::new_player(weapon, armor, rings1);
                 if player1.defeats(&mut boss1) {
                     minimum_gold = cmp::min(minimum_gold, player1.gold);
+                } else {
+                    maximum_gold = cmp::max(maximum_gold, player1.gold);
                 }
-                for ring2 in RINGS[i..].iter() {
+                for ring2 in RINGS[(i + 1)..].iter() {
                     let rings2 = vec![ring1, ring2];
                     let mut boss2 = boss.clone();
                     let mut player2 = Combatant::new_player(weapon, armor, rings2);
                     if player2.defeats(&mut boss2) {
                         minimum_gold = cmp::min(minimum_gold, player2.gold);
+                    } else {
+                        maximum_gold = cmp::max(maximum_gold, player2.gold);
                     }
                 }
             }
         }
     }
-    minimum_gold
+    (minimum_gold, maximum_gold)
 }
 
 fn main() {
-    let cost = minimize_gold_to_defeat_boss();
-    println!("Part 1: It costs at least {} gold to default the boss.", cost);
+    let (min, max) = min_and_max_to_defeat_and_lose();
+    println!("Part 1: It costs at least {} gold to defeat the boss.", min);
+    println!("Part 2: It costs at most {} gold to lose to the boss.", max);
 }
 
 #[cfg(test)]
@@ -132,8 +138,9 @@ mod tests {
     }
 
     #[test]
-    fn test_part_1() {
-        let cost = minimize_gold_to_defeat_boss();
-        assert_eq!(cost, 121);
+    fn test_parts_1_and_2() {
+        let (min, max) = min_and_max_to_defeat_and_lose();
+        assert_eq!(min, 121);
+        assert_eq!(max, 201);
     }
 }
