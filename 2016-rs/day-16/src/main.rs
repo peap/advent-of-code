@@ -1,5 +1,6 @@
 pub const INITIAL_STATE: &'static str = "11101000110010100";
-pub const DISK_LENGTH: usize = 272;
+pub const DISK_LEN_1: usize = 272;
+pub const DISK_LEN_2: usize = 35651584;
 
 pub fn expand<'a>(state: &'a str) -> String {
     let mut expanded = String::new();
@@ -46,8 +47,10 @@ pub fn fill_and_checksum<'a>(state: &'a str, disk_length: usize) -> String {
 }
 
 fn main() {
-    let checksum = fill_and_checksum(INITIAL_STATE, DISK_LENGTH);
+    let checksum = fill_and_checksum(INITIAL_STATE, DISK_LEN_1);
     println!("Part 1: checksum is {}", checksum);
+    let checksum = fill_and_checksum(INITIAL_STATE, DISK_LEN_2);
+    println!("Part 2: checksum is {}", checksum);
 }
 
 #[cfg(test)]
@@ -76,7 +79,14 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let checksum = fill_and_checksum(INITIAL_STATE, DISK_LENGTH);
+        let checksum = fill_and_checksum(INITIAL_STATE, DISK_LEN_1);
         assert_eq!(checksum, "10100101010101101");
     }
+
+    #[test]
+    fn test_part_2() {
+        let checksum = fill_and_checksum(INITIAL_STATE, DISK_LEN_2);
+        assert_eq!(checksum, "01100001101101001");
+    }
+
 }
