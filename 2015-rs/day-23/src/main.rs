@@ -165,6 +165,11 @@ fn main() {
     let mut computer = Computer::new();
     computer.process(&instructions);
     println!("Part 1: The value in register 'b' is {}.", computer.get_register('b'));
+    // Part 2
+    let mut computer = Computer::new();
+    computer.increment('a');
+    computer.process(&instructions);
+    println!("Part 2: The value in register 'b' is {}.", computer.get_register('b'));
 }
 
 #[cfg(test)]
@@ -174,9 +179,17 @@ mod tests {
     #[test]
     fn test_part_1() {
         let instructions = load_instructions("input.txt");
-        // Part 1
         let mut computer = Computer::new();
         computer.process(&instructions);
         assert_eq!(computer.get_register('b'), 307);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let instructions = load_instructions("input.txt");
+        let mut computer = Computer::new();
+        computer.increment('a');
+        computer.process(&instructions);
+        assert_eq!(computer.get_register('b'), 160);
     }
 }
