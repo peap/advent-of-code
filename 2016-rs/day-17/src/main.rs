@@ -42,6 +42,7 @@ impl Maze {
     }
 
     fn get_open_doors(&self) -> Vec<Direction> {
+        use Direction::*;
         let mut open_doors = Vec::new();
         let mut hasher = Md5::new();
         hasher.input_str(&self.passcode);
@@ -50,10 +51,10 @@ impl Maze {
         let mut chars = output.chars();
         for door in [Up, Down, Left, Right].iter() {
             let valid = match door {
-                &Direction::Up => self.y > 0,
-                &Direction::Down => self.y < self.max_y,
-                &Direction::Left => self.x > 0,
-                &Direction::Right => self.x < self.max_x,
+                &Up => self.y > 0,
+                &Down => self.y < self.max_y,
+                &Left => self.x > 0,
+                &Right => self.x < self.max_x,
             };
             let c = chars.next().unwrap();
             if valid && c.is_alphabetic() && c != 'a' {
@@ -109,9 +110,40 @@ pub fn get_shortest_path<'a>(hash: &'a str) -> Option<String> {
     None
 }
 
+pub fn get_longest_path<'a>(hash: &'a str) -> Option<String> {
+    let maze = Maze::new(hash);
+    let mut longest_path: Option<String> = None;
+    let mut q = VecDeque::new();
+    for direction in maze.get_open_doors() {
+        q.push_back(maze.clone_and_move(direction));
+    }
+    while !q.is_empty() {
+        let maze = q.pop_front().unwrap();
+        if maze.is_complete() {
+            longest_path = match longest_path {
+                Some(path) => {
+                    if path.len() < maze.path.len() {
+                        Some(maze.path)
+                    } else {
+                        Some(path)
+                    }
+                }
+                None => Some(maze.path),
+            };
+            continue;
+        }
+        for direction in maze.get_open_doors() {
+            q.push_back(maze.clone_and_move(direction));
+        }
+    }
+    longest_path
+}
+
 fn main() {
     let path1 = get_shortest_path(MY_HASH);
-    println!("\nPart 1: the path is {:?}", path1);
+    println!("Part 1: the shortest path is {:?}", path1);
+    let path2 = get_longest_path(MY_HASH);
+    println!("Part 2: the longest path has {} steps", path2.unwrap().len());
 }
 
 #[cfg(test)]
@@ -151,4 +183,29 @@ mod tests {
         let expected = "DDRUDLRRRD".to_string();
         assert_eq!(path, Some(expected));
     }
+
+    #[test]
+    fn test_example_2_longest() {
+        let path = get_longest_path("ihgpwlah");
+        assert_eq!(path.unwrap().len(), 370);
+    }
+
+    #[test]
+    fn test_example_3_longest() {
+        let path = get_longest_path("kglvqrro");
+        assert_eq!(path.unwrap().len(), 492);
+    }
+
+    #[test]
+    fn test_example_4_longest() {
+        let path = get_longest_path("ulqzkmiv");
+        assert_eq!(path.unwrap().len(), 830);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let path = get_longest_path(MY_HASH);
+        assert_eq!(path.unwrap().len(), 398);
+    }
+
 }
