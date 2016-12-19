@@ -25,21 +25,26 @@ fn generate_row_from<'a>(previous: &'a str) -> String {
     new_row
 }
 
+fn count_safe<'a>(row: &'a str) -> usize {
+    row.chars().filter(|c| *c == SAFE).count()
+}
+
 pub fn count_safe_tiles<'a>(start: &'a str, n_rows: usize) -> usize {
-    let mut rows = vec![start.to_string()];
-    for i in 1..n_rows {
-        let row = {
-            // introduce scope to allow immutable borrow of rows
-            generate_row_from(&rows[i - 1])
-        };
-        rows.push(row);
+    let mut count = count_safe(start);
+    let mut previous_row = start.to_string();
+    for _ in 1..n_rows {
+        let row = generate_row_from(&previous_row);
+        count += count_safe(&row);
+        previous_row = row;
     }
-    rows.iter().fold(0, |acc, r| acc + r.chars().filter(|c| *c == SAFE).count())
+    count
 }
 
 fn main() {
-    let count = count_safe_tiles(ROW1, 40);
-    println!("Part 1: there are {} safe tiles", count);
+    let count1 = count_safe_tiles(ROW1, 40);
+    println!("Part 1: there are {} safe tiles", count1);
+    let count2 = count_safe_tiles(ROW1, 400_000);
+    println!("Part 2: there are {} safe tiles", count2);
 }
 
 #[cfg(test)]
@@ -56,5 +61,11 @@ mod tests {
     fn test_part_1() {
         let count = count_safe_tiles(ROW1, 40);
         assert_eq!(count, 1987);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let count = count_safe_tiles(ROW1, 400_000);
+        assert_eq!(count, 19984714);
     }
 }
