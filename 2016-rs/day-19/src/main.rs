@@ -5,41 +5,33 @@ type Elf = u32;
 pub const NUM_ELVES: u32 = 3014603;
 
 pub fn play_white_elephant(num_elves: u32) -> Elf {
-    let mut elves: LinkedList<(Elf, u32)> = LinkedList::new();
+    let mut elves: LinkedList<Elf> = LinkedList::new();
     for elf in 0..num_elves {
-        elves.push_back((elf + 1, 1));
+        elves.push_back(elf + 1);
     }
-    loop {
-        if elves.len() == 1 {
-            break;
-        }
-        let mut thief = elves.pop_front().expect("List should not be empty");
-        let victim = elves.pop_front().expect("List should not be empty.");
-        thief.1 += victim.1;
+    while elves.len() > 1 {
+        let thief = elves.pop_front().expect("List should not be empty");
+        elves.pop_front().expect("List should not be empty.");
         elves.push_back(thief);
     }
-    elves.pop_front().expect("List should not be empty.").0
+    elves.pop_front().expect("List should not be empty.")
 }
 
 pub fn play_white_elephant_version_2(num_elves: u32) -> Elf {
-    let mut elves: LinkedList<(Elf, u32)> = LinkedList::new();
+    let mut elves: LinkedList<Elf> = LinkedList::new();
     for elf in 0..num_elves {
-        elves.push_back((elf + 1, 1));
+        elves.push_back(elf + 1);
     }
-    loop {
-        if elves.len() == 1 {
-            break;
-        }
-        println!("\rElves: {}     ", elves.len());
-        let mut thief = elves.pop_front().expect("List should not be empty");
+    while elves.len() > 1 {
+        print!("\rElves: {:<8}", elves.len());
+        let thief = elves.pop_front().expect("List should not be empty");
         let idx = elves.len() / 2 - if elves.len() % 2 == 0 { 1 } else { 0 };
         let mut back_half = elves.split_off(idx);
-        let victim = back_half.pop_front().expect("List should not be empty.");
+        back_half.pop_front().expect("List should not be empty.");
         elves.append(&mut back_half);
-        thief.1 += victim.1;
         elves.push_back(thief);
     }
-    elves.pop_front().expect("List should not be empty.").0
+    elves.pop_front().expect("List should not be empty.")
 }
 
 fn main() {
@@ -70,4 +62,11 @@ mod tests {
         let winner = play_white_elephant_version_2(5);
         assert_eq!(winner, 2);
     }
+
+    #[test]
+    fn test_more_examples() {
+        assert_eq!(play_white_elephant_version_2(7), 5);
+        assert_eq!(play_white_elephant_version_2(9), 9);
+    }
+
 }
