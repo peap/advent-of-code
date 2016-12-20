@@ -21,8 +21,7 @@ pub fn load_gifts<'a>(filename: &'a str) -> Group {
     gifts
 }
 
-pub fn can_split_remainder(to_exclude: &Group, gifts: &Group)
-        -> bool {
+pub fn can_split_remainder(to_exclude: &Group, gifts: &Group, n: usize) -> bool {
     let mut remainder = Vec::new();
     for gift in gifts.iter() {
         if !to_exclude.contains(&gift) {
@@ -30,10 +29,10 @@ pub fn can_split_remainder(to_exclude: &Group, gifts: &Group)
         }
     }
     let sum = remainder.iter().sum::<Gift>();
-    if sum % 2 != 0 {
+    if sum % n as Gift != 0 {
         return false;
     }
-    let target_weight = sum / 2;
+    let target_weight = sum / n as Gift;
     for k in 1..(remainder.len() - 1) {
         let combinations = remainder.iter().combinations(k);
         for combo in combinations {
@@ -45,15 +44,15 @@ pub fn can_split_remainder(to_exclude: &Group, gifts: &Group)
     false
 }
 
-pub fn optimize_sleigh(gifts: Group, min: usize) -> Option<(usize, Gift)> {
-    let target: Gift = gifts.iter().sum::<Gift>() / 3;
+pub fn optimize_sleigh(gifts: &Group, n: usize) -> Option<(usize, Gift)> {
+    let target: Gift = gifts.iter().sum::<Gift>() / n as Gift;
     let mut lowest_qe = Gift::max_value();
-    for k in min..(gifts.len() / 3) {
+    for k in 1..gifts.len() {
         let combinations = gifts.iter().combinations(k);
         for combo in combinations {
             let owned_combo: Group = combo.iter().map(|g| **g).collect();
             let sum = owned_combo.iter().fold(0, |acc, g| acc + *g);
-            if sum == target && can_split_remainder(&owned_combo, &gifts) {
+            if sum == target && can_split_remainder(&owned_combo, &gifts, n - 1) {
                 lowest_qe = cmp::min(
                     lowest_qe,
                     owned_combo.iter().fold(1, |acc, g| acc * *g)
@@ -69,10 +68,17 @@ pub fn optimize_sleigh(gifts: Group, min: usize) -> Option<(usize, Gift)> {
 
 fn main() {
     let gifts = load_gifts("input.txt");
-    if let Some((min_n, min_qe)) = optimize_sleigh(gifts, 6) {
-        println!("Part 1: best arrangement has n={} and QE={}", min_n, min_qe);
+    // Part 1
+    if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 3) {
+        println!("Part 1: best 3-part arrangement has n={} and QE={}", min_n, min_qe);
     } else {
         println!("Part 1: couldn't find any sleigh arrangements");
+    }
+    // Part 2
+    if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 4) {
+        println!("Part 2: best 4-part arrangement has n={} and QE={}", min_n, min_qe);
+    } else {
+        println!("Part 2: couldn't find any sleigh arrangements");
     }
 }
 
@@ -86,15 +92,15 @@ mod tests {
         let to_exclude_2: Group = vec![2];
         let to_exclude_3: Group = vec![4];
         let list: Group = vec![1, 2, 3, 4];
-        assert!(!can_split_remainder(&to_exclude_1, &list));
-        assert!(can_split_remainder(&to_exclude_2, &list));
-        assert!(can_split_remainder(&to_exclude_3, &list));
+        assert!(!can_split_remainder(&to_exclude_1, &list, 2));
+        assert!(can_split_remainder(&to_exclude_2, &list, 2));
+        assert!(can_split_remainder(&to_exclude_3, &list, 2));
     }
 
     #[test]
     fn test_example_1() {
         let items = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
-        let optimized = optimize_sleigh(items, 2);
+        let optimized = optimize_sleigh(&items, 3);
         assert_eq!(optimized, Some((2, 99)));
     }
 
@@ -105,15 +111,29 @@ mod tests {
             1, 3, 5, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 67,
             71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
         ];
-        let optimized = optimize_sleigh(items, 6);
+        let optimized = optimize_sleigh(&items, 3);
         assert_eq!(optimized, Some((6, 10_439_961_859)));
     }
 
     #[test]
     fn test_part_1() {
         let gifts = load_gifts("input.txt");
-        let optimized = optimize_sleigh(gifts, 6);
+        let optimized = optimize_sleigh(&gifts, 3);
         assert_eq!(optimized, Some((6, 11846773891)));
+    }
+
+    #[test]
+    fn test_example_2() {
+        let items = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        let optimized = optimize_sleigh(&items, 4);
+        assert_eq!(optimized, Some((2, 44)));
+    }
+
+    #[test]
+    fn test_part_2() {
+        let gifts = load_gifts("input.txt");
+        let optimized = optimize_sleigh(&gifts, 4);
+        assert_eq!(optimized, Some((4, 80393059)));
     }
 
 }
