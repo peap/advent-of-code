@@ -1,4 +1,4 @@
-use std::collections::LinkedList;
+use std::collections::{LinkedList, VecDeque};
 
 type Elf = u32;
 
@@ -18,20 +18,23 @@ pub fn play_white_elephant(num_elves: u32) -> Elf {
 }
 
 pub fn play_white_elephant_version_2(num_elves: u32) -> Elf {
-    let mut elves: LinkedList<Elf> = LinkedList::new();
-    for elf in 0..num_elves {
-        elves.push_back(elf + 1);
+    // With thanks to /u/aurele.
+    // https://www.reddit.com/r/adventofcode/comments/5j4lp1/2016_day_19_solutions/dbe1o0h/
+    let mid = (num_elves + 1) / 2;
+    let mut v1: VecDeque<Elf> = (0..mid).collect();
+    let mut v2: VecDeque<Elf> = (mid..num_elves).collect();
+    loop {
+        if v2.len() >= v1.len() {
+            v2.pop_front();
+            if v2.is_empty() {
+                return v1[0] + 1;
+            }
+        } else {
+            v1.pop_back();
+        }
+        v1.push_back(v2.pop_front().unwrap());
+        v2.push_back(v1.pop_front().unwrap());
     }
-    while elves.len() > 1 {
-        print!("\rElves: {:<8}", elves.len());
-        let thief = elves.pop_front().expect("List should not be empty");
-        let idx = elves.len() / 2 - if elves.len() % 2 == 0 { 1 } else { 0 };
-        let mut back_half = elves.split_off(idx);
-        back_half.pop_front().expect("List should not be empty.");
-        elves.append(&mut back_half);
-        elves.push_back(thief);
-    }
-    elves.pop_front().expect("List should not be empty.")
 }
 
 fn main() {
@@ -67,6 +70,13 @@ mod tests {
     fn test_more_examples() {
         assert_eq!(play_white_elephant_version_2(7), 5);
         assert_eq!(play_white_elephant_version_2(9), 9);
+        assert_eq!(play_white_elephant_version_2(16), 7);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let winner = play_white_elephant_version_2(NUM_ELVES);
+        assert_eq!(winner, 1420280);
     }
 
 }
