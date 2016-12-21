@@ -103,7 +103,7 @@ impl Operation {
             }
             RotateByLetter(letter) => {
                 if let Some(idx) = chars.iter().position(|c| *c == letter) {
-                    let num: usize = if idx >= 4 { idx + 2 } else { idx + 1 };
+                    let num = if idx >= 4 { idx + 2 } else { idx + 1 };
                     let op = RotateRight(num);
                     op.apply_to(chars);
                 }
@@ -123,6 +123,45 @@ impl Operation {
             }
         }
     }
+
+    fn unapply_to(&self, chars: &mut Vec<char>) {
+        use Operation::*;
+        match *self {
+            SwapPosition(_ ,_) => self.apply_to(chars),
+            SwapLetter(_, _) => self.apply_to(chars),
+            RotateLeft(n) => {
+                let rev_op = RotateRight(n);
+                rev_op.apply_to(chars);
+            }
+            RotateRight(n) => {
+                let rev_op = RotateLeft(n);
+                rev_op.apply_to(chars);
+            }
+            RotateByLetter(letter) => {
+                // can only reliably unapply this operation with an even number
+                // of chars
+                assert!(chars.len() % 2 == 0);
+                if let Some(idx) = chars.iter().position(|c| *c == letter) {
+                    let n_left = if idx % 2 == 1 {
+                        idx - (idx / 2)
+                    } else {
+                        match idx {
+                            0 => 1,
+                            n => 1 + (chars.len() / 2) + (n / 2),
+                        }
+                    };
+                    let rev_op = RotateLeft(n_left);
+                    rev_op.apply_to(chars);
+                }
+            }
+            Reverse(_, _) => self.apply_to(chars),
+            Move(x, y) => {
+                let rev_op = Move(y, x);
+                rev_op.apply_to(chars);
+            }
+        }
+    }
+
 }
 
 pub fn load_operations<'a>(filename: &'a str) -> Vec<Operation> {
@@ -146,11 +185,22 @@ pub fn scramble<'a>(operations: &'a Vec<Operation>, input: &'a str) -> String {
     scrambled.into_iter().collect()
 }
 
+pub fn unscramble<'a>(operations: &'a Vec<Operation>, input: &'a str) -> String {
+    let mut unscrambled: Vec<char> = input.chars().collect();
+    for op in operations.iter().rev() {
+        op.unapply_to(&mut unscrambled);
+    }
+    unscrambled.into_iter().collect()
+}
+
 fn main() {
     let operations = load_operations("input.txt");
     let input = "abcdefgh";
     let scrambled = scramble(&operations, input);
-    println!("Part 1: {} -> {}", "abcdefgh", scrambled);
+    println!("Part 1: {} -> {}", input, scrambled);
+    let input2 = "fbgdceah";
+    let unscrambled = unscramble(&operations, input2);
+    println!("Part 2: {} -> {}", input2, unscrambled);
 }
 
 #[cfg(test)]
@@ -204,4 +254,11 @@ mod tests {
         assert_eq!(scrambled, "ghfacdbe");
     }
 
+    #[test]
+    fn test_part_2() {
+        let operations = load_operations("input.txt");
+        let input = "fbgdceah";
+        let unscrambled = unscramble(&operations, input);
+        assert_eq!(unscrambled, "fhgcdaeb")
+    }
 }
