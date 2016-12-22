@@ -3,6 +3,7 @@ extern crate itertools;
 extern crate lazy_static;
 extern crate regex;
 
+use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -15,78 +16,220 @@ lazy_static! {
     ).unwrap();
 }
 
-#[derive(Eq, PartialEq)]
+pub type Position = (u32, u32);
+pub type DataChunk = (Position, u32);
+
+#[derive(Clone, Eq, PartialEq)]
 pub struct Node {
-    x: u32,
-    y: u32,
+    position: Position,
+    chunks: Vec<DataChunk>,
     size_tb: u32,
     used_tb: u32,
     available_tb: u32,
-    used_pct: u32,
+    // used_pct: u32,
 }
 
 impl Node {
     fn from_line(text: String) -> Node {
         let caps = LINE_RE.captures(&text).expect("No regex match.");
+        let x = caps.at(1).unwrap().parse().unwrap();
+        let y = caps.at(2).unwrap().parse().unwrap();
+        let position = (x, y);
+        let used = caps.at(4).unwrap().parse().unwrap();
+        let chunk = (position, used);
         Node {
-            x: caps.at(1).unwrap().parse().unwrap(),
-            y: caps.at(2).unwrap().parse().unwrap(),
+            position: position,
+            chunks: vec![chunk],
             size_tb: caps.at(3).unwrap().parse().unwrap(),
-            used_tb: caps.at(4).unwrap().parse().unwrap(),
+            used_tb: used,
             available_tb: caps.at(5).unwrap().parse().unwrap(),
-            used_pct: caps.at(6).unwrap().parse().unwrap(),
+            // used_pct: caps.at(6).unwrap().parse().unwrap(),
         }
+    }
+
+    fn update_storage_stats(&mut self) {
+        let tb = self.chunks.iter().fold(0, |acc, c| acc + c.1);
+        self.used_tb = tb;
+        self.available_tb = self.size_tb - tb;
+        // self.used_pct = 100 *
+        //    (self.used_tb as f32 / self.available_tb as f32).floor() as u32;
+    }
+
+    fn transfer_chunks(&mut self) -> Vec<DataChunk> {
+        // only allowed to transfer everything
+        let chunks = self.chunks.drain(..).collect();
+        self.update_storage_stats();
+        chunks
+    }
+
+    fn receive_chunks(&mut self, mut chunks: Vec<DataChunk>) {
+        self.chunks.append(&mut chunks);
+        self.update_storage_stats();
     }
 
     fn can_pair_with(&self, other: &Node) -> bool {
-        self != other && self.used_tb > 0 && self.used_tb <= other.available_tb
+        self.position != other.position &&
+        self.used_tb > 0 &&
+        self.used_tb <= other.available_tb
     }
+
+    fn is_adjacent_to(&self, other: &Node) -> bool {
+        let (sx, sy) = self.position;
+        let (ox, oy) = other.position;
+        (sx == ox && (sy as i32 - oy as i32).abs() == 1) ||
+        (sy == oy && (sx as i32 - ox as i32).abs() == 1)
+    }
+
 }
 
-pub fn load_grid<'a>(filename: &'a str) -> Vec<Node> {
-    let mut grid = Vec::new();
-    let f = File::open(filename).expect("Could not open file.");
-    let reader = BufReader::new(f);
-    let mut lines = reader.lines();
-    lines.next(); // skip command prompt
-    lines.next(); // skip header
-    for line in lines {
-        match line {
-            Ok(text) => grid.push(Node::from_line(text)),
-            Err(e) => panic!("Error reading line: {}", e),
-        }
-    }
-    grid
+#[derive(Clone)]
+pub struct Grid {
+    nodes: Vec<Node>,
 }
 
-pub fn count_viable_pairs(nodes: &Vec<Node>) -> u64 {
-    let combos = nodes.iter().combinations(2);
-    combos.fold(0u64, |acc, pair| {
-        let (a, b) = (pair[0], pair[1]);
-        if a.can_pair_with(b) && b.can_pair_with(a) {
-            acc + 2
-        } else if a.can_pair_with(b) || b.can_pair_with(a) {
-            acc + 1
-        } else {
-            acc
+impl Grid {
+    fn load_from_file<'a>(filename: &'a str) -> Grid {
+        let mut nodes = Vec::new();
+        let f = File::open(filename).expect("Could not open file.");
+        let reader = BufReader::new(f);
+        let mut lines = reader.lines();
+        lines.next(); // skip command prompt
+        lines.next(); // skip header
+        for line in lines {
+            match line {
+                Ok(text) => nodes.push(Node::from_line(text)),
+                Err(e) => panic!("Error reading line: {}", e),
+            }
         }
-    })
+        Grid { nodes: nodes }
+    }
+
+    fn count_viable_pairs(&self) -> u64 {
+        let combos = self.nodes.iter().combinations(2);
+        combos.fold(0u64, |acc, pair| {
+            let (a, b) = (pair[0], pair[1]);
+            if a.can_pair_with(b) && b.can_pair_with(a) {
+                acc + 2
+            } else if a.can_pair_with(b) || b.can_pair_with(a) {
+                acc + 1
+            } else {
+                acc
+            }
+        })
+    }
+
+    fn clone_and_move_data(&self, from: Position, to: Position) -> Grid {
+        let from_idx = self.nodes.iter().position(|n| n.position == from).unwrap();
+        let to_idx = self.nodes.iter().position(|n| n.position == to).unwrap();
+        let mut new_grid = self.clone();
+        let chunks = {
+            let mut source_node = new_grid.nodes.get_mut(from_idx).unwrap();
+            source_node.transfer_chunks()
+        };
+        {
+            let mut dest_node = new_grid.nodes.get_mut(to_idx).unwrap();
+            dest_node.receive_chunks(chunks);
+        }
+        new_grid
+    }
+
+    fn get_possible_states(&self) -> Vec<Grid> {
+        let mut valid_transfers = Vec::new();
+        for (a, b) in self.nodes.iter().tuple_combinations::<(_, _)>() {
+            if a.can_pair_with(b) && a.is_adjacent_to(b) {
+                valid_transfers.push((a, b));
+            }
+            if b.can_pair_with(a) && b.is_adjacent_to(a) {
+                valid_transfers.push((b, a));
+            }
+        }
+        let mut states = Vec::new();
+        for &(a, b) in valid_transfers.iter() {
+            states.push(self.clone_and_move_data(a.position, b.position));
+        }
+        states
+    }
+
+    fn has_target_data_at_origin(&self, chunk: DataChunk) -> bool {
+        let origin = self.nodes.iter().find(|n| n.position == (0, 0)).unwrap();
+        origin.chunks.contains(&chunk)
+    }
+
+    fn optimize_data_movement(&self) -> Option<u32> {
+        let target_data = self.nodes.iter()
+            .max_by_key(|n| n.position.0 as i32 - n.position.1 as i32 ).unwrap()
+            .chunks[0];
+        let mut q: VecDeque<(Grid, u32)> = VecDeque::new();
+        q.push_back((self.clone(), 0));
+        while !q.is_empty() {
+            // print!("\rQueue: {:<}", q.len());
+            let (grid, n_steps) = q.pop_front().unwrap();
+            if grid.has_target_data_at_origin(target_data) {
+                return Some(n_steps);
+            }
+            for state in grid.get_possible_states() {
+                q.push_back((state, n_steps + 1));
+            }
+        }
+        // print!("\n");
+        None
+    }
+
 }
+
 
 fn main() {
-    let nodes = load_grid("input.txt");
-    let n_pairs = count_viable_pairs(&nodes);
-    println!("Part 1: There are {} viable pairs.", n_pairs);
+    let grid = Grid::load_from_file("input.txt");
+    println!("Part 1: There are {} viable pairs.", grid.count_viable_pairs());
+    if let Some(n_steps) = grid.optimize_data_movement() {
+        println!("Part 2: It takes {} steps to move the data.", n_steps);
+    } else {
+        println!("Part 2: Could not move the data.");
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn create_node(position: Position, size_tb: u32) -> Node {
+        Node {
+            position: position,
+            chunks: vec![],
+            size_tb: size_tb,
+            used_tb: 0,
+            available_tb: size_tb,
+            // used_pct: 0,
+        }
+    }
+
     #[test]
     fn test_part_1() {
-        let nodes = load_grid("input.txt");
-        let n_pairs = count_viable_pairs(&nodes);
+        let grid = Grid::load_from_file("input.txt");
+        let n_pairs = grid.count_viable_pairs();
         assert_eq!(n_pairs, 950);
+    }
+
+    #[test]
+    fn test_adjacency() {
+        let node1 = create_node((1, 1), 1);
+        let node2 = create_node((2, 1), 1);
+        let node3 = create_node((2, 2), 1);
+        // 1 and 2
+        assert!(node1.is_adjacent_to(&node2));
+        assert!(node2.is_adjacent_to(&node1));
+        // 1 and 3
+        assert!(!node1.is_adjacent_to(&node3));
+        assert!(!node3.is_adjacent_to(&node1));
+        // 2 and 3
+        assert!(node2.is_adjacent_to(&node3));
+        assert!(node3.is_adjacent_to(&node2));
+    }
+
+    #[test]
+    fn test_example() {
+        let grid = Grid::load_from_file("example.txt");
+        let n_steps = grid.optimize_data_movement();
+        assert_eq!(n_steps, Some(7));
     }
 }
