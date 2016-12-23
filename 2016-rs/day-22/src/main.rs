@@ -101,7 +101,27 @@ impl Grid {
                 Err(e) => panic!("Error reading line: {}", e),
             }
         }
+        nodes.sort_by(|a, b| a.position.cmp(&b.position));
         Grid { nodes: nodes }
+    }
+
+    fn print(&self) {
+        for node in self.nodes.iter() {
+            let (_, y) = node.position;
+            if y == 0 {
+                print!("\n");
+            }
+            if node.used_tb > 100 {
+                print!("X");
+            } else if node.position == (37, 0) {
+                print!("G");
+            } else if node.used_tb > 0 {
+                print!(".");
+            } else {
+                print!("o");
+            }
+        }
+        print!("\n");
     }
 
     fn count_viable_pairs(&self) -> u64 {
@@ -162,7 +182,7 @@ impl Grid {
         let mut q: VecDeque<(Grid, u32)> = VecDeque::new();
         q.push_back((self.clone(), 0));
         while !q.is_empty() {
-            // print!("\rQueue: {:<}", q.len());
+            print!("\rQueue: {:<}", q.len());
             let (grid, n_steps) = q.pop_front().unwrap();
             if grid.has_target_data_at_origin(target_data) {
                 return Some(n_steps);
@@ -171,7 +191,6 @@ impl Grid {
                 q.push_back((state, n_steps + 1));
             }
         }
-        // print!("\n");
         None
     }
 
@@ -180,11 +199,12 @@ impl Grid {
 
 fn main() {
     let grid = Grid::load_from_file("input.txt");
+    grid.print();
     println!("Part 1: There are {} viable pairs.", grid.count_viable_pairs());
     if let Some(n_steps) = grid.optimize_data_movement() {
-        println!("Part 2: It takes {} steps to move the data.", n_steps);
+        println!("\nPart 2: It takes {} steps to move the data.", n_steps);
     } else {
-        println!("Part 2: Could not move the data.");
+        println!("\nPart 2: Could not move the data.");
     }
 }
 
@@ -231,5 +251,11 @@ mod tests {
         let grid = Grid::load_from_file("example.txt");
         let n_steps = grid.optimize_data_movement();
         assert_eq!(n_steps, Some(7));
+    }
+
+    #[test]
+    fn test_part_2() {
+        // takes 256 steps (17 + 22 + 37 + 5 * 36)
+        // done visually with grid.print()
     }
 }
