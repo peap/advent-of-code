@@ -237,7 +237,7 @@ mod tests {
     fn test_part_2() {
         let maze = Maze::from_file("input.txt");
         let n_steps = maze.minimize_steps(true);
-        assert!(n_steps < Some(812));
+        assert_eq!(n_steps, Some(804));
     }
 
 }
