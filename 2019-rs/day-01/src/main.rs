@@ -25,7 +25,6 @@ fn main() {
     let total1 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight(w));
     println!("Part 1: total weight is {}", total1);
     let total2 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight_recur(w));
-    // Between 4983513 and 49883626.
     println!("Part 2: total weight (w/fuel weight) is {}", total2);
 }
 
@@ -35,6 +34,8 @@ mod tests {
 
     #[test]
     fn test_fuel_for_weight() {
+        assert_eq!(fuel_for_weight(&1), 0);
+        assert_eq!(fuel_for_weight(&5), 0);
         assert_eq!(fuel_for_weight(&12), 2);
         assert_eq!(fuel_for_weight(&14), 2);
         assert_eq!(fuel_for_weight(&1969), 654);
