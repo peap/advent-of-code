@@ -1,3 +1,4 @@
+use std::cmp;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -8,17 +9,15 @@ fn load_weights(filename: &'static str) -> Vec<i64> {
 }
 
 fn fuel_for_weight(weight: &i64) -> i64 {
-    (weight / 3) - 2
+    cmp::max(0, (weight / 3) - 2)
 }
 
 fn fuel_for_weight_recur(weight: &i64) -> i64 {
-    let mut fuel = fuel_for_weight(weight);
-    let mut additional = fuel_for_weight(&fuel);
-    while additional > 0 {
-        fuel += additional;
-        additional = fuel_for_weight(&additional);
+    let fuel = fuel_for_weight(weight);
+    if fuel == 0 {
+        return fuel;
     }
-    fuel
+    fuel + fuel_for_weight_recur(&fuel)
 }
 
 fn main() {
