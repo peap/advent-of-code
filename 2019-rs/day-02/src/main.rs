@@ -7,9 +7,9 @@ const ADD: i32 = 1;
 const MUL: i32 = 2;
 const END: i32 = 99;
 
-fn init_intcode(intcode: &mut IntCode, i: i32, j: i32) {
-    intcode[1] = i;
-    intcode[2] = j;
+fn init_intcode(intcode: &mut IntCode, noun: i32, verb: i32) {
+    intcode[1] = noun;
+    intcode[2] = verb;
 }
 
 fn load_intcode(filename: &'static str) -> IntCode {
@@ -41,13 +41,31 @@ fn process_intcode(intcode: &mut IntCode) {
     }
 }
 
+fn find_inputs(intcode: IntCode, target: i32) -> (i32, i32) {
+    for noun in 0..100 {
+        for verb in 0..100 {
+            let mut part2_intcode = intcode.clone();
+            init_intcode(&mut part2_intcode, noun, verb);
+            process_intcode(&mut part2_intcode);
+            if part2_intcode[0] == target {
+                return (noun, verb);
+            }
+        }
+    }
+    panic!("Could not find the target output!");
+}
+
 fn main() {
     let intcode = load_intcode("input.txt");
     println!("Loaded {} intcode positions", intcode.len());
+
     let mut part1_intcode = intcode.clone();
     init_intcode(&mut part1_intcode, 12, 2);
     process_intcode(&mut part1_intcode);
     println!("Part 1: position 0 --> {}", part1_intcode[0]);
+
+    let (noun, verb) = find_inputs(intcode, 19690720);
+    println!("Part 2: 100 * {} + {} = {}", noun, verb, 100 * noun + verb);
 }
 
 #[cfg(test)]
@@ -61,4 +79,13 @@ mod tests {
         process_intcode(&mut intcode);
         assert_eq!(intcode[0], 3409710);
     }
+
+    #[test]
+    fn test_part2() {
+        let intcode = load_intcode("input.txt");
+        let (noun, verb) = find_inputs(intcode, 19690720);
+        assert_eq!(noun, 79);
+        assert_eq!(verb, 12);
+    }
+
 }
