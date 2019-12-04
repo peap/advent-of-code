@@ -59,18 +59,22 @@ struct Span {
 
 impl Span {
     fn new(a: Point, b: Point) -> Span {
-        if a.x == b.x {
-            if a.y < b.y {
-                Span { a: a, b: b }
-            } else {
-                Span { a: b, b: a }
-            }
+        Span { a: a, b: b }
+    }
+
+    fn contains_x(&self, x: i32) -> bool {
+        if self.a.x < self.b.x {
+            self.a.x <= x && x <= self.b.x
         } else {
-            if a.x < b.x {
-                Span { a: a, b: b }
-            } else {
-                Span { a: b, b: a }
-            }
+            self.b.x <= x && x <= self.a.x
+        }
+    }
+
+    fn contains_y(&self, y: i32) -> bool {
+        if self.a.y < self.b.y {
+            self.a.y <= y && y <= self.b.y
+        } else {
+            self.b.y <= y && y <= self.a.y
         }
     }
 
@@ -78,15 +82,11 @@ impl Span {
         if self.is_horizontal() && other.is_horizontal() { return None; }
         if self.is_vertical() && other.is_vertical() { return None; }
         if self.is_horizontal() {
-            let my_x_range = self.a.x..(self.b.x + 1);
-            let their_y_range = other.a.y..(other.b.y + 1);
-            if my_x_range.contains(&other.a.x) && their_y_range.contains(&self.a.y) {
+            if self.contains_x(other.a.x) && other.contains_y(self.a.y) {
                 return Some(Point::new(other.a.x, self.a.y));
             }
         } else {
-            let my_y_range = self.a.y..(self.b.y + 1);
-            let their_x_range = other.a.x..(other.b.x + 1);
-            if my_y_range.contains(&other.a.y) && their_x_range.contains(&self.a.x) {
+            if self.contains_y(other.a.y) && other.contains_x(self.a.x) {
                 return Some(Point::new(self.a.x, other.a.y));
             }
         }
@@ -99,6 +99,14 @@ impl Span {
 
     fn is_vertical(&self) -> bool {
         self.a.x == self.b.x
+    }
+
+    fn len(&self) -> i32 {
+        if self.is_horizontal() {
+            (self.b.x - self.a.x).abs()
+        } else {
+            (self.b.y - self.a.y).abs()
+        }
     }
 }
 
@@ -130,37 +138,69 @@ impl Wire {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+struct Intersection {
+    point: Point,
+    steps: i32,
+}
+
+impl Intersection {
+    fn new(point: Point, steps: i32) -> Intersection {
+        Intersection { point: point, steps: steps }
+    }
+
+    fn taxicab(&self) -> i32 {
+        self.point.taxicab()
+    }
+}
+
 fn load_raw_strings(filename: &'static str) -> Vec<String> {
     let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
     reader.lines().map(|l| l.unwrap()).collect()
 }
 
-fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Point> {
+fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
     let mut intersections = vec![];
     let spans1 = wire1.spans();
     let spans2 = wire2.spans();
+    let mut steps1 = 0;
     for s1 in spans1.iter() {
+        let mut steps2 = 0;
         for s2 in spans2.iter() {
             if let Some(p) = s1.get_intersection(s2) {
-                if p.x != 0 && p.y != 0 {
-                    intersections.push(p);
-                }
+                if p.x == 0 && p.y == 0 { continue }
+                let mut steps = steps1 + steps2;
+                steps += Span::new(s1.a.clone(), p.clone()).len();
+                steps += Span::new(s2.a.clone(), p.clone()).len();
+                intersections.push(Intersection::new(p, steps));
             }
+            steps2 += s2.len();
         }
+        steps1 += s1.len();
     }
     intersections
 }
 
-fn part1() -> i32 {
+fn setup() -> Vec<Intersection> {
     let raw_strings = load_raw_strings("input.txt");
     let wires: Vec<Wire> = raw_strings.iter().map(|s| Wire::new(s)).collect();
-    let intersections = find_intersections(&wires[0], &wires[1]);
+    find_intersections(&wires[0], &wires[1])
+}
+
+fn part1() -> i32 {
+    let intersections = setup();
     intersections.iter().map(|i| i.taxicab()).min().unwrap()
 }
 
+fn part2() -> i32 {
+    let intersections = setup();
+    intersections.iter().map(|i| i.steps).min().unwrap()
+}
+
 fn main() {
-    println!("Part 1: The closest intersection is {} away", part1())
+    println!("Part 1: The closest intersection is {} away (taxicab)", part1());
+    println!("Part 2: The closest intersection is {} away (steps)", part2());
 }
 
 #[cfg(test)]
@@ -172,7 +212,10 @@ mod tests {
         let wire1 = Wire::new("R8,U5,L5,D3");
         let wire2 = Wire::new("U7,R6,D4,L4");
         let intersections = find_intersections(&wire1, &wire2);
-        assert_eq!(intersections, vec![Point::new(6, 5), Point::new(3, 3)]);
+        assert_eq!(intersections, vec![
+            Intersection::new(Point::new(6, 5), 30),
+            Intersection::new(Point::new(3, 3), 40),
+        ]);
     }
 
     #[test]
@@ -196,6 +239,11 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(part1(), 1674);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 14012);
     }
 
 }
