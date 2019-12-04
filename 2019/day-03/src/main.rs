@@ -79,8 +79,12 @@ impl Span {
     }
 
     fn get_intersection(&self, other: &Span) -> Option<Point> {
-        if self.is_horizontal() && other.is_horizontal() { return None; }
-        if self.is_vertical() && other.is_vertical() { return None; }
+        if self.is_horizontal() && other.is_horizontal() {
+            return None;
+        }
+        if self.is_vertical() && other.is_vertical() {
+            return None;
+        }
         if self.is_horizontal() {
             if self.contains_x(other.a.x) && other.contains_y(self.a.y) {
                 return Some(Point::new(other.a.x, self.a.y));
@@ -146,7 +150,10 @@ struct Intersection {
 
 impl Intersection {
     fn new(point: Point, steps: i32) -> Intersection {
-        Intersection { point: point, steps: steps }
+        Intersection {
+            point: point,
+            steps: steps,
+        }
     }
 
     fn taxicab(&self) -> i32 {
@@ -169,7 +176,9 @@ fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
         let mut steps2 = 0;
         for s2 in spans2.iter() {
             if let Some(p) = s1.get_intersection(s2) {
-                if p.x == 0 && p.y == 0 { continue }
+                if p.x == 0 && p.y == 0 {
+                    continue;
+                }
                 let mut steps = steps1 + steps2;
                 steps += Span::new(s1.a.clone(), p.clone()).len();
                 steps += Span::new(s2.a.clone(), p.clone()).len();
@@ -199,8 +208,14 @@ fn part2() -> i32 {
 }
 
 fn main() {
-    println!("Part 1: The closest intersection is {} away (taxicab)", part1());
-    println!("Part 2: The closest intersection is {} away (steps)", part2());
+    println!(
+        "Part 1: The closest intersection is {} away (taxicab)",
+        part1()
+    );
+    println!(
+        "Part 2: The closest intersection is {} away (steps)",
+        part2()
+    );
 }
 
 #[cfg(test)]
@@ -212,10 +227,13 @@ mod tests {
         let wire1 = Wire::new("R8,U5,L5,D3");
         let wire2 = Wire::new("U7,R6,D4,L4");
         let intersections = find_intersections(&wire1, &wire2);
-        assert_eq!(intersections, vec![
-            Intersection::new(Point::new(6, 5), 30),
-            Intersection::new(Point::new(3, 3), 40),
-        ]);
+        assert_eq!(
+            intersections,
+            vec![
+                Intersection::new(Point::new(6, 5), 30),
+                Intersection::new(Point::new(3, 3), 40),
+            ]
+        );
     }
 
     #[test]
@@ -223,8 +241,10 @@ mod tests {
         let wire1 = Wire::new("R75,D30,R83,U83,L12,D49,R71,U7,L72");
         let wire2 = Wire::new("U62,R66,U55,R34,D71,R55,D58,R83");
         let intersections = find_intersections(&wire1, &wire2);
-        let closest = intersections.iter().map(|i| i.taxicab()).min().unwrap();
-        assert_eq!(closest, 159);
+        let min_taxicab = intersections.iter().map(|i| i.taxicab()).min().unwrap();
+        let min_steps = intersections.iter().map(|i| i.steps).min().unwrap();
+        assert_eq!(min_taxicab, 159);
+        assert_eq!(min_steps, 610);
     }
 
     #[test]
@@ -232,8 +252,10 @@ mod tests {
         let wire1 = Wire::new("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51");
         let wire2 = Wire::new("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7");
         let intersections = find_intersections(&wire1, &wire2);
-        let closest = intersections.iter().map(|i| i.taxicab()).min().unwrap();
-        assert_eq!(closest, 135);
+        let min_taxicab = intersections.iter().map(|i| i.taxicab()).min().unwrap();
+        let min_steps = intersections.iter().map(|i| i.steps).min().unwrap();
+        assert_eq!(min_taxicab, 135);
+        assert_eq!(min_steps, 410);
     }
 
     #[test]
