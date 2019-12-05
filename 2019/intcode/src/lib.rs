@@ -102,26 +102,26 @@ impl Opcode {
                 if params[0] != 0 {
                     new_pos = params[1] as usize;
                 }
-            },
+            }
             JUMPF => {
                 if params[0] == 0 {
                     new_pos = params[1] as usize;
                 }
-            },
+            }
             LT => {
                 if params[0] < params[1] {
                     program[k] = 1;
                 } else {
                     program[k] = 0;
                 }
-            },
+            }
             EQ => {
                 if params[0] == params[1] {
                     program[k] = 1;
                 } else {
                     program[k] = 0;
                 }
-            },
+            }
             END => {}
         };
         (new_pos, None)
@@ -228,7 +228,24 @@ mod tests {
 
     #[test]
     fn test_day05_examples() {
-        let mut comp = Computer::new(vec![1002, 4, 3, 4, 33]);
-        assert_eq!(comp.execute(), 1002);
+        let mut comp1 = Computer::new(vec![1002, 4, 3, 4, 33]);
+        assert_eq!(comp1.execute(), 1002);
+        let mut comp2 = Computer::new(vec![
+            3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31, 1106, 0, 36, 98, 0,
+            0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104, 999, 1105, 1, 46, 1101, 1000, 1, 20, 4,
+            20, 1105, 1, 46, 98, 99,
+        ]);
+        // Input below 8 -> 999
+        comp2.set_input(7);
+        comp2.execute();
+        assert_eq!(comp2.final_output(), Some(&999));
+        // Input equal 8 -> 1000
+        comp2.set_input(8);
+        comp2.execute();
+        assert_eq!(comp2.final_output(), Some(&1000));
+        // Input above 8 -> 1001
+        comp2.set_input(9);
+        comp2.execute();
+        assert_eq!(comp2.final_output(), Some(&1001));
     }
 }
