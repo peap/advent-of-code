@@ -7,6 +7,10 @@ enum Instruction {
     MUL,
     INPUT,
     OUTPUT,
+    JUMPT,
+    JUMPF,
+    LT,
+    EQ,
     END,
 }
 
@@ -42,6 +46,10 @@ impl From<i32> for Opcode {
             2 => (Instruction::MUL, 3),
             3 => (Instruction::INPUT, 1),
             4 => (Instruction::OUTPUT, 1),
+            5 => (Instruction::JUMPT, 2),
+            6 => (Instruction::JUMPF, 2),
+            7 => (Instruction::LT, 3),
+            8 => (Instruction::EQ, 3),
             99 => (Instruction::END, 0),
             _ => panic!("Unknown instruction {}", code),
         };
@@ -63,7 +71,7 @@ impl From<i32> for Opcode {
 }
 
 impl Opcode {
-    fn act(&self, pos: &usize, program: &mut Program) -> Option<i32> {
+    fn act(&self, pos: &usize, program: &mut Program) -> (usize, Option<i32>) {
         use Instruction::*;
         let mut params = vec![];
         for n in 0..self.num_params {
@@ -84,14 +92,39 @@ impl Opcode {
         } else {
             0
         };
+        let mut new_pos = pos + 1 + self.num_params;
         match self.instruction {
             ADD => program[k] = params[0] + params[1],
             MUL => program[k] = params[0] * params[1],
             INPUT => program[i] = self.input,
-            OUTPUT => return Some(params[0]),
+            OUTPUT => return (new_pos, Some(params[0])),
+            JUMPT => {
+                if params[0] != 0 {
+                    new_pos = params[1] as usize;
+                }
+            },
+            JUMPF => {
+                if params[0] == 0 {
+                    new_pos = params[1] as usize;
+                }
+            },
+            LT => {
+                if params[0] < params[1] {
+                    program[k] = 1;
+                } else {
+                    program[k] = 0;
+                }
+            },
+            EQ => {
+                if params[0] == params[1] {
+                    program[k] = 1;
+                } else {
+                    program[k] = 0;
+                }
+            },
             END => {}
         };
-        None
+        (new_pos, None)
     }
 
     fn end(&self) -> bool {
@@ -161,10 +194,11 @@ impl Computer {
                 break;
             }
             opcode.set_input(self.input);
-            if let Some(output) = opcode.act(&pos, &mut program) {
-                self.outputs.push(output);
+            let (new_pos, output) = opcode.act(&pos, &mut program);
+            if let Some(out) = output {
+                self.outputs.push(out);
             }
-            pos += 1 + opcode.num_params
+            pos = new_pos;
         }
         program[0]
     }
