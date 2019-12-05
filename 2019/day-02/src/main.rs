@@ -1,9 +1,10 @@
 use intcode::Computer;
 
-fn find_inputs(comp: Computer, target: i32) -> (i32, i32) {
+fn find_inputs(comp: &mut Computer, target: i32) -> (i32, i32) {
     for noun in 0..100 {
         for verb in 0..100 {
-            if comp.execute(noun, verb) == target {
+            comp.set_noun_verb(noun, verb);
+            if comp.execute() == target {
                 return (noun, verb);
             }
         }
@@ -12,10 +13,11 @@ fn find_inputs(comp: Computer, target: i32) -> (i32, i32) {
 }
 
 fn main() {
-    let comp = Computer::from_file("input.txt");
-    let output = comp.execute(12, 2);
+    let mut comp = Computer::from_file("input.txt");
+    comp.set_noun_verb(12, 2);
+    let output = comp.execute();
     println!("Part 1: position 0 --> {}", output);
-    let (noun, verb) = find_inputs(comp, 19690720);
+    let (noun, verb) = find_inputs(&mut comp, 19690720);
     println!("Part 2: 100 * {} + {} = {}", noun, verb, 100 * noun + verb);
 }
 
@@ -25,14 +27,15 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let comp = Computer::from_file("input.txt");
-        assert_eq!(comp.execute(12, 2), 3409710);
+        let mut comp = Computer::from_file("input.txt");
+        comp.set_noun_verb(12, 2);
+        assert_eq!(comp.execute(), 3409710);
     }
 
     #[test]
     fn test_part2() {
-        let comp = Computer::from_file("input.txt");
-        let (noun, verb) = find_inputs(comp, 19690720);
+        let mut comp = Computer::from_file("input.txt");
+        let (noun, verb) = find_inputs(&mut comp, 19690720);
         assert_eq!(noun, 79);
         assert_eq!(verb, 12);
     }
