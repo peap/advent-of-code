@@ -38,10 +38,7 @@ impl System {
             .entry(name.clone())
             .or_insert_with(|| {
                 let next_idx = bodies.len();
-                bodies.push(Body {
-                    focus: None,
-                    name: name,
-                });
+                bodies.push(Body { focus: None });
                 next_idx
             })
             .clone()
@@ -65,14 +62,42 @@ impl System {
             .fold(0, |acc, idx| acc + self.count_orbits(*idx))
     }
 
-    fn minimal_transfer(&self, body_name: String, target_name: String) -> i32 {
+    fn build_path(&self, idx: usize) -> Vec<usize> {
+        let mut path = vec![idx];
+        let mut current = idx;
+        loop {
+            if let Some(focus_idx) = self.bodies[current].focus {
+                path.push(focus_idx);
+                current = focus_idx;
+            } else {
+                break;
+            }
+        }
+        path
+    }
+
+    fn minimal_transfer(&self, body_name: &str, target_name: &str) -> i32 {
+        let body_idx = self.map.get(body_name).unwrap();
+        let target_idx = self.map.get(target_name).unwrap();
+        let body_path = self.build_path(*body_idx);
+        let target_path = self.build_path(*target_idx);
+        let mut body_count = -1;
+        for bidx in body_path.iter() {
+            let mut target_count = -1;
+            for tidx in target_path.iter() {
+                if bidx == tidx {
+                    return body_count + target_count;
+                }
+                target_count += 1;
+            }
+            body_count += 1;
+        }
         0
     }
 }
 
 struct Body {
     focus: Option<usize>,
-    name: String,
 }
 
 fn get_lines(filename: &'static str) -> Vec<String> {
@@ -93,7 +118,7 @@ fn part1() -> i32 {
 fn part2() -> i32 {
     let lines = get_lines("input.txt");
     let system = System::from_lines(lines);
-    system.minimal_transfer(String::from("YOU"), String::from("SAN"))
+    system.minimal_transfer("YOU", "SAN")
 }
 
 fn main() {
@@ -146,10 +171,10 @@ mod tests {
             String::from("I)SAN"),
         ];
         let system = System::from_lines(lines);
-        assert_eq!(
-            system.minimal_transfer(String::from("YOU"), String::from("SAN")),
-            4
-        );
+        assert_eq!(system.build_path(0), vec![0]);
+        assert_eq!(system.build_path(1), vec![1, 0]);
+        assert_eq!(system.build_path(2), vec![2, 1, 0]);
+        assert_eq!(system.minimal_transfer("YOU", "SAN"), 4);
     }
 
     #[test]
@@ -159,7 +184,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        assert_ne!(part2(), 0);
+        assert_eq!(part2(), 292);
     }
 
 }
