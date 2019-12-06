@@ -12,7 +12,10 @@ struct System {
 
 impl System {
     fn new() -> System {
-        System { bodies: vec![], map: HashMap::new() }
+        System {
+            bodies: vec![],
+            map: HashMap::new(),
+        }
     }
 
     fn from_lines(lines: Vec<String>) -> System {
@@ -31,14 +34,17 @@ impl System {
 
     fn add_body(&mut self, name: String) -> usize {
         let bodies = &mut self.bodies;
-        self.map.entry(name.clone()).or_insert_with(|| {
-            let next_idx = bodies.len();
-            bodies.push(Body {
-                focus: None,
-                name: name,
-            });
-            next_idx
-        }).clone()
+        self.map
+            .entry(name.clone())
+            .or_insert_with(|| {
+                let next_idx = bodies.len();
+                bodies.push(Body {
+                    focus: None,
+                    name: name,
+                });
+                next_idx
+            })
+            .clone()
     }
 
     fn set_focus(&mut self, body_idx: usize, focus_idx: usize) {
@@ -51,11 +57,16 @@ impl System {
         } else {
             0
         }
-
     }
 
     fn total_orbits(&self) -> i32 {
-        self.map.values().fold(0, |acc, idx| acc + self.count_orbits(*idx))
+        self.map
+            .values()
+            .fold(0, |acc, idx| acc + self.count_orbits(*idx))
+    }
+
+    fn minimal_transfer(&self, body_name: String, target_name: String) -> i32 {
+        0
     }
 }
 
@@ -67,7 +78,10 @@ struct Body {
 fn get_lines(filename: &'static str) -> Vec<String> {
     let f = File::open(filename).unwrap();
     let reader = BufReader::new(f);
-    reader.lines().map(|l| l.unwrap().trim().to_string()).collect()
+    reader
+        .lines()
+        .map(|l| l.unwrap().trim().to_string())
+        .collect()
 }
 
 fn part1() -> i32 {
@@ -76,8 +90,15 @@ fn part1() -> i32 {
     system.total_orbits()
 }
 
+fn part2() -> i32 {
+    let lines = get_lines("input.txt");
+    let system = System::from_lines(lines);
+    system.minimal_transfer(String::from("YOU"), String::from("SAN"))
+}
+
 fn main() {
-    println!("Part1: {}", part1());
+    println!("Part1: Total orbits: {}", part1());
+    println!("Part2: Minimum transfer: {}", part2());
 }
 
 #[cfg(test)]
@@ -85,7 +106,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_example() {
+    fn test_example_1() {
         let lines = vec![
             String::from("COM)B"),
             String::from("B)C"),
@@ -98,18 +119,47 @@ mod tests {
             String::from("E)J"),
             String::from("J)K"),
             String::from("K)L"),
-       ];
-       let system = System::from_lines(lines);
-       assert_eq!(system.map.len(), 12);
-       assert_eq!(system.count_orbits(0), 0);
-       assert_eq!(system.count_orbits(1), 1);
-       assert_eq!(system.count_orbits(2), 2);
-       assert_eq!(system.total_orbits(), 42);
+        ];
+        let system = System::from_lines(lines);
+        assert_eq!(system.map.len(), 12);
+        assert_eq!(system.count_orbits(0), 0);
+        assert_eq!(system.count_orbits(1), 1);
+        assert_eq!(system.count_orbits(2), 2);
+        assert_eq!(system.total_orbits(), 42);
+    }
+
+    #[test]
+    fn test_example_2() {
+        let lines = vec![
+            String::from("COM)B"),
+            String::from("B)C"),
+            String::from("C)D"),
+            String::from("D)E"),
+            String::from("E)F"),
+            String::from("B)G"),
+            String::from("G)H"),
+            String::from("D)I"),
+            String::from("E)J"),
+            String::from("J)K"),
+            String::from("K)L"),
+            String::from("K)YOU"),
+            String::from("I)SAN"),
+        ];
+        let system = System::from_lines(lines);
+        assert_eq!(
+            system.minimal_transfer(String::from("YOU"), String::from("SAN")),
+            4
+        );
     }
 
     #[test]
     fn test_part1() {
         assert_eq!(part1(), 171213);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_ne!(part2(), 0);
     }
 
 }
