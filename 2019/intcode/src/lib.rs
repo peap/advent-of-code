@@ -1,6 +1,8 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
+pub type Val = i32;
+
 #[derive(Debug, Eq, PartialEq)]
 enum Instruction {
     ADD,
@@ -20,8 +22,8 @@ enum ParamMode {
     Immediate,
 }
 
-impl From<i32> for ParamMode {
-    fn from(i: i32) -> ParamMode {
+impl From<Val> for ParamMode {
+    fn from(i: Val) -> ParamMode {
         match i {
             0 => ParamMode::Position,
             1 => ParamMode::Immediate,
@@ -35,11 +37,12 @@ struct Opcode {
     instruction: Instruction,
     num_params: usize,
     param_modes: Vec<ParamMode>,
-    input: i32,
+    input: Option<Val>,
+    consumed_input: bool,
 }
 
-impl From<i32> for Opcode {
-    fn from(i: i32) -> Opcode {
+impl From<Val> for Opcode {
+    fn from(i: Val) -> Opcode {
         let code = i % 100;
         let (instruction, num_params) = match code {
             1 => (Instruction::ADD, 3),
@@ -65,20 +68,21 @@ impl From<i32> for Opcode {
             instruction: instruction,
             num_params: num_params,
             param_modes: param_modes,
-            input: 0,
+            input: None,
+            consumed_input: false,
         }
     }
 }
 
 impl Opcode {
-    fn act(&self, pos: &usize, program: &mut Program) -> (usize, Option<i32>) {
+    fn act(&mut self, pos: &usize, program: &mut Program) -> (usize, Option<Val>) {
         use Instruction::*;
         let mut params = vec![];
         for n in 0..self.num_params {
             let param_val = program[pos + 1 + n] as usize;
             let value = match self.param_modes[n] {
                 ParamMode::Position => program[param_val],
-                ParamMode::Immediate => param_val as i32,
+                ParamMode::Immediate => param_val as Val,
             };
             params.push(value);
         }
@@ -96,7 +100,10 @@ impl Opcode {
         match self.instruction {
             ADD => program[k] = params[0] + params[1],
             MUL => program[k] = params[0] * params[1],
-            INPUT => program[i] = self.input,
+            INPUT => {
+                program[i] = self.input.expect("No input when expected!");
+                self.consumed_input = true;
+            }
             OUTPUT => return (new_pos, Some(params[0])),
             JUMPT => {
                 if params[0] != 0 {
@@ -131,19 +138,20 @@ impl Opcode {
         self.instruction == Instruction::END
     }
 
-    fn set_input(&mut self, input: i32) {
-        self.input = input
+    fn set_possible_input(&mut self, input: Val) {
+        self.input = Some(input)
     }
 }
 
-type Program = Vec<i32>;
+type Program = Vec<Val>;
 
+#[derive(Clone)]
 pub struct Computer {
     program: Program,
-    noun: i32,
-    verb: i32,
-    input: i32,
-    outputs: Vec<i32>,
+    noun: Val,
+    verb: Val,
+    inputs: Vec<Val>,
+    outputs: Vec<Val>,
 }
 
 impl Computer {
@@ -152,7 +160,7 @@ impl Computer {
             noun: program[1].clone(),
             verb: program[2].clone(),
             program: program,
-            input: 0,
+            inputs: vec![],
             outputs: vec![],
         }
     }
@@ -174,16 +182,16 @@ impl Computer {
         )
     }
 
-    pub fn set_noun_verb(&mut self, noun: i32, verb: i32) {
+    pub fn set_noun_verb(&mut self, noun: Val, verb: Val) {
         self.noun = noun;
         self.verb = verb;
     }
 
-    pub fn set_input(&mut self, input: i32) {
-        self.input = input;
+    pub fn set_input(&mut self, input: Val) {
+        self.inputs.push(input);
     }
 
-    pub fn execute(&mut self) -> i32 {
+    pub fn execute(&mut self) -> Val {
         let mut program = self.program.clone();
         program[1] = self.noun;
         program[2] = self.verb;
@@ -193,17 +201,22 @@ impl Computer {
             if opcode.end() {
                 break;
             }
-            opcode.set_input(self.input);
+            if self.inputs.len() > 0 {
+                opcode.set_possible_input(self.inputs[0]);
+            }
             let (new_pos, output) = opcode.act(&pos, &mut program);
             if let Some(out) = output {
                 self.outputs.push(out);
+            }
+            if opcode.consumed_input {
+                self.inputs.remove(0);
             }
             pos = new_pos;
         }
         program[0]
     }
 
-    pub fn final_output(&self) -> Option<&i32> {
+    pub fn final_output(&self) -> Option<&Val> {
         self.outputs.last()
     }
 }
