@@ -20,17 +20,27 @@ fn all_phase_settings(options: PhaseSettings) -> Vec<PhaseSettings> {
     all_settings
 }
 
-fn maximize_amplifiers(comp: Computer, settings: Vec<PhaseSettings>, feedback: bool) -> Val {
+fn maximize_amplifiers(comp: Computer, settings: Vec<PhaseSettings>) -> Val {
     let mut maximum = 0;
     for phases in settings {
         let mut last_amp_output = 0;
-        if !feedback {
-            for amp_phase in phases {
-                let mut new_comp = comp.clone();
-                new_comp.set_input(amp_phase);
-                new_comp.set_input(last_amp_output);
-                new_comp.execute();
-                last_amp_output = new_comp.final_output().unwrap().clone();
+        let mut last_amp_finished = false;
+        let mut computers = vec![];
+        for amp_phase in phases {
+            let mut new_comp = comp.clone();
+            new_comp.set_input(amp_phase);
+            new_comp.set_input(last_amp_output);
+            new_comp.execute();
+            last_amp_output = new_comp.final_output().unwrap().clone();
+            last_amp_finished = new_comp.is_finished();
+            computers.push(new_comp);
+        }
+        while !last_amp_finished {
+            for comp in computers.iter_mut() {
+                comp.set_input(last_amp_output);
+                comp.execute();
+                last_amp_output = comp.final_output().unwrap().clone();
+                last_amp_finished = comp.is_finished();
             }
         }
         if last_amp_output > maximum {
@@ -43,13 +53,13 @@ fn maximize_amplifiers(comp: Computer, settings: Vec<PhaseSettings>, feedback: b
 fn part1() -> Val {
     let comp = Computer::from_file("input.txt");
     let settings = all_phase_settings((0..5).collect());
-    maximize_amplifiers(comp, settings, false)
+    maximize_amplifiers(comp, settings)
 }
 
 fn part2() -> Val {
     let comp = Computer::from_file("input.txt");
     let settings = all_phase_settings((5..10).collect());
-    maximize_amplifiers(comp, settings, true)
+    maximize_amplifiers(comp, settings)
 }
 
 fn main() {
@@ -82,7 +92,7 @@ mod tests {
             3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0,
         ]);
         let settings = all_phase_settings((0..5).collect());
-        assert_eq!(maximize_amplifiers(comp, settings, false), 43210);
+        assert_eq!(maximize_amplifiers(comp, settings), 43210);
     }
 
     #[test]
@@ -92,7 +102,7 @@ mod tests {
             99, 0, 0,
         ]);
         let settings = all_phase_settings((0..5).collect());
-        assert_eq!(maximize_amplifiers(comp, settings, false), 54321);
+        assert_eq!(maximize_amplifiers(comp, settings), 54321);
     }
 
     #[test]
@@ -102,7 +112,7 @@ mod tests {
             33, 31, 31, 1, 32, 31, 31, 4, 31, 99, 0, 0, 0,
         ]);
         let settings = all_phase_settings((0..5).collect());
-        assert_eq!(maximize_amplifiers(comp, settings, false), 65210);
+        assert_eq!(maximize_amplifiers(comp, settings), 65210);
     }
 
     #[test]
@@ -117,7 +127,7 @@ mod tests {
             28, 1005, 28, 6, 99, 0, 0, 5,
         ]);
         let settings = all_phase_settings((5..10).collect());
-        assert_eq!(maximize_amplifiers(comp, settings, true), 139629729);
+        assert_eq!(maximize_amplifiers(comp, settings), 139629729);
     }
 
     #[test]
@@ -128,11 +138,11 @@ mod tests {
             53, 1001, 56, -1, 56, 1005, 56, 6, 99, 0, 0, 0, 0, 10,
         ]);
         let settings = all_phase_settings((5..10).collect());
-        assert_eq!(maximize_amplifiers(comp, settings, true), 18216);
+        assert_eq!(maximize_amplifiers(comp, settings), 18216);
     }
 
     #[test]
     fn test_part2() {
-        assert_ne!(part2(), 0);
+        assert_eq!(part2(), 14260332);
     }
 }

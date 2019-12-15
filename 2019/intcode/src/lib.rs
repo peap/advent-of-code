@@ -39,6 +39,7 @@ struct Opcode {
     param_modes: Vec<ParamMode>,
     input: Option<Val>,
     consumed_input: bool,
+    needs_input: bool,
 }
 
 impl From<Val> for Opcode {
@@ -70,6 +71,7 @@ impl From<Val> for Opcode {
             param_modes: param_modes,
             input: None,
             consumed_input: false,
+            needs_input: false,
         }
     }
 }
@@ -101,8 +103,12 @@ impl Opcode {
             ADD => program[k] = params[0] + params[1],
             MUL => program[k] = params[0] * params[1],
             INPUT => {
-                program[i] = self.input.expect("No input when expected!");
-                self.consumed_input = true;
+                self.needs_input = true;
+                if let Some(input) = self.input {
+                    program[i] = input;
+                    self.consumed_input = true;
+                    self.needs_input = false;
+                }
             }
             OUTPUT => return (new_pos, Some(params[0])),
             JUMPT => {
@@ -151,6 +157,7 @@ pub struct Computer {
     pos: usize,
     inputs: Vec<Val>,
     outputs: Vec<Val>,
+    finished: bool,
 }
 
 impl Computer {
@@ -160,6 +167,7 @@ impl Computer {
             pos: 0,
             inputs: vec![],
             outputs: vec![],
+            finished: false,
         }
     }
 
@@ -193,6 +201,7 @@ impl Computer {
         while self.pos < self.program.len() {
             let mut opcode = Opcode::from(self.program[self.pos]);
             if opcode.end() {
+                self.finished = true;
                 break;
             }
             if self.inputs.len() > 0 {
@@ -205,6 +214,9 @@ impl Computer {
             if opcode.consumed_input {
                 self.inputs.remove(0);
             }
+            if opcode.needs_input {
+                break;
+            }
             self.pos = new_pos;
         }
         self.program[0]
@@ -212,6 +224,10 @@ impl Computer {
 
     pub fn final_output(&self) -> Option<&Val> {
         self.outputs.last()
+    }
+
+    pub fn is_finished(&self) -> bool {
+        self.finished
     }
 }
 
