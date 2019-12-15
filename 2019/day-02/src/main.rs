@@ -3,8 +3,9 @@ use intcode::Computer;
 fn find_inputs(comp: &mut Computer, target: i32) -> (i32, i32) {
     for noun in 0..100 {
         for verb in 0..100 {
-            comp.set_noun_verb(noun, verb);
-            if comp.execute() == target {
+            let mut new_comp = comp.clone();
+            new_comp.set_noun_verb(noun, verb);
+            if new_comp.execute() == target {
                 return (noun, verb);
             }
         }

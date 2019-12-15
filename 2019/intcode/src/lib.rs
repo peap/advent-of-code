@@ -148,8 +148,7 @@ type Program = Vec<Val>;
 #[derive(Clone)]
 pub struct Computer {
     program: Program,
-    noun: Val,
-    verb: Val,
+    pos: usize,
     inputs: Vec<Val>,
     outputs: Vec<Val>,
 }
@@ -157,9 +156,8 @@ pub struct Computer {
 impl Computer {
     pub fn new(program: Program) -> Computer {
         Computer {
-            noun: program[1].clone(),
-            verb: program[2].clone(),
             program: program,
+            pos: 0,
             inputs: vec![],
             outputs: vec![],
         }
@@ -183,8 +181,8 @@ impl Computer {
     }
 
     pub fn set_noun_verb(&mut self, noun: Val, verb: Val) {
-        self.noun = noun;
-        self.verb = verb;
+        self.program[1] = noun;
+        self.program[2] = verb;
     }
 
     pub fn set_input(&mut self, input: Val) {
@@ -192,28 +190,24 @@ impl Computer {
     }
 
     pub fn execute(&mut self) -> Val {
-        let mut program = self.program.clone();
-        program[1] = self.noun;
-        program[2] = self.verb;
-        let mut pos = 0;
-        while pos < program.len() {
-            let mut opcode = Opcode::from(program[pos]);
+        while self.pos < self.program.len() {
+            let mut opcode = Opcode::from(self.program[self.pos]);
             if opcode.end() {
                 break;
             }
             if self.inputs.len() > 0 {
                 opcode.set_possible_input(self.inputs[0]);
             }
-            let (new_pos, output) = opcode.act(&pos, &mut program);
+            let (new_pos, output) = opcode.act(&self.pos, &mut self.program);
             if let Some(out) = output {
                 self.outputs.push(out);
             }
             if opcode.consumed_input {
                 self.inputs.remove(0);
             }
-            pos = new_pos;
+            self.pos = new_pos;
         }
-        program[0]
+        self.program[0]
     }
 
     pub fn final_output(&self) -> Option<&Val> {
@@ -243,22 +237,25 @@ mod tests {
     fn test_day05_examples() {
         let mut comp1 = Computer::new(vec![1002, 4, 3, 4, 33]);
         assert_eq!(comp1.execute(), 1002);
-        let mut comp2 = Computer::new(vec![
+        let comp2 = Computer::new(vec![
             3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31, 1106, 0, 36, 98, 0,
             0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104, 999, 1105, 1, 46, 1101, 1000, 1, 20, 4,
             20, 1105, 1, 46, 98, 99,
         ]);
         // Input below 8 -> 999
-        comp2.set_input(7);
-        comp2.execute();
-        assert_eq!(comp2.final_output(), Some(&999));
+        let mut comp2_1 = comp2.clone();
+        comp2_1.set_input(7);
+        comp2_1.execute();
+        assert_eq!(comp2_1.final_output(), Some(&999));
         // Input equal 8 -> 1000
-        comp2.set_input(8);
-        comp2.execute();
-        assert_eq!(comp2.final_output(), Some(&1000));
+        let mut comp2_2 = comp2.clone();
+        comp2_2.set_input(8);
+        comp2_2.execute();
+        assert_eq!(comp2_2.final_output(), Some(&1000));
         // Input above 8 -> 1001
-        comp2.set_input(9);
-        comp2.execute();
-        assert_eq!(comp2.final_output(), Some(&1001));
+        let mut comp2_3 = comp2.clone();
+        comp2_3.set_input(9);
+        comp2_3.execute();
+        assert_eq!(comp2_3.final_output(), Some(&1001));
     }
 }
