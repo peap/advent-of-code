@@ -1,13 +1,13 @@
-use intcode::Computer;
+use intcode::{Computer, Val};
 
-fn part1() -> i32 {
+fn part1() -> Val {
     let mut comp = Computer::from_file("input.txt");
     comp.set_input(1);
     comp.execute();
     comp.final_output().unwrap().clone()
 }
 
-fn part2() -> i32 {
+fn part2() -> Val {
     let mut comp = Computer::from_file("input.txt");
     comp.set_input(5);
     comp.execute();

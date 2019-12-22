@@ -1,6 +1,6 @@
-use intcode::Computer;
+use intcode::{Computer, Val};
 
-fn find_inputs(comp: &mut Computer, target: i32) -> (i32, i32) {
+fn find_inputs(comp: &mut Computer, target: Val) -> (Val, Val) {
     for noun in 0..100 {
         for verb in 0..100 {
             let mut new_comp = comp.clone();

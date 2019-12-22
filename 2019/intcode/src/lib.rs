@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-pub type Val = i32;
+pub type Val = i64;
 
 #[derive(Debug, Eq, PartialEq)]
 enum Instruction {
@@ -288,5 +288,18 @@ mod tests {
         comp2_3.set_input(9);
         comp2_3.execute();
         assert_eq!(comp2_3.final_output(), Some(&1001));
+    }
+
+    #[test]
+    fn test_day09_examples() {
+        // let input = vec![109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99];
+        // let expected = input.clone();
+        // let comp1 = Computer::new(input);
+        // comp1.execute();
+        // assert_eq!(comp1.final_output(), Some(expected));
+        // todo: comp2
+        let mut comp3 = Computer::new(vec![104,1125899906842624,99]);
+        comp3.execute();
+        assert_eq!(comp3.final_output(), Some(&1125899906842624));
     }
 }
