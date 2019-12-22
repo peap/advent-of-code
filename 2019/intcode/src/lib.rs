@@ -13,6 +13,7 @@ enum Instruction {
     JUMPF,
     LT,
     EQ,
+    RBOFFSET,
     END,
 }
 
@@ -20,6 +21,7 @@ enum Instruction {
 enum ParamMode {
     Position,
     Immediate,
+    Relative,
 }
 
 impl From<Val> for ParamMode {
@@ -27,6 +29,7 @@ impl From<Val> for ParamMode {
         match i {
             0 => ParamMode::Position,
             1 => ParamMode::Immediate,
+            2 => ParamMode::Relative,
             _ => panic!("Unknown ParamMode {}", i),
         }
     }
@@ -54,6 +57,7 @@ impl From<Val> for Opcode {
             6 => (Instruction::JUMPF, 2),
             7 => (Instruction::LT, 3),
             8 => (Instruction::EQ, 3),
+            9 => (Instruction::RBOFFSET, 1),
             99 => (Instruction::END, 0),
             _ => panic!("Unknown instruction {}", code),
         };
@@ -77,7 +81,7 @@ impl From<Val> for Opcode {
 }
 
 impl Opcode {
-    fn act(&mut self, pos: &usize, program: &mut Program) -> (usize, Option<Val>) {
+    fn act(&mut self, pos: &usize, rb: &usize, program: &mut Program) -> (usize, usize, Option<Val>) {
         use Instruction::*;
         let mut params = vec![];
         for n in 0..self.num_params {
@@ -85,6 +89,7 @@ impl Opcode {
             let value = match self.param_modes[n] {
                 ParamMode::Position => program[param_val],
                 ParamMode::Immediate => param_val as Val,
+                ParamMode::Relative => program[param_val + rb],
             };
             params.push(value);
         }
@@ -99,6 +104,8 @@ impl Opcode {
             0
         };
         let mut new_pos = pos + 1 + self.num_params;
+        let mut new_rb = *rb;
+        let mut output = None;
         match self.instruction {
             ADD => program[k] = params[0] + params[1],
             MUL => program[k] = params[0] * params[1],
@@ -110,7 +117,9 @@ impl Opcode {
                     self.needs_input = false;
                 }
             }
-            OUTPUT => return (new_pos, Some(params[0])),
+            OUTPUT => {
+                output = Some(params[0]);
+            }
             JUMPT => {
                 if params[0] != 0 {
                     new_pos = params[1] as usize;
@@ -135,9 +144,12 @@ impl Opcode {
                     program[k] = 0;
                 }
             }
+            RBOFFSET => {
+                new_rb += params[0] as usize;
+            }
             END => {}
         };
-        (new_pos, None)
+        (new_pos, new_rb, output)
     }
 
     fn end(&self) -> bool {
@@ -155,6 +167,7 @@ type Program = Vec<Val>;
 pub struct Computer {
     program: Program,
     pos: usize,
+    relative_base: usize,
     inputs: Vec<Val>,
     outputs: Vec<Val>,
     finished: bool,
@@ -165,6 +178,7 @@ impl Computer {
         Computer {
             program: program,
             pos: 0,
+            relative_base: 0,
             inputs: vec![],
             outputs: vec![],
             finished: false,
@@ -207,7 +221,7 @@ impl Computer {
             if self.inputs.len() > 0 {
                 opcode.set_possible_input(self.inputs[0]);
             }
-            let (new_pos, output) = opcode.act(&self.pos, &mut self.program);
+            let (new_pos, rb_delta, output) = opcode.act(&self.pos, &self.relative_base, &mut self.program);
             if let Some(out) = output {
                 self.outputs.push(out);
             }
@@ -218,6 +232,7 @@ impl Computer {
                 break;
             }
             self.pos = new_pos;
+            self.relative_base += rb_delta;
         }
         self.program[0]
     }
