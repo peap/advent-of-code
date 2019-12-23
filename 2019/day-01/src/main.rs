@@ -5,7 +5,10 @@ use std::io::{BufRead, BufReader};
 fn load_weights(filename: &'static str) -> Vec<i64> {
     let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
-    reader.lines().map(|l| { l.unwrap().parse().unwrap() }).collect()
+    reader
+        .lines()
+        .map(|l| l.unwrap().parse().unwrap())
+        .collect()
 }
 
 fn fuel_for_weight(weight: &i64) -> i64 {
@@ -24,7 +27,9 @@ fn main() {
     let weights = load_weights("input.txt");
     let total1 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight(w));
     println!("Part 1: total weight is {}", total1);
-    let total2 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight_recur(w));
+    let total2 = weights
+        .iter()
+        .fold(0, |sum, w| sum + fuel_for_weight_recur(w));
     println!("Part 2: total weight (w/fuel weight) is {}", total2);
 }
 
@@ -59,7 +64,9 @@ mod tests {
     #[test]
     fn test_part2() {
         let weights = load_weights("input.txt");
-        let total2 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight_recur(w));
+        let total2 = weights
+            .iter()
+            .fold(0, |sum, w| sum + fuel_for_weight_recur(w));
         assert_eq!(total2, 4983626);
     }
 }

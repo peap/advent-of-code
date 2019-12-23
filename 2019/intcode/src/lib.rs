@@ -21,6 +21,12 @@ enum Instruction {
     END = 99,
 }
 
+impl From<Val> for Instruction {
+    fn from(value: Val) -> Instruction {
+        num::FromPrimitive::from_i64(value).expect(&format!("Unknown Instruction {}", value))
+    }
+}
+
 impl Instruction {
     fn num_params(&self) -> usize {
         use Instruction::*;
@@ -46,13 +52,18 @@ enum ParamMode {
     Relative = 2,
 }
 
+impl From<Val> for ParamMode {
+    fn from(value: Val) -> ParamMode {
+        num::FromPrimitive::from_i64(value).expect(&format!("Unknown ParamMode {}", value))
+    }
+}
+
 impl ParamMode {
     fn get_modes(code: Val, num: usize) -> Vec<ParamMode> {
         let mut remainder = code / 100;
         (0..num)
             .map(|_| {
-                let mode = num::FromPrimitive::from_i64(remainder % 10)
-                    .expect(&format!("Unknown ParamMode {}", remainder % 10));
+                let mode = ParamMode::from(remainder % 10);
                 remainder = remainder / 10;
                 mode
             })
@@ -72,8 +83,7 @@ struct Opcode {
 
 impl From<Val> for Opcode {
     fn from(code: Val) -> Opcode {
-        let instr: Instruction = num::FromPrimitive::from_i64(code % 100)
-            .expect(&format!("Unknown Instruction {}", code % 100));
+        let instr = Instruction::from(code % 100);
         let num_params = instr.num_params();
         let param_modes = ParamMode::get_modes(code, num_params);
         Opcode {

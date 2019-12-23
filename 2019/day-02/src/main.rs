@@ -40,5 +40,4 @@ mod tests {
         assert_eq!(noun, 79);
         assert_eq!(verb, 12);
     }
-
 }
