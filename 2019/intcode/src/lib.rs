@@ -1,37 +1,62 @@
+extern crate num;
+#[macro_use]
+extern crate num_derive;
+
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 pub type Val = i64;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, FromPrimitive, PartialEq)]
 enum Instruction {
-    ADD,
-    MUL,
-    INPUT,
-    OUTPUT,
-    JUMPT,
-    JUMPF,
-    LT,
-    EQ,
-    RBOFFSET,
-    END,
+    ADD = 1,
+    MUL = 2,
+    INPUT = 3,
+    OUTPUT = 4,
+    JUMPT = 5,
+    JUMPF = 6,
+    LT = 7,
+    EQ = 8,
+    RBOFFSET = 9,
+    END = 99,
 }
 
-#[derive(Debug)]
-enum ParamMode {
-    Position,
-    Immediate,
-    Relative,
-}
-
-impl From<Val> for ParamMode {
-    fn from(i: Val) -> ParamMode {
-        match i {
-            0 => ParamMode::Position,
-            1 => ParamMode::Immediate,
-            2 => ParamMode::Relative,
-            _ => panic!("Unknown ParamMode {}", i),
+impl Instruction {
+    fn num_params(&self) -> usize {
+        use Instruction::*;
+        match self {
+            ADD => 3,
+            MUL => 3,
+            INPUT => 1,
+            OUTPUT => 1,
+            JUMPT => 2,
+            JUMPF => 2,
+            LT => 3,
+            EQ => 3,
+            RBOFFSET => 1,
+            END => 0,
         }
+    }
+}
+
+#[derive(Debug, FromPrimitive)]
+enum ParamMode {
+    Position = 0,
+    Immediate = 1,
+    Relative = 2,
+}
+
+impl ParamMode {
+    fn get_modes(code: Val, num: usize) -> Vec<ParamMode> {
+        let mut remainder = code / 100;
+        (0..num)
+            .map(|_| {
+                let mode = num::FromPrimitive::from_i64(remainder % 10)
+                    .expect(&format!("Unknown ParamMode {}", remainder % 10));
+                remainder = remainder / 10;
+                mode
+            })
+            .collect()
     }
 }
 
@@ -46,31 +71,13 @@ struct Opcode {
 }
 
 impl From<Val> for Opcode {
-    fn from(i: Val) -> Opcode {
-        let code = i % 100;
-        let (instruction, num_params) = match code {
-            1 => (Instruction::ADD, 3),
-            2 => (Instruction::MUL, 3),
-            3 => (Instruction::INPUT, 1),
-            4 => (Instruction::OUTPUT, 1),
-            5 => (Instruction::JUMPT, 2),
-            6 => (Instruction::JUMPF, 2),
-            7 => (Instruction::LT, 3),
-            8 => (Instruction::EQ, 3),
-            9 => (Instruction::RBOFFSET, 1),
-            99 => (Instruction::END, 0),
-            _ => panic!("Unknown instruction {}", code),
-        };
-        let mut remainder = i / 100;
-        let param_modes = (0..num_params)
-            .map(|_| {
-                let mode = ParamMode::from(remainder % 10);
-                remainder = remainder / 10;
-                mode
-            })
-            .collect();
+    fn from(code: Val) -> Opcode {
+        let instr: Instruction = num::FromPrimitive::from_i64(code % 100)
+            .expect(&format!("Unknown Instruction {}", code % 100));
+        let num_params = instr.num_params();
+        let param_modes = ParamMode::get_modes(code, num_params);
         Opcode {
-            instruction: instruction,
+            instruction: instr,
             num_params: num_params,
             param_modes: param_modes,
             input: None,
@@ -81,28 +88,44 @@ impl From<Val> for Opcode {
 }
 
 impl Opcode {
-    fn act(&mut self, pos: &usize, rb: &usize, program: &mut Program) -> (usize, usize, Option<Val>) {
+    fn act(&mut self, pos: &usize, rb: &Val, program: &mut Program) -> (usize, Val, Option<Val>) {
         use Instruction::*;
+        let mut idxs = vec![];
         let mut params = vec![];
         for n in 0..self.num_params {
-            let param_val = program[pos + 1 + n] as usize;
-            let value = match self.param_modes[n] {
-                ParamMode::Position => program[param_val],
-                ParamMode::Immediate => param_val as Val,
-                ParamMode::Relative => program[param_val + rb],
+            let param_val = program[pos + 1 + n];
+            let (idx, value) = match self.param_modes[n] {
+                ParamMode::Position => {
+                    let idx = param_val as usize;
+                    let value = if param_val < program.len() as Val {
+                        program[idx]
+                    } else {
+                        0
+                    };
+                    (Some(idx), value)
+                }
+                ParamMode::Immediate => (None, param_val),
+                ParamMode::Relative => {
+                    let idx = param_val + *rb;
+                    let value = if idx < program.len() as Val {
+                        program[idx as usize]
+                    } else {
+                        0
+                    };
+                    (Some(idx as usize), value)
+                }
             };
+            idxs.push(idx);
             params.push(value);
         }
-        let i = if self.num_params >= 1 {
-            program[pos + 1] as usize
-        } else {
-            0
-        };
         let k = if self.num_params >= 3 {
-            program[pos + 3] as usize
+            idxs[2].unwrap()
         } else {
             0
         };
+        if k >= program.len() {
+            program.resize(k + 1, 0);
+        }
         let mut new_pos = pos + 1 + self.num_params;
         let mut new_rb = *rb;
         let mut output = None;
@@ -112,7 +135,7 @@ impl Opcode {
             INPUT => {
                 self.needs_input = true;
                 if let Some(input) = self.input {
-                    program[i] = input;
+                    program[idxs[0].unwrap()] = input;
                     self.consumed_input = true;
                     self.needs_input = false;
                 }
@@ -145,7 +168,7 @@ impl Opcode {
                 }
             }
             RBOFFSET => {
-                new_rb += params[0] as usize;
+                new_rb += params[0];
             }
             END => {}
         };
@@ -167,7 +190,7 @@ type Program = Vec<Val>;
 pub struct Computer {
     program: Program,
     pos: usize,
-    relative_base: usize,
+    relative_base: Val,
     inputs: Vec<Val>,
     outputs: Vec<Val>,
     finished: bool,
@@ -212,7 +235,7 @@ impl Computer {
     }
 
     pub fn execute(&mut self) -> Val {
-        while self.pos < self.program.len() {
+        loop {
             let mut opcode = Opcode::from(self.program[self.pos]);
             if opcode.end() {
                 self.finished = true;
@@ -221,7 +244,8 @@ impl Computer {
             if self.inputs.len() > 0 {
                 opcode.set_possible_input(self.inputs[0]);
             }
-            let (new_pos, rb_delta, output) = opcode.act(&self.pos, &self.relative_base, &mut self.program);
+            let (new_pos, new_rb, output) =
+                opcode.act(&self.pos, &self.relative_base, &mut self.program);
             if let Some(out) = output {
                 self.outputs.push(out);
             }
@@ -232,9 +256,13 @@ impl Computer {
                 break;
             }
             self.pos = new_pos;
-            self.relative_base += rb_delta;
+            self.relative_base = new_rb;
         }
         self.program[0]
+    }
+
+    pub fn all_outputs(&self) -> &Vec<Val> {
+        &self.outputs
     }
 
     pub fn final_output(&self) -> Option<&Val> {
@@ -292,13 +320,23 @@ mod tests {
 
     #[test]
     fn test_day09_examples() {
-        // let input = vec![109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99];
-        // let expected = input.clone();
-        // let comp1 = Computer::new(input);
-        // comp1.execute();
-        // assert_eq!(comp1.final_output(), Some(expected));
-        // todo: comp2
-        let mut comp3 = Computer::new(vec![104,1125899906842624,99]);
+        // Quine example.
+        let input1 = vec![
+            109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+        ];
+        let expected1 = input1.clone();
+        let mut comp1 = Computer::new(input1);
+        comp1.execute();
+        assert_eq!(comp1.all_outputs(), &expected1);
+
+        // Produces a 16-digit number.
+        let mut comp2 = Computer::new(vec![1102, 34915192, 34915192, 7, 4, 7, 99, 0]);
+        comp2.execute();
+        let comp2_out = comp2.final_output().unwrap().clone();
+        assert!(comp2_out >= (10 as Val).pow(15) && comp2_out < (10 as Val).pow(16));
+
+        // Produces the large value in the middle.
+        let mut comp3 = Computer::new(vec![104, 1125899906842624, 99]);
         comp3.execute();
         assert_eq!(comp3.final_output(), Some(&1125899906842624));
     }
