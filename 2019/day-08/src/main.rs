@@ -50,6 +50,21 @@ impl Image {
         }
     }
 
+    fn get_full_image(&self) -> Layer {
+        let twos = vec![2; self.width * self.height];
+        let mut image = Layer::new(self.width, self.height, &twos);
+        for y in 0..self.height {
+            for x in 0..self.width {
+                for layer in self.layers.iter() {
+                    if image.pixels[y][x] == 2 {
+                        image.pixels[y][x] = layer.pixels[y][x];
+                    }
+                }
+            }
+        }
+        image
+    }
+
     fn get_layer_with_fewest(&self, value: u8) -> &Layer {
         let mut min_layer = 0;
         let mut min_count = self.width * self.height;
@@ -82,8 +97,30 @@ fn part1() -> u32 {
     layer.count_pixels(1) * layer.count_pixels(2)
 }
 
+fn part2() -> Layer {
+    let pixels = load_pixels("input.txt");
+    let image = Image::new(25, 6, &pixels);
+    image.get_full_image()
+}
+
 fn main() {
-    println!("Part 1: layer {} has the fewest '0' digits", part1());
+    println!("Part 1: the product of ones and twos in the layer with the \
+        fewest '0' digits is {}", part1());
+    println!("Part 2: the message is...");
+    let image = part2();
+    for y in 0..6 {
+        for x in 0..25 {
+            let pixel = match image.pixels[y][x] {
+                0 => "⚫",
+                1 => "⚪",
+                2 => "⚫",
+                _ => " ",
+            };
+            print!("{}", pixel);
+        }
+        println!("");
+    }
+    println!("--> CJZHR");
 }
 
 #[cfg(test)]
