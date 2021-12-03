@@ -10,7 +10,7 @@ fn load_report(filename: &'static str) -> Vec<String> {
         .collect()
 }
 
-fn sum_digits(numbers: &Vec<String>) -> Vec<u32> {
+fn sum_digits(numbers: &[String]) -> Vec<u32> {
     let mut sums = vec![0; numbers[0].len()];
     for num in numbers.iter() {
         for (i, c) in num.chars().enumerate() {
@@ -27,11 +27,11 @@ fn gamma_epsilon(numbers: Vec<String>) -> (u32, u32) {
     let mut epsilon = String::new();
     for s in sums.iter() {
         if *s as usize > numbers.len() / 2 {
-            gamma.push_str("1");
-            epsilon.push_str("0");
+            gamma.push('1');
+            epsilon.push('0');
         } else {
-            gamma.push_str("0");
-            epsilon.push_str("1");
+            gamma.push('0');
+            epsilon.push('1');
         }
     }
     (u32::from_str_radix(&gamma, 2).unwrap(),
@@ -39,7 +39,7 @@ fn gamma_epsilon(numbers: Vec<String>) -> (u32, u32) {
 }
 
 fn gas_rating(numbers: Vec<String>, most_common: bool) -> u32 {
-    let mut remaining = numbers.clone();
+    let mut remaining = numbers;
     let mut index = 0;
     loop {
         let count = remaining.len() as u32;
@@ -54,9 +54,8 @@ fn gas_rating(numbers: Vec<String>, most_common: bool) -> u32 {
         }
         remaining.retain(|n| n.chars().nth(index).unwrap() == winner);
         if remaining.len() == 1 {
-            println!("{:?}", remaining);
             break;
-        } else if remaining.len() == 0 {
+        } else if remaining.is_empty() {
             panic!("oops");
         }
         index += 1;
@@ -69,7 +68,7 @@ fn main() {
     let (g, e) = gamma_epsilon(numbers.clone());
     println!("Part 1: gamma: {}, epsilon: {}; g * e = {}", g, e, g * e);
     let o2 = gas_rating(numbers.clone(), true);
-    let co2 = gas_rating(numbers.clone(), false);
+    let co2 = gas_rating(numbers, false);
     println!("Part 2: oxygen: {}, co2: {}; product = {}", o2, co2, o2 * co2);
 }
 
