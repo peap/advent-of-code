@@ -1,15 +1,6 @@
-use std::fs::File;
-use std::io::Read;
+use common::InputReader;
 
-fn load_input(filename: &'static str) -> String {
-    let mut file = File::open(filename).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    contents.trim().to_string()
-}
-
-fn captcha(input: &str, distance: usize) -> i64 {
-    let digits: Vec<u32> = input.chars().map(|c| c.to_digit(10).unwrap()).collect();
+fn captcha(digits: Vec<u8>, distance: usize) -> i64 {
     let mut sum = 0;
     let len = digits.len();
     for i in 0..len {
@@ -23,12 +14,15 @@ fn captcha(input: &str, distance: usize) -> i64 {
 }
 
 fn main() {
-    let input = load_input("input.txt");
-    println!("Part 1: Captcha for input is {}", captcha(&input, 1));
-    let distance = &input.chars().count() / 2;
+    let digits = InputReader::new("input.txt").u8_line();
+    println!(
+        "Part 1: Captcha for input is {}",
+        captcha(digits.clone(), 1)
+    );
+    let distance = digits.len() / 2;
     println!(
         "Part 2: Captcha v2 for input is {}",
-        captcha(&input, distance)
+        captcha(digits, distance)
     );
 }
 
@@ -52,20 +46,24 @@ mod tests {
             ("12131415", 4, 4),
         ];
         for (input, distance, expected) in examples {
-            assert_eq!(captcha(input, distance), expected);
+            let digits = input
+                .chars()
+                .map(|c| c.to_digit(10).unwrap() as u8)
+                .collect();
+            assert_eq!(captcha(digits, distance), expected);
         }
     }
 
     #[test]
     fn test_part1() {
-        let input = load_input("input.txt");
-        assert_eq!(captcha(&input, 1), 1136);
+        let digits = InputReader::new("input.txt").u8_line();
+        assert_eq!(captcha(digits, 1), 1136);
     }
 
     #[test]
     fn test_part2() {
-        let input = load_input("input.txt");
-        let distance = &input.chars().count() / 2;
-        assert_eq!(captcha(&input, distance), 1092);
+        let digits = InputReader::new("input.txt").u8_line();
+        let distance = digits.len() / 2;
+        assert_eq!(captcha(digits, distance), 1092);
     }
 }
