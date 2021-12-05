@@ -22,6 +22,14 @@ impl InputReader {
             .map(|l| l.parse().unwrap())
             .collect()
     }
+
+    pub fn u8_line(&self) -> Vec<u8> {
+        self.string_lines()[0]
+            .trim()
+            .chars()
+            .map(|c| c.to_digit(10).unwrap() as u8)
+            .collect()
+    }
 }
 
 #[cfg(test)]

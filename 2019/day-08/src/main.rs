@@ -1,5 +1,4 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use common::InputReader;
 
 struct Layer {
     pixels: Vec<Vec<u8>>,
@@ -80,26 +79,15 @@ impl Image {
     }
 }
 
-fn load_pixels(filename: &str) -> Vec<u8> {
-    let file = File::open(filename).expect("Could not open the file");
-    let mut reader = BufReader::new(file);
-    let mut s = String::new();
-    reader.read_line(&mut s).expect("Could not read the file");
-    s.trim()
-        .chars()
-        .map(|c| c.to_digit(10).unwrap() as u8)
-        .collect()
-}
-
 fn part1() -> u32 {
-    let pixels = load_pixels("input.txt");
+    let pixels = InputReader::new("input.txt").u8_line();
     let image = Image::new(25, 6, &pixels);
     let layer = image.get_layer_with_fewest(0);
     layer.count_pixels(1) * layer.count_pixels(2)
 }
 
 fn part2() -> Layer {
-    let pixels = load_pixels("input.txt");
+    let pixels = InputReader::new("input.txt").u8_line();
     let image = Image::new(25, 6, &pixels);
     image.get_full_image()
 }

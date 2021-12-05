@@ -522,6 +522,9 @@ version = "0.1.0"
 [[package]]
 name = "year-2019-day-01"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2019-day-02"
@@ -533,6 +536,9 @@ dependencies = [
 [[package]]
 name = "year-2019-day-03"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2019-day-04"
@@ -548,6 +554,9 @@ dependencies = [
 [[package]]
 name = "year-2019-day-06"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2019-day-07"
@@ -559,6 +568,9 @@ dependencies = [
 [[package]]
 name = "year-2019-day-08"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2019-day-09"
@@ -570,6 +582,9 @@ dependencies = [
 [[package]]
 name = "year-2019-day-10"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2020-day-01"

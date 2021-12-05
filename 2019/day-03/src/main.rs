@@ -1,5 +1,4 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use common::InputReader;
 
 enum Direction {
     Up,
@@ -156,12 +155,6 @@ impl Intersection {
     }
 }
 
-fn load_raw_strings(filename: &'static str) -> Vec<String> {
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    reader.lines().map(|l| l.unwrap()).collect()
-}
-
 fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
     let mut intersections = vec![];
     let spans1 = wire1.spans();
@@ -187,7 +180,7 @@ fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
 }
 
 fn setup() -> Vec<Intersection> {
-    let raw_strings = load_raw_strings("input.txt");
+    let raw_strings = InputReader::new("input.txt").string_lines();
     let wires: Vec<Wire> = raw_strings.iter().map(|s| Wire::new(s)).collect();
     find_intersections(&wires[0], &wires[1])
 }

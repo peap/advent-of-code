@@ -1,6 +1,5 @@
+use common::InputReader;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 // With thanks to
 // https://rust-leipzig.github.io/architecture/2016/12/20/idiomatic-trees-in-rust/.
@@ -93,23 +92,14 @@ struct Body {
     focus: Option<usize>,
 }
 
-fn get_lines(filename: &'static str) -> Vec<String> {
-    let f = File::open(filename).unwrap();
-    let reader = BufReader::new(f);
-    reader
-        .lines()
-        .map(|l| l.unwrap().trim().to_string())
-        .collect()
-}
-
 fn part1() -> i32 {
-    let lines = get_lines("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
     let system = System::from_lines(lines);
     system.total_orbits()
 }
 
 fn part2() -> i32 {
-    let lines = get_lines("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
     let system = System::from_lines(lines);
     system.minimal_transfer("YOU", "SAN")
 }
