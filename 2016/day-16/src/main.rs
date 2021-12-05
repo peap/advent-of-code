@@ -1,8 +1,8 @@
-pub const INITIAL_STATE: &'static str = "11101000110010100";
+pub const INITIAL_STATE: &str = "11101000110010100";
 pub const DISK_LEN_1: usize = 272;
 pub const DISK_LEN_2: usize = 35651584;
 
-pub fn expand<'a>(state: &'a str) -> String {
+pub fn expand(state: &str) -> String {
     let mut expanded = String::new();
     expanded.push_str(state);
     expanded.push('0');
@@ -27,7 +27,7 @@ fn get_checksum(disk: String) -> String {
     checksum
 }
 
-pub fn fill_and_checksum<'a>(state: &'a str, disk_length: usize) -> String {
+pub fn fill_and_checksum(state: &str, disk_length: usize) -> String {
     let mut disk = String::new();
     let mut expanded = expand(state);
     while expanded.len() < disk_length {

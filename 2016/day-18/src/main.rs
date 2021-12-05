@@ -1,11 +1,10 @@
-pub const ROW1: &'static str =
-    ".^.^..^......^^^^^...^^^...^...^....^^.^...^.^^^^....^...^^.^^^...^^^^\
+pub const ROW1: &str = ".^.^..^......^^^^^...^^^...^...^....^^.^...^.^^^^....^...^^.^^^...^^^^\
      .^^.^.^^..^.^^^..^^^^^^.^^^..^";
 
 const SAFE: char = '.';
 const TRAP: char = '^';
 
-fn generate_row_from<'a>(previous: &'a str) -> String {
+fn generate_row_from(previous: &str) -> String {
     let mut new_row = String::new();
     let prev: Vec<char> = previous.chars().collect();
     for i in 0..prev.len() {
@@ -29,11 +28,11 @@ fn generate_row_from<'a>(previous: &'a str) -> String {
     new_row
 }
 
-fn count_safe<'a>(row: &'a str) -> usize {
+fn count_safe(row: &str) -> usize {
     row.chars().filter(|c| *c == SAFE).count()
 }
 
-pub fn count_safe_tiles<'a>(start: &'a str, n_rows: usize) -> usize {
+pub fn count_safe_tiles(start: &str, n_rows: usize) -> usize {
     let mut count = count_safe(start);
     let mut previous_row = start.to_string();
     for _ in 1..n_rows {

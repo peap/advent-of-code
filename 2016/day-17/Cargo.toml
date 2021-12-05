@@ -2,6 +2,7 @@
 name = "year-2016-day-17"
 version = "0.1.0"
 authors = ["Eric Petersen <eric@huskers.unl.edu>"]
+edition = "2021"
 
 [dependencies]
 rust-crypto = "0.2"

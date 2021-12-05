@@ -1,11 +1,9 @@
-extern crate crypto;
-
 use std::collections::VecDeque;
 
 use crypto::digest::Digest;
 use crypto::md5::Md5;
 
-pub const MY_HASH: &'static str = "hhhxzeay";
+pub const MY_HASH: &str = "hhhxzeay";
 
 #[derive(Clone)]
 enum Direction {
@@ -26,7 +24,7 @@ struct Maze {
 }
 
 impl Maze {
-    fn new<'a>(passcode: &'a str) -> Maze {
+    fn new(passcode: &str) -> Maze {
         Maze {
             passcode: passcode.to_string(),
             path: String::new(),
@@ -50,11 +48,11 @@ impl Maze {
         let output = hasher.result_str();
         let mut chars = output.chars();
         for door in [Up, Down, Left, Right].iter() {
-            let valid = match door {
-                &Up => self.y > 0,
-                &Down => self.y < self.max_y,
-                &Left => self.x > 0,
-                &Right => self.x < self.max_x,
+            let valid = match *door {
+                Up => self.y > 0,
+                Down => self.y < self.max_y,
+                Left => self.x > 0,
+                Right => self.x < self.max_x,
             };
             let c = chars.next().unwrap();
             if valid && c.is_alphabetic() && c != 'a' {
@@ -92,7 +90,7 @@ impl Maze {
     }
 }
 
-pub fn get_shortest_path<'a>(hash: &'a str) -> Option<String> {
+pub fn get_shortest_path(hash: &str) -> Option<String> {
     let maze = Maze::new(hash);
     let mut q = VecDeque::new();
     for direction in maze.get_open_doors() {
@@ -110,7 +108,7 @@ pub fn get_shortest_path<'a>(hash: &'a str) -> Option<String> {
     None
 }
 
-pub fn get_longest_path<'a>(hash: &'a str) -> Option<String> {
+pub fn get_longest_path(hash: &str) -> Option<String> {
     let maze = Maze::new(hash);
     let mut longest_path: Option<String> = None;
     let mut q = VecDeque::new();
