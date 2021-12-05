@@ -574,6 +574,9 @@ version = "0.1.0"
 [[package]]
 name = "year-2020-day-01"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2021-day-01"
