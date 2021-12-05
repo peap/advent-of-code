@@ -8,7 +8,16 @@ version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca972c2ea5f742bfce5687b9aef75506a764f61d37f8f649047846a9686ddb66"
 dependencies = [
- "memchr",
+ "memchr 0.1.11",
+]
+
+[[package]]
+name = "aho-corasick"
+version = "0.7.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e37cfd5e7657ada45f742d6e99ca5788580b5c529dc78faf11ece6dc702656f"
+dependencies = [
+ "memchr 2.4.1",
 ]
 
 [[package]]
@@ -29,6 +38,15 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "common"
 version = "0.1.0"
+
+[[package]]
+name = "day-05"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "lazy_static",
+ "regex 1.5.4",
+]
 
 [[package]]
 name = "either"
@@ -96,6 +114,12 @@ checksum = "d8b629fb514376c675b98c1421e80b151d3817ac42d7c667717d282761418d20"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "memchr"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
 name = "num"
@@ -256,11 +280,22 @@ version = "0.1.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fd4ace6a8cf7860714a2c2280d6c1f7e6a413486c13298bbc86fd3da019402f"
 dependencies = [
- "aho-corasick",
- "memchr",
- "regex-syntax",
+ "aho-corasick 0.5.3",
+ "memchr 0.1.11",
+ "regex-syntax 0.3.9",
  "thread_local",
  "utf8-ranges",
+]
+
+[[package]]
+name = "regex"
+version = "1.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d07a8629359eb56f1e2fb1652bb04212c072a87ba68546a04065d525673ac461"
+dependencies = [
+ "aho-corasick 0.7.18",
+ "memchr 2.4.1",
+ "regex-syntax 0.6.25",
 ]
 
 [[package]]
@@ -268,6 +303,12 @@ name = "regex-syntax"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
+
+[[package]]
+name = "regex-syntax"
+version = "0.6.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "rust-crypto"
@@ -385,7 +426,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 name = "year-2015-day-19"
 version = "0.1.0"
 dependencies = [
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -405,7 +446,7 @@ name = "year-2015-day-23"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -435,7 +476,7 @@ version = "0.1.0"
 name = "year-2016-day-04"
 version = "0.1.0"
 dependencies = [
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -457,7 +498,7 @@ version = "0.1.0"
 name = "year-2016-day-08"
 version = "0.1.0"
 dependencies = [
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -469,7 +510,7 @@ name = "year-2016-day-10"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -480,7 +521,7 @@ version = "0.1.0"
 name = "year-2016-day-12"
 version = "0.1.0"
 dependencies = [
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -529,7 +570,7 @@ name = "year-2016-day-21"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -538,14 +579,14 @@ version = "0.1.0"
 dependencies = [
  "itertools",
  "lazy_static",
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
 name = "year-2016-day-23"
 version = "0.1.0"
 dependencies = [
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
@@ -556,7 +597,7 @@ version = "0.1.0"
 name = "year-2016-day-25"
 version = "0.1.0"
 dependencies = [
- "regex",
+ "regex 0.1.80",
 ]
 
 [[package]]
