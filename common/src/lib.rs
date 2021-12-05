@@ -31,6 +31,10 @@ impl InputReader {
     // Expanding a single line
     // =============================
 
+    pub fn string_line(&self) -> String {
+        self.string_lines()[0].to_string()
+    }
+
     pub fn u8_line(&self) -> Vec<u8> {
         self.string_lines()[0]
             .trim()
@@ -43,7 +47,8 @@ impl InputReader {
         self.string_lines()[0]
             .trim()
             .split(',')
-            .map(|x| x.trim().to_string()).collect()
+            .map(|x| x.trim().to_string())
+            .collect()
     }
 }
 

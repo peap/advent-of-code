@@ -141,7 +141,8 @@ mod tests {
     #[test]
     fn longer_walker() {
         let mut walker = Walker::new();
-        let instructions: Vec<String> = vec!["R1".to_string(), "R10".to_string(), "L50".to_string()];
+        let instructions: Vec<String> =
+            vec!["R1".to_string(), "R10".to_string(), "L50".to_string()];
         walker.follow(instructions);
         assert_eq!(walker.distance(), 61);
         assert_eq!((walker.x, walker.y), (-10, -51));

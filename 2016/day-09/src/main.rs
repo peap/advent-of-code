@@ -1,6 +1,6 @@
-use std::fs::File;
-use std::io::{BufReader, Read};
 use std::str::Chars;
+
+use common::InputReader;
 
 #[derive(Debug, PartialEq)]
 pub enum Mode {
@@ -23,17 +23,6 @@ impl Decompressed {
     }
 }
 
-pub fn load_compressed_sequence(filename: &'static str) -> String {
-    let mut sequence = String::new();
-    let f = File::open(filename).unwrap();
-    let mut reader = BufReader::new(f);
-    match reader.read_to_string(&mut sequence) {
-        Ok(_) => (),
-        Err(e) => panic!("Error reading {} to string: {}", filename, e),
-    }
-    sequence
-}
-
 pub fn parse_marker(chars: &mut Chars) -> (usize, usize) {
     let mut chr2: char;
     let mut left_side = true;
@@ -49,12 +38,10 @@ pub fn parse_marker(chars: &mut Chars) -> (usize, usize) {
             continue;
         } else if chr2 == ')' {
             break;
+        } else if left_side {
+            n_chars_str.push(chr2);
         } else {
-            if left_side {
-                n_chars_str.push(chr2);
-            } else {
-                n_times_str.push(chr2);
-            }
+            n_times_str.push(chr2);
         }
     }
     let n_chars = n_chars_str.parse::<usize>().unwrap();
@@ -62,38 +49,31 @@ pub fn parse_marker(chars: &mut Chars) -> (usize, usize) {
     (n_chars, n_times)
 }
 
-fn decompress_recursive_count<'a>(sequence: &'a str) -> Decompressed {
+fn decompress_recursive_count(sequence: &str) -> Decompressed {
     let mut count = 0;
     let mut chars = sequence.chars();
-    loop {
-        match chars.next() {
-            Some(chr) => {
-                if chr == '(' {
-                    let (n_chars, n_times) = parse_marker(&mut chars);
-                    let mut seq = String::with_capacity(n_chars);
-                    for _ in 0..n_chars {
-                        match chars.next() {
-                            Some(c) => seq.push(c),
-                            None => (),
-                        }
-                    }
-                    match decompress_recursive_count(&seq) {
-                        Decompressed::Counted(num) => count += n_times * num,
-                        _ => (),
-                    }
-                } else if chr.is_whitespace() {
-                    continue;
-                } else {
-                    count += 1;
+    while let Some(chr) = chars.next() {
+        if chr == '(' {
+            let (n_chars, n_times) = parse_marker(&mut chars);
+            let mut seq = String::with_capacity(n_chars);
+            for _ in 0..n_chars {
+                if let Some(c) = chars.next() {
+                    seq.push(c);
                 }
             }
-            None => break,
+            if let Decompressed::Counted(num) = decompress_recursive_count(&seq) {
+                count += n_times * num;
+            }
+        } else if chr.is_whitespace() {
+            continue;
+        } else {
+            count += 1;
         }
     }
     Decompressed::Counted(count)
 }
 
-pub fn decompress<'a>(sequence: &'a str, mode: Mode, recursive: bool) -> Decompressed {
+pub fn decompress(sequence: &str, mode: Mode, recursive: bool) -> Decompressed {
     use Decompressed::*;
     use Mode::*;
 
@@ -123,16 +103,13 @@ pub fn decompress<'a>(sequence: &'a str, mode: Mode, recursive: bool) -> Decompr
                         let (n_chars, n_times) = parse_marker(&mut chars);
                         let mut seq = String::with_capacity(n_chars);
                         for _ in 0..n_chars {
-                            match chars.next() {
-                                Some(c) => {
-                                    if c == '(' {
-                                        fully_expanded = false;
-                                    }
-                                    if !c.is_whitespace() {
-                                        seq.push(c);
-                                    }
+                            if let Some(c) = chars.next() {
+                                if c == '(' {
+                                    fully_expanded = false;
                                 }
-                                None => (),
+                                if !c.is_whitespace() {
+                                    seq.push(c);
+                                }
                             }
                         }
                         for _ in 0..n_times {
@@ -167,7 +144,7 @@ pub fn decompress<'a>(sequence: &'a str, mode: Mode, recursive: bool) -> Decompr
 
 fn main() {
     use Mode::*;
-    let sequence = load_compressed_sequence("input.txt");
+    let sequence = InputReader::new("input.txt").string_line();
     let compressed_len = &sequence.len();
     let expanded_1 = decompress(&sequence, BuildMode, false);
     let len_1 = expanded_1.len();
@@ -392,14 +369,14 @@ mod tests {
 
     #[test]
     fn test_part1_answer() {
-        let sequence = load_compressed_sequence("input.txt");
+        let sequence = InputReader::new("input.txt").string_line();
         let expanded = decompress(&sequence, BuildMode, false);
         assert_eq!(expanded.len(), 120765);
     }
 
     #[test]
     fn test_part1_answer_count() {
-        let sequence = load_compressed_sequence("input.txt");
+        let sequence = InputReader::new("input.txt").string_line();
         let expanded = decompress(&sequence, CountMode, false);
         assert_eq!(expanded.len(), 120765);
     }
@@ -440,7 +417,7 @@ mod tests {
 
     #[test]
     fn test_part2_answer() {
-        let sequence = load_compressed_sequence("input.txt");
+        let sequence = InputReader::new("input.txt").string_line();
         let expanded = decompress(&sequence, CountMode, true);
         assert_eq!(expanded.len(), 11658395076);
     }
