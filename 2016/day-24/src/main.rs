@@ -227,6 +227,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // 6743s
     fn test_part_1() {
         let maze = Maze::from_file("input.txt");
         let n_steps = maze.minimize_steps(false);
@@ -234,6 +235,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // 6743s
     fn test_part_2() {
         let maze = Maze::from_file("input.txt");
         let n_steps = maze.minimize_steps(true);

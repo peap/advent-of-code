@@ -75,6 +75,7 @@ fn test_aoc_example_1() {
 }
 
 #[test]
+#[ignore]  // 65.0s
 fn test_aoc_example_2() {
     assert_eq!(get_password_2("abc", 8), "05ace8e3");
 }

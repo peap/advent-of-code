@@ -105,6 +105,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // 107s
     fn test_someone_elses_answer() {
         // https://www.reddit.com/r/adventofcode/comments/3y1s7f/day_24_solutions/cy9v5vo/
         let items = vec![
@@ -116,6 +117,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // 107s
     fn test_part_1() {
         let gifts = load_gifts("input.txt");
         let optimized = optimize_sleigh(&gifts, 3);

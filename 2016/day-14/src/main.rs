@@ -113,12 +113,14 @@ mod tests {
     }
 
     #[test]
+    #[ignore]  // 426s
     fn test_example_2() {
         let index = get_index_that_produces_n_keys(64, "abc", 2016);
         assert_eq!(index, 22551);
     }
 
     #[test]
+    #[ignore]  // 426s
     fn test_part_2() {
         let index = get_index_that_produces_n_keys(64, MY_SALT, 2016);
         assert_eq!(index, 20092);

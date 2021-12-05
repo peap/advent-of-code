@@ -248,6 +248,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // 2619s
     fn test_part_2() {
         let instructions = load_instructions("input.txt");
         let mut computer = Computer::new();
