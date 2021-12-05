@@ -11,7 +11,11 @@ fn generate_row_from<'a>(previous: &'a str) -> String {
     for i in 0..prev.len() {
         let left = if i > 0 { prev[i - 1] } else { SAFE };
         let center = prev[i];
-        let right = if i < prev.len() - 1 { prev[i + 1] } else { SAFE };
+        let right = if i < prev.len() - 1 {
+            prev[i + 1]
+        } else {
+            SAFE
+        };
         let pattern = format!("{}{}{}", left, center, right);
         let new_char = match pattern.as_ref() {
             "^^." => TRAP,

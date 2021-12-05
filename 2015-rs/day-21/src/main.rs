@@ -9,10 +9,10 @@ type Item = (i32, i32, i32);
 
 const WEAPONS: [Item; 5] = [
     (8, 4, 0),  // Dagger
-    (10, 5, 0),  // Shortsword
-    (25, 6, 0),  // Warhammer
-    (40, 7, 0),  // Longsword
-    (74, 8, 0),  // Greataxe
+    (10, 5, 0), // Shortsword
+    (25, 6, 0), // Warhammer
+    (40, 7, 0), // Longsword
+    (74, 8, 0), // Greataxe
 ];
 
 const ARMORS: [Item; 6] = [
@@ -20,18 +20,18 @@ const ARMORS: [Item; 6] = [
     (31, 0, 2),  // Chainmail
     (53, 0, 3),  // Splintmail
     (75, 0, 4),  // Bandedmail
-    (102, 0, 5),  // Platemail
-    (0, 0, 0),  // i.e., no armor
+    (102, 0, 5), // Platemail
+    (0, 0, 0),   // i.e., no armor
 ];
 
 const RINGS: [Item; 7] = [
     (25, 1, 0),  // Damage +1
     (50, 2, 0),  // Damage +2
-    (100, 3, 0),  // Damage +3
+    (100, 3, 0), // Damage +3
     (20, 0, 1),  // Defense +1
     (40, 0, 2),  // Defense +2
     (80, 0, 3),  // Defense +3
-    (0, 0, 0),  // i.e., no rings
+    (0, 0, 0),   // i.e., no rings
 ];
 
 #[derive(Clone)]
@@ -43,8 +43,7 @@ pub struct Combatant {
 }
 
 impl Combatant {
-    fn new_player<'a>(weapon: &'a Item, armor: &'a Item, rings: Vec<&'a Item>)
-            -> Self {
+    fn new_player<'a>(weapon: &'a Item, armor: &'a Item, rings: Vec<&'a Item>) -> Self {
         let mut damage = weapon.1;
         let mut armor_pts = armor.2;
         let mut gold = 0;
@@ -132,8 +131,18 @@ mod tests {
 
     #[test]
     fn test_example() {
-        let mut player = Combatant { hp: 8, damage: 5, armor: 5, gold: 0 };
-        let mut boss = Combatant { hp: 12, damage: 7, armor: 2, gold: 0 };
+        let mut player = Combatant {
+            hp: 8,
+            damage: 5,
+            armor: 5,
+            gold: 0,
+        };
+        let mut boss = Combatant {
+            hp: 12,
+            damage: 7,
+            armor: 2,
+            gold: 0,
+        };
         assert!(player.defeats(&mut boss));
     }
 

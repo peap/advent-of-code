@@ -12,16 +12,13 @@ lazy_static! {
         Regex::new("swap position ([0-9]) with position ([0-9])").unwrap();
     static ref SWAP_LETTER_RE: Regex =
         Regex::new("swap letter ([a-z]) with letter ([a-z])").unwrap();
-    static ref ROTATE_LEFT_RE: Regex =
-        Regex::new("rotate left ([0-9]+) steps?").unwrap();
-    static ref ROTATE_RIGHT_RE: Regex =
-        Regex::new("rotate right ([0-9]+) steps?").unwrap();
+    static ref ROTATE_LEFT_RE: Regex = Regex::new("rotate left ([0-9]+) steps?").unwrap();
+    static ref ROTATE_RIGHT_RE: Regex = Regex::new("rotate right ([0-9]+) steps?").unwrap();
     static ref ROTATE_BY_LETTER_RE: Regex =
         Regex::new("rotate based on position of letter ([a-z])").unwrap();
     static ref REVERSE_RE: Regex =
         Regex::new("reverse positions ([0-9]+) through ([0-9]+)").unwrap();
-    static ref MOVE_RE: Regex =
-        Regex::new("move position ([0-9]+) to position ([0-9]+)").unwrap();
+    static ref MOVE_RE: Regex = Regex::new("move position ([0-9]+) to position ([0-9]+)").unwrap();
 }
 
 pub enum Operation {
@@ -127,7 +124,7 @@ impl Operation {
     fn unapply_to(&self, chars: &mut Vec<char>) {
         use Operation::*;
         match *self {
-            SwapPosition(_ ,_) => self.apply_to(chars),
+            SwapPosition(_, _) => self.apply_to(chars),
             SwapLetter(_, _) => self.apply_to(chars),
             RotateLeft(n) => {
                 let rev_op = RotateRight(n);
@@ -161,7 +158,6 @@ impl Operation {
             }
         }
     }
-
 }
 
 pub fn load_operations<'a>(filename: &'a str) -> Vec<Operation> {

@@ -93,17 +93,14 @@ fn decompress_recursive_count<'a>(sequence: &'a str) -> Decompressed {
     Decompressed::Counted(count)
 }
 
-pub fn decompress<'a>(sequence: &'a str,
-                  mode: Mode,
-                  recursive: bool) -> Decompressed {
-    use Mode::*;
+pub fn decompress<'a>(sequence: &'a str, mode: Mode, recursive: bool) -> Decompressed {
     use Decompressed::*;
+    use Mode::*;
 
     let mut chars = sequence.chars();
     let mut decompressed = String::with_capacity(sequence.len());
     let mut count = 0;
     let mut fully_expanded = true;
-
 
     if recursive && mode == CountMode {
         // bail!
@@ -113,11 +110,9 @@ pub fn decompress<'a>(sequence: &'a str,
     {
         // introduced in this inner scope so that the mutable borrow in add_char
         // goes out of scope
-        let mut add_char = |c| {
-            match mode {
-                BuildMode => decompressed.push(c),
-                CountMode => count += 1,
-            }
+        let mut add_char = |c| match mode {
+            BuildMode => decompressed.push(c),
+            CountMode => count += 1,
         };
 
         loop {
@@ -160,7 +155,7 @@ pub fn decompress<'a>(sequence: &'a str,
     if recursive && !fully_expanded {
         match mode {
             BuildMode => decompress(&decompressed, mode, recursive),
-            CountMode => Counted(count),  // recursion avoided
+            CountMode => Counted(count), // recursion avoided
         }
     } else {
         match mode {
@@ -176,18 +171,24 @@ fn main() {
     let compressed_len = &sequence.len();
     let expanded_1 = decompress(&sequence, BuildMode, false);
     let len_1 = expanded_1.len();
-    println!("Part 1: Expanded {} characters to {}.", compressed_len, len_1);
+    println!(
+        "Part 1: Expanded {} characters to {}.",
+        compressed_len, len_1
+    );
     let expanded_2 = decompress(&sequence, CountMode, true);
     let len_2 = expanded_2.len();
-    println!("Part 2: Expanded {} characters to {}.", compressed_len, len_2);
+    println!(
+        "Part 2: Expanded {} characters to {}.",
+        compressed_len, len_2
+    );
 }
 
 #[cfg(test)]
 mod tests {
 
-    use super::*;
     use super::Decompressed::*;
     use super::Mode::*;
+    use super::*;
 
     // Example 1
 
@@ -195,7 +196,7 @@ mod tests {
     fn test_example_1() {
         let compressed = "ADVENT";
         let expected = Built("ADVENT".to_string());
-        assert_eq!(expected,decompress(compressed, BuildMode, false));
+        assert_eq!(expected, decompress(compressed, BuildMode, false));
     }
 
     #[test]
@@ -209,7 +210,7 @@ mod tests {
     fn test_example_1_recursive() {
         let compressed = "ADVENT";
         let expected = Built("ADVENT".to_string());
-        assert_eq!(expected,decompress(compressed, BuildMode, true));
+        assert_eq!(expected, decompress(compressed, BuildMode, true));
     }
 
     #[test]
@@ -443,5 +444,4 @@ mod tests {
         let expanded = decompress(&sequence, CountMode, true);
         assert_eq!(expanded.len(), 11658395076);
     }
-
 }

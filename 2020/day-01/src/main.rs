@@ -12,7 +12,7 @@ fn load_expenses(filename: &'static str) -> Vec<i64> {
 
 fn find_two_nums_with_sum(nums: Vec<i64>, sum: i64) -> Vec<i64> {
     for (i, first) in nums.iter().enumerate() {
-        for second in nums[i+1..nums.len()].iter() {
+        for second in nums[i + 1..nums.len()].iter() {
             if first + second == sum {
                 return vec![first.clone(), second.clone()];
             }
@@ -23,8 +23,8 @@ fn find_two_nums_with_sum(nums: Vec<i64>, sum: i64) -> Vec<i64> {
 
 fn find_three_nums_with_sum(nums: Vec<i64>, sum: i64) -> Vec<i64> {
     for (i, first) in nums.iter().enumerate() {
-        for (j, second) in nums[i+1..nums.len()].iter().enumerate() {
-            for third in nums[j+1..nums.len()].iter() {
+        for (j, second) in nums[i + 1..nums.len()].iter().enumerate() {
+            for third in nums[j + 1..nums.len()].iter() {
                 if first + second + third == sum {
                     return vec![first.clone(), second.clone(), third.clone()];
                 }
@@ -41,7 +41,10 @@ fn main() {
     println!("Part 1: {} * {} = {}", nums2[0], nums2[1], product);
     let nums3 = find_three_nums_with_sum(expenses.clone(), 2020);
     let product = nums3[0] * nums3[1] * nums3[2];
-    println!("Part 2: {} * {} * {} = {}", nums3[0], nums3[1], nums3[2], product);
+    println!(
+        "Part 2: {} * {} * {} = {}",
+        nums3[0], nums3[1], nums3[2], product
+    );
 }
 
 #[cfg(test)]

@@ -30,7 +30,7 @@ struct Board {
 
 impl Board {
     fn new() -> Board {
-        Board{
+        Board {
             rows: vec![],
             winning_num: None,
             won: false,
@@ -38,7 +38,12 @@ impl Board {
     }
 
     fn add_row(&mut self, row: String) {
-        self.rows.push(row.split(' ').filter(|n| !n.is_empty() ).map(|n| Space::from_str(n)).collect());
+        self.rows.push(
+            row.split(' ')
+                .filter(|n| !n.is_empty())
+                .map(|n| Space::from_str(n))
+                .collect(),
+        );
     }
 
     fn mark_spaces(&mut self, num: &i64) {
@@ -60,7 +65,7 @@ impl Board {
                 cols_marked[i] = cols_marked[i] && space.marked;
             }
             if row_marked {
-                return true
+                return true;
             }
         }
         cols_marked.iter().any(|c| *c)
@@ -86,7 +91,10 @@ impl Board {
         for row in self.rows.iter() {
             for space in row.iter() {
                 if space.marked {
-                    print!("{} ", Style::new().bold().paint(format!("{:>2}", space.num)));
+                    print!(
+                        "{} ",
+                        Style::new().bold().paint(format!("{:>2}", space.num))
+                    );
                 } else {
                     print!("{:>2} ", space.num);
                 }
@@ -94,7 +102,6 @@ impl Board {
             println!();
         }
     }
-
 }
 
 fn parse_bingo(bingo: &[String]) -> (Vec<i64>, Vec<Board>) {
@@ -167,7 +174,10 @@ mod tests {
             "18  8 23 26 20",
             "22 11 13  6  5",
             " 2  0 12  3  7",
-        ].iter().map(|&s| s.into()).collect();
+        ]
+        .iter()
+        .map(|&s| s.into())
+        .collect();
         let (nums, boards) = parse_bingo(&bingo);
         let winners = play_bingo(nums, boards);
         let (first, last) = (winners.first().unwrap(), winners.last().unwrap());

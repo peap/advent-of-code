@@ -4,11 +4,11 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Isotope {
-    Pm,  // Promethium,
-    Pu,  // Plutonium,
-    Ru,  // Ruthenium,
-    Sr,  // Strontium,
-    Tm,  // Thulium
+    Pm, // Promethium,
+    Pu, // Plutonium,
+    Ru, // Ruthenium,
+    Sr, // Strontium,
+    Tm, // Thulium
     Elerium,
     Dilithium,
 }
@@ -69,9 +69,9 @@ pub struct Building {
 
 impl PartialEq for Building {
     fn eq(&self, other: &Building) -> bool {
-        self.get_iso_pairs() == other.get_iso_pairs() &&
-        self.height == other.height &&
-        self.elevator == other.elevator
+        self.get_iso_pairs() == other.get_iso_pairs()
+            && self.height == other.height
+            && self.elevator == other.elevator
     }
 }
 impl Eq for Building {}
@@ -86,7 +86,6 @@ impl Hash for Building {
 }
 
 impl fmt::Display for Building {
-
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "+----------------------------+\n").unwrap();
         write!(f, "| Fn  E  Pm  Pu  Ru  Sr  Tm  |\n").unwrap();
@@ -100,8 +99,12 @@ impl fmt::Display for Building {
             } else {
                 write!(f, "   ").unwrap();
             }
-            for _ in floor.generators.iter() { write!(f, "  .").unwrap(); }
-            for _ in floor.microchips.iter() { write!(f, "  .").unwrap(); }
+            for _ in floor.generators.iter() {
+                write!(f, "  .").unwrap();
+            }
+            for _ in floor.microchips.iter() {
+                write!(f, "  .").unwrap();
+            }
             write!(f, "\n").unwrap();
         }
         write!(f, "+----------------------------+\n")
@@ -130,7 +133,7 @@ impl Building {
     fn is_safe_for_microchips(&self) -> bool {
         for floor in self.floors.iter() {
             if !floor.is_safe_for_microchips() {
-                return false
+                return false;
             }
         }
         true
@@ -183,10 +186,8 @@ impl Building {
             let generator_floor = self.find_item(Generator(iso));
             let microchip_floor = self.find_item(Microchip(iso));
             if generator_floor.is_some() && microchip_floor.is_some() {
-                let mut pair_floors: Vec<usize> = vec![
-                    generator_floor.unwrap(),
-                    microchip_floor.unwrap(),
-                ];
+                let mut pair_floors: Vec<usize> =
+                    vec![generator_floor.unwrap(), microchip_floor.unwrap()];
                 pair_floors.sort();
                 iso_pairs.push(pair_floors);
             }
@@ -195,41 +196,34 @@ impl Building {
         iso_pairs
     }
 
-    fn clone_and_move(&self,
-                      item1: Option<Item>,
-                      item2: Option<Item>,
-                      to: usize) -> Building {
+    fn clone_and_move(&self, item1: Option<Item>, item2: Option<Item>, to: usize) -> Building {
         let mut new = self.clone();
         new.n_moves += 1;
         new.elevator = to;
         match item1 {
-            Some(item) => {
-                match item {
-                    Item::Generator(iso) => {
-                        new.floors[self.elevator].generators.remove(&iso);
-                        new.floors[to].generators.insert(iso);
-                    }
-                    Item::Microchip(iso) => {
-                        new.floors[self.elevator].microchips.remove(&iso);
-                        new.floors[to].microchips.insert(iso);
-                    }
+            Some(item) => match item {
+                Item::Generator(iso) => {
+                    new.floors[self.elevator].generators.remove(&iso);
+                    new.floors[to].generators.insert(iso);
                 }
-            }
+                Item::Microchip(iso) => {
+                    new.floors[self.elevator].microchips.remove(&iso);
+                    new.floors[to].microchips.insert(iso);
+                }
+            },
             None => (),
         }
         match item2 {
-            Some(item) => {
-                match item {
-                    Item::Generator(iso) => {
-                        new.floors[self.elevator].generators.remove(&iso);
-                        new.floors[to].generators.insert(iso);
-                    }
-                    Item::Microchip(iso) => {
-                        new.floors[self.elevator].microchips.remove(&iso);
-                        new.floors[to].microchips.insert(iso);
-                    }
+            Some(item) => match item {
+                Item::Generator(iso) => {
+                    new.floors[self.elevator].generators.remove(&iso);
+                    new.floors[to].generators.insert(iso);
                 }
-            }
+                Item::Microchip(iso) => {
+                    new.floors[self.elevator].microchips.remove(&iso);
+                    new.floors[to].microchips.insert(iso);
+                }
+            },
             None => (),
         }
         new
@@ -266,7 +260,7 @@ impl Building {
                 if chps.contains(&iso) {
                     add_state(item, Some(Microchip(iso.clone())));
                 }
-                for j in (i+1)..gens.len() {
+                for j in (i + 1)..gens.len() {
                     let item2 = Some(Generator(gens[j].clone()));
                     add_state(item, item2);
                 }
@@ -274,7 +268,7 @@ impl Building {
             for (i, iso) in chps.iter().enumerate() {
                 let item = Some(Microchip(iso.clone()));
                 add_state(item, None);
-                for j in (i+1)..chps.len() {
+                for j in (i + 1)..chps.len() {
                     let item2 = Some(Microchip(chps[j].clone()));
                     add_state(item, item2);
                 }
@@ -313,9 +307,16 @@ pub fn get_initial_building_for_part_two() -> Building {
     use Item::*;
     // From input.txt:
     Building::with_items(vec![
-        vec![Generator(Tm), Microchip(Tm), Generator(Pu), Generator(Sr),
-             Generator(Elerium), Microchip(Elerium),
-             Generator(Dilithium), Microchip(Dilithium)],
+        vec![
+            Generator(Tm),
+            Microchip(Tm),
+            Generator(Pu),
+            Generator(Sr),
+            Generator(Elerium),
+            Microchip(Elerium),
+            Generator(Dilithium),
+            Microchip(Dilithium),
+        ],
         vec![Microchip(Pu), Microchip(Sr)],
         vec![Generator(Pm), Microchip(Pm), Generator(Ru), Microchip(Ru)],
         vec![],
@@ -340,9 +341,11 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
         }
         let new_building = bq.pop_front().unwrap();
         if bq.len() % 250000 < 5 {
-            println!("There are {} moves to process; working on move #{}.",
-                     bq.len(),
-                     new_building.n_moves());
+            println!(
+                "There are {} moves to process; working on move #{}.",
+                bq.len(),
+                new_building.n_moves()
+            );
         }
         if !unique_buildings.contains_key(&new_building) {
             unique_buildings.insert(new_building.clone(), new_building.n_moves());
@@ -366,9 +369,9 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
 }
 
 fn main() {
-//    // the example building
-//    let building = get_example_building();
-//    let num_moves = minimize_elevator_trips(building);
+    //    // the example building
+    //    let building = get_example_building();
+    //    let num_moves = minimize_elevator_trips(building);
     // my building
     let building = get_initial_building();
     let num_moves = minimize_elevator_trips(building);
@@ -388,10 +391,7 @@ mod tests {
     fn get_simple_building() -> Building {
         use Isotope::*;
         use Item::*;
-        Building::with_items(vec![
-            vec![Generator(Pu), Microchip(Pu)],
-            vec![],
-        ])
+        Building::with_items(vec![vec![Generator(Pu), Microchip(Pu)], vec![]])
     }
 
     #[test]
@@ -447,20 +447,11 @@ mod tests {
         use Isotope::*;
         use Item::*;
         let mut set = HashSet::new();
-        let building1 = Building::with_items(vec![
-            vec![Generator(Pu), Microchip(Pu)],
-            vec![],
-        ]);
+        let building1 = Building::with_items(vec![vec![Generator(Pu), Microchip(Pu)], vec![]]);
         set.insert(building1);
-        let building2 = Building::with_items(vec![
-            vec![Microchip(Pu), Generator(Pu)],
-            vec![],
-        ]);
+        let building2 = Building::with_items(vec![vec![Microchip(Pu), Generator(Pu)], vec![]]);
         assert!(set.contains(&building2));
-        let building3 = Building::with_items(vec![
-            vec![],
-            vec![Microchip(Pu), Generator(Pu)],
-        ]);
+        let building3 = Building::with_items(vec![vec![], vec![Microchip(Pu), Generator(Pu)]]);
         assert!(!set.contains(&building3));
     }
 
@@ -469,25 +460,13 @@ mod tests {
         use Isotope::*;
         use Item::*;
         let mut set = HashSet::new();
-        let building1 = Building::with_items(vec![
-            vec![Generator(Pu)],
-            vec![Microchip(Pu)],
-        ]);
+        let building1 = Building::with_items(vec![vec![Generator(Pu)], vec![Microchip(Pu)]]);
         set.insert(building1);
-        let building2 = Building::with_items(vec![
-            vec![Microchip(Pu)],
-            vec![Generator(Pu)],
-        ]);
+        let building2 = Building::with_items(vec![vec![Microchip(Pu)], vec![Generator(Pu)]]);
         assert!(set.contains(&building2));
-        let building3 = Building::with_items(vec![
-            vec![Microchip(Tm)],
-            vec![Generator(Tm)],
-        ]);
+        let building3 = Building::with_items(vec![vec![Microchip(Tm)], vec![Generator(Tm)]]);
         assert!(set.contains(&building3));
-        let building4 = Building::with_items(vec![
-            vec![Generator(Tm)],
-            vec![Microchip(Tm)],
-        ]);
+        let building4 = Building::with_items(vec![vec![Generator(Tm)], vec![Microchip(Tm)]]);
         assert!(set.contains(&building4));
     }
 
@@ -518,10 +497,7 @@ mod tests {
         use Isotope::*;
         use Item::*;
         let mut set = HashSet::new();
-        let building1 = Building::with_items(vec![
-            vec![Generator(Pu), Microchip(Pu)],
-            vec![],
-        ]);
+        let building1 = Building::with_items(vec![vec![Generator(Pu), Microchip(Pu)], vec![]]);
         set.insert(building1.clone());
         // move generator up
         let building2 = building1.clone_and_move(Some(Generator(Pu)), None, 1);
@@ -535,9 +511,7 @@ mod tests {
     fn test_single_story_building() {
         use Isotope::*;
         use Item::*;
-        let building = Building::with_items(vec![
-            vec![Generator(Pu), Microchip(Pu)],
-        ]);
+        let building = Building::with_items(vec![vec![Generator(Pu), Microchip(Pu)]]);
         assert!(building.has_everything_on_top_floor());
         let num = minimize_elevator_trips(building);
         assert_eq!(num, 0);
@@ -547,10 +521,7 @@ mod tests {
     fn test_two_story_building_already_done() {
         use Isotope::*;
         use Item::*;
-        let building = Building::with_items(vec![
-            vec![],
-            vec![Generator(Pu)],
-        ]);
+        let building = Building::with_items(vec![vec![], vec![Generator(Pu)]]);
         assert!(building.has_everything_on_top_floor());
         let num = minimize_elevator_trips(building);
         assert_eq!(num, 0);
@@ -560,10 +531,7 @@ mod tests {
     fn test_two_story_building_with_one_move_to_go() {
         use Isotope::*;
         use Item::*;
-        let building = Building::with_items(vec![
-            vec![Generator(Pu)],
-            vec![],
-        ]);
+        let building = Building::with_items(vec![vec![Generator(Pu)], vec![]]);
         assert!(!building.has_everything_on_top_floor());
         let num = minimize_elevator_trips(building);
         assert_eq!(num, 1);
@@ -573,10 +541,7 @@ mod tests {
     fn test_two_story_building_with_one_move_to_go_and_two_items() {
         use Isotope::*;
         use Item::*;
-        let building = Building::with_items(vec![
-            vec![Generator(Pu)],
-            vec![Microchip(Pu)],
-        ]);
+        let building = Building::with_items(vec![vec![Generator(Pu)], vec![Microchip(Pu)]]);
         assert!(!building.has_everything_on_top_floor());
         let num = minimize_elevator_trips(building);
         assert_eq!(num, 1);
@@ -586,11 +551,7 @@ mod tests {
     fn test_three_story_building_with_two_moves_to_go() {
         use Isotope::*;
         use Item::*;
-        let building = Building::with_items(vec![
-            vec![Generator(Pu)],
-            vec![],
-            vec![],
-        ]);
+        let building = Building::with_items(vec![vec![Generator(Pu)], vec![], vec![]]);
         assert!(!building.has_everything_on_top_floor());
         let num = minimize_elevator_trips(building);
         assert_eq!(num, 2);
@@ -600,10 +561,7 @@ mod tests {
     fn test_stupid_simple_building() {
         use Isotope::*;
         use Item::*;
-        let building = Building::with_items(vec![
-            vec![Generator(Pu), Microchip(Pu)],
-            vec![],
-        ]);
+        let building = Building::with_items(vec![vec![Generator(Pu), Microchip(Pu)], vec![]]);
         let num_moves = minimize_elevator_trips(building);
         assert_eq!(num_moves, 1);
     }

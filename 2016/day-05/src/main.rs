@@ -2,8 +2,8 @@ extern crate crypto;
 
 use std::collections::HashSet;
 
-use crypto::md5::Md5;
 use crypto::digest::Digest;
+use crypto::md5::Md5;
 
 fn get_password_1(id: &str, length: usize) -> String {
     let key_base = id.as_bytes();
@@ -39,7 +39,7 @@ fn get_password_2(id: &str, length: usize) -> String {
         hasher.result(&mut hashed);
         if hashed[0] as i32 + hashed[1] as i32 + (hashed[2] >> 4) as i32 == 0 {
             let hashed_str = hasher.result_str();
-            let mut hex_chars = hashed_str.chars();  // .nth() requires mut
+            let mut hex_chars = hashed_str.chars(); // .nth() requires mut
             let index = hex_chars.nth(5).unwrap().to_string().parse::<usize>();
             match index {
                 Ok(idx) => {
@@ -50,7 +50,7 @@ fn get_password_2(id: &str, length: usize) -> String {
                         indices.insert(idx);
                     }
                 }
-                _ => ()
+                _ => (),
             }
             if indices.len() == length {
                 break;
@@ -75,7 +75,7 @@ fn test_aoc_example_1() {
 }
 
 #[test]
-#[ignore]  // 65.0s
+#[ignore] // 65.0s
 fn test_aoc_example_2() {
     assert_eq!(get_password_2("abc", 8), "05ace8e3");
 }

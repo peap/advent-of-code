@@ -15,7 +15,6 @@ enum Item {
 }
 
 impl Item {
-
     fn from_char(chr: char) -> Item {
         match chr {
             '#' => Item::Wall,
@@ -36,7 +35,6 @@ impl Item {
             _ => false,
         }
     }
-
 }
 
 #[derive(Clone)]
@@ -62,7 +60,6 @@ impl Hash for RobotState {
 }
 
 impl RobotState {
-
     fn new_at_start(coords: Coordinate, n_waypoints: usize) -> RobotState {
         let mut visited = vec![false; n_waypoints];
         visited[0] = true;
@@ -87,11 +84,9 @@ impl RobotState {
         new_state.n_steps += 1;
         new_state
     }
-
 }
 
 impl Maze {
-
     fn new(items: Vec<Vec<Item>>) -> Maze {
         let n = items.iter().fold(0, |acc, line| {
             acc + line.iter().filter(|l| l.is_waypoint()).count()
@@ -196,7 +191,6 @@ impl Maze {
         }
         None
     }
-
 }
 
 fn main() {
@@ -207,11 +201,16 @@ fn main() {
         println!("\nPart 1: could not find a path that covers all waypoints");
     }
     if let Some(n_steps) = maze.minimize_steps(true) {
-        println!("\nPart 2: takes {} steps to visit all waypoints and return \
-                 to start", n_steps);
+        println!(
+            "\nPart 2: takes {} steps to visit all waypoints and return \
+                 to start",
+            n_steps
+        );
     } else {
-        println!("\nPart 2: could not find a path that covers all waypoints \
-                 and return to start");
+        println!(
+            "\nPart 2: could not find a path that covers all waypoints \
+                 and return to start"
+        );
     }
 }
 
@@ -241,5 +240,4 @@ mod tests {
         let n_steps = maze.minimize_steps(true);
         assert_eq!(n_steps, Some(804));
     }
-
 }

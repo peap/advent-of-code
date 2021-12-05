@@ -9,7 +9,7 @@ fn load_signals(filename: &'static str) -> Vec<String> {
     for line in reader.lines() {
         match line {
             Ok(signal) => signals.push(signal),
-            Err(_) => ()
+            Err(_) => (),
         }
     }
     signals

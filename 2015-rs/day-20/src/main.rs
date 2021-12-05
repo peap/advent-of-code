@@ -61,5 +61,4 @@ mod tests {
     fn test_part_2_answer() {
         assert_eq!(find_first_house_receiving_part_2(TARGET), Some(831600));
     }
-
 }

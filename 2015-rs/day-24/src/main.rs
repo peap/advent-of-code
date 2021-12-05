@@ -53,10 +53,7 @@ pub fn optimize_sleigh(gifts: &Group, n: usize) -> Option<(usize, Gift)> {
             let owned_combo: Group = combo.iter().map(|g| **g).collect();
             let sum = owned_combo.iter().fold(0, |acc, g| acc + *g);
             if sum == target && can_split_remainder(&owned_combo, &gifts, n - 1) {
-                lowest_qe = cmp::min(
-                    lowest_qe,
-                    owned_combo.iter().fold(1, |acc, g| acc * *g)
-                );
+                lowest_qe = cmp::min(lowest_qe, owned_combo.iter().fold(1, |acc, g| acc * *g));
             }
         }
         if lowest_qe < Gift::max_value() {
@@ -70,13 +67,19 @@ fn main() {
     let gifts = load_gifts("input.txt");
     // Part 1
     if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 3) {
-        println!("Part 1: best 3-part arrangement has n={} and QE={}", min_n, min_qe);
+        println!(
+            "Part 1: best 3-part arrangement has n={} and QE={}",
+            min_n, min_qe
+        );
     } else {
         println!("Part 1: couldn't find any sleigh arrangements");
     }
     // Part 2
     if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 4) {
-        println!("Part 2: best 4-part arrangement has n={} and QE={}", min_n, min_qe);
+        println!(
+            "Part 2: best 4-part arrangement has n={} and QE={}",
+            min_n, min_qe
+        );
     } else {
         println!("Part 2: couldn't find any sleigh arrangements");
     }
@@ -109,8 +112,8 @@ mod tests {
     fn test_someone_elses_answer() {
         // https://www.reddit.com/r/adventofcode/comments/3y1s7f/day_24_solutions/cy9v5vo/
         let items = vec![
-            1, 3, 5, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 67,
-            71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
+            1, 3, 5, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 67, 71, 73, 79, 83, 89,
+            97, 101, 103, 107, 109, 113,
         ];
         let optimized = optimize_sleigh(&items, 3);
         assert_eq!(optimized, Some((6, 10_439_961_859)));
@@ -137,5 +140,4 @@ mod tests {
         let optimized = optimize_sleigh(&gifts, 4);
         assert_eq!(optimized, Some((4, 80393059)));
     }
-
 }

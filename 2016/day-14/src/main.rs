@@ -1,7 +1,7 @@
 extern crate crypto;
 
-use crypto::md5::Md5;
 use crypto::digest::Digest;
+use crypto::md5::Md5;
 
 pub const MY_SALT: &'static str = "ngcjuoqr";
 const MAX_AGE: u64 = 1000;
@@ -40,8 +40,7 @@ pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str, extra: u32) -
         if let Some(char5) = find_consecutive(5, &output) {
             // compare previous 3-in-a-row finds and see if this 5-er makes
             // them a real key
-            for (j, &(_, ref char3, ref idx)) in
-                    potentials_keys.iter().enumerate() {
+            for (j, &(_, ref char3, ref idx)) in potentials_keys.iter().enumerate() {
                 let age = i - idx;
                 if *char3 == char5 && age <= MAX_AGE {
                     no_longer_potential.push(j);
@@ -113,17 +112,16 @@ mod tests {
     }
 
     #[test]
-    #[ignore]  // 426s
+    #[ignore] // 426s
     fn test_example_2() {
         let index = get_index_that_produces_n_keys(64, "abc", 2016);
         assert_eq!(index, 22551);
     }
 
     #[test]
-    #[ignore]  // 426s
+    #[ignore] // 426s
     fn test_part_2() {
         let index = get_index_that_produces_n_keys(64, MY_SALT, 2016);
         assert_eq!(index, 20092);
     }
-
 }

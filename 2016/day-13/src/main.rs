@@ -70,8 +70,10 @@ fn main() {
     let start = Point::new(1, 1);
     let end = Point::new(31, 39);
     let num_steps = find_shortest_path(&start, &end);
-    println!("Stating at {:?}, can walk to {:?} in {} steps.",
-             &start, &end, num_steps);
+    println!(
+        "Stating at {:?}, can walk to {:?} in {} steps.",
+        &start, &end, num_steps
+    );
 }
 
 #[cfg(test)]

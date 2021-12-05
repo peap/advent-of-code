@@ -43,14 +43,12 @@ pub fn get_replacements_and_medicine<'a>(filename: &'a str) -> (Replacements, St
 
 // Translated from the Python of semi225599 and askalski.
 // See: https://www.reddit.com/r/adventofcode/comments/3xflz8/day_19_solutions/cy4nsdd/
-pub fn find_min_steps_reverse(from: String, to: String, replacements: &Replacements)
-        -> u32 {
+pub fn find_min_steps_reverse(from: String, to: String, replacements: &Replacements) -> u32 {
     // invert replacements
     let mut repls: HashMap<String, String> = HashMap::new();
     for (k, vs) in replacements.iter() {
         for v in vs.iter() {
-            repls.insert(v.chars().rev().collect(),
-                         k.chars().rev().collect());
+            repls.insert(v.chars().rev().collect(), k.chars().rev().collect());
         }
     }
     // make replacements one-at-a-time and count
@@ -72,7 +70,10 @@ fn main() {
     let (replacements, medicine) = get_replacements_and_medicine("input.txt");
     let from = "e".to_string();
     let num_steps = find_min_steps_reverse(from, medicine, &replacements);
-    println!("Part 2: takes {} steps to make the medicine from an electron", num_steps);
+    println!(
+        "Part 2: takes {} steps to make the medicine from an electron",
+        num_steps
+    );
 }
 
 #[cfg(test)]

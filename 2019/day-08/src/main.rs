@@ -104,8 +104,11 @@ fn part2() -> Layer {
 }
 
 fn main() {
-    println!("Part 1: the product of ones and twos in the layer with the \
-        fewest '0' digits is {}", part1());
+    println!(
+        "Part 1: the product of ones and twos in the layer with the \
+        fewest '0' digits is {}",
+        part1()
+    );
     println!("Part 2: the message is...");
     let image = part2();
     for y in 0..6 {

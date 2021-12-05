@@ -14,8 +14,8 @@ enum Heading {
 
 #[derive(Debug)]
 struct Walker {
-    x: i32,  // + east, - west
-    y: i32,  // + north, - south
+    x: i32, // + east, - west
+    y: i32, // + north, - south
     heading: Heading,
     locations: HashSet<(i32, i32)>,
     bunny_hq: Option<(i32, i32)>,
@@ -24,8 +24,8 @@ struct Walker {
 impl Walker {
     fn new() -> Walker {
         Walker {
-            x:0,
-            y:0,
+            x: 0,
+            y: 0,
             heading: Heading::East,
             locations: HashSet::new(),
             bunny_hq: None,
@@ -51,22 +51,18 @@ impl Walker {
 
     fn turn(&mut self, direction: &str) -> Heading {
         match direction {
-            "L" => {
-                match self.heading {
-                    Heading::East => Heading::North,
-                    Heading::North => Heading::West,
-                    Heading::West => Heading::South,
-                    Heading::South => Heading::East,
-                }
-            }
-            "R" => {
-                match self.heading {
-                    Heading::East => Heading::South,
-                    Heading::North => Heading::East,
-                    Heading::West => Heading::North,
-                    Heading::South => Heading::West,
-                }
-            }
+            "L" => match self.heading {
+                Heading::East => Heading::North,
+                Heading::North => Heading::West,
+                Heading::West => Heading::South,
+                Heading::South => Heading::East,
+            },
+            "R" => match self.heading {
+                Heading::East => Heading::South,
+                Heading::North => Heading::East,
+                Heading::West => Heading::North,
+                Heading::South => Heading::West,
+            },
             _ => panic!("Unknown direction: {}", direction),
         }
     }
@@ -105,7 +101,6 @@ impl fmt::Display for Walker {
     }
 }
 
-
 fn parse_instructions(filename: &'static str) -> Vec<String> {
     let file = File::open(filename).unwrap();
     let mut reader = BufReader::new(file);
@@ -126,7 +121,7 @@ fn main() {
         Some((x, y)) => {
             let bunny = x.abs() + y.abs();
             println!("Easter bunny is {} blocks from the start", bunny);
-        },
+        }
         None => {
             println!("Could not find the easter bunny :(");
         }
@@ -136,9 +131,7 @@ fn main() {
 #[test]
 fn easy_walk() {
     let mut walker = Walker::new();
-    let instructions: Vec<String> = [
-        "R1",
-    ].iter().map(|x| x.to_string()).collect();
+    let instructions: Vec<String> = ["R1"].iter().map(|x| x.to_string()).collect();
     walker.follow(instructions);
     assert_eq!(walker.distance(), 1);
     assert_eq!((walker.x, walker.y), (0, -1));
@@ -147,10 +140,7 @@ fn easy_walk() {
 #[test]
 fn less_easy_walk() {
     let mut walker = Walker::new();
-    let instructions: Vec<String> = [
-        "R1",
-        "R10",
-    ].iter().map(|x| x.to_string()).collect();
+    let instructions: Vec<String> = ["R1", "R10"].iter().map(|x| x.to_string()).collect();
     walker.follow(instructions);
     assert_eq!(walker.distance(), 11);
     assert_eq!((walker.x, walker.y), (-10, -1));
@@ -159,11 +149,7 @@ fn less_easy_walk() {
 #[test]
 fn longer_walker() {
     let mut walker = Walker::new();
-    let instructions: Vec<String> = [
-        "R1",
-        "R10",
-        "L50",
-    ].iter().map(|x| x.to_string()).collect();
+    let instructions: Vec<String> = ["R1", "R10", "L50"].iter().map(|x| x.to_string()).collect();
     walker.follow(instructions);
     assert_eq!(walker.distance(), 61);
     assert_eq!((walker.x, walker.y), (-10, -51));

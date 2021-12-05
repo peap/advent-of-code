@@ -9,9 +9,7 @@ fn load_input(filename: &'static str) -> String {
 }
 
 fn captcha(input: &str, distance: usize) -> i64 {
-    let digits: Vec<u32> = input.chars().map(|c| {
-        c.to_digit(10).unwrap()
-    }).collect();
+    let digits: Vec<u32> = input.chars().map(|c| c.to_digit(10).unwrap()).collect();
     let mut sum = 0;
     let len = digits.len();
     for i in 0..len {
@@ -28,7 +26,10 @@ fn main() {
     let input = load_input("input.txt");
     println!("Part 1: Captcha for input is {}", captcha(&input, 1));
     let distance = &input.chars().count() / 2;
-    println!("Part 2: Captcha v2 for input is {}", captcha(&input, distance));
+    println!(
+        "Part 2: Captcha v2 for input is {}",
+        captcha(&input, distance)
+    );
 }
 
 #[cfg(test)]
@@ -67,5 +68,4 @@ mod tests {
         let distance = &input.chars().count() / 2;
         assert_eq!(captcha(&input, distance), 1092);
     }
-
 }

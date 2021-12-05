@@ -35,7 +35,7 @@ fn load_moves(filename: &'static str) -> MoveSet {
     for line in reader.lines() {
         match line {
             Ok(text) => lines.push(text),
-            _ => ()
+            _ => (),
         }
     }
     lines
@@ -61,10 +61,12 @@ fn get_button_locations(keypad: &KeyPad) -> ButtonLocations {
     locations
 }
 
-fn follow_moves(button_locations: &ButtonLocations,
-              keypad: &KeyPad,
-              start: Button,
-              moveset: &Moves) -> Button {
+fn follow_moves(
+    button_locations: &ButtonLocations,
+    keypad: &KeyPad,
+    start: Button,
+    moveset: &Moves,
+) -> Button {
     let max_x = keypad[0].len() as i32;
     let max_y = keypad.len() as i32;
     let mut button = start;
@@ -75,10 +77,10 @@ fn follow_moves(button_locations: &ButtonLocations,
     let mut old_y;
     for c in moveset.chars() {
         let (dx, dy) = match c {
-            'U' => ( 0, -1),
-            'D' => ( 0,  1),
-            'L' => (-1,  0),
-            'R' => ( 1,  0),
+            'U' => (0, -1),
+            'D' => (0, 1),
+            'L' => (-1, 0),
+            'R' => (1, 0),
             _ => panic!("Unknown move, {}", c),
         };
         old_x = x;

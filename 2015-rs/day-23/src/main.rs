@@ -122,18 +122,18 @@ impl Computer {
                 Instruction::Tpl(reg) => self.triple(reg),
                 Instruction::Inc(reg) => self.increment(reg),
                 Instruction::Jmp(offset) => {
-                    pos += offset - 1;  // -1 to negate += 1 at top
+                    pos += offset - 1; // -1 to negate += 1 at top
                 }
                 Instruction::Jie(reg, offset) => {
                     let reg_val = self.get_register(reg);
                     if reg_val % 2 == 0 {
-                        pos += offset - 1;  // -1 to negate += 1 at top
+                        pos += offset - 1; // -1 to negate += 1 at top
                     }
                 }
                 Instruction::Jio(reg, offset) => {
                     let reg_val = self.get_register(reg);
                     if reg_val == 1 {
-                        pos += offset - 1;  // -1 to negate += 1 at top
+                        pos += offset - 1; // -1 to negate += 1 at top
                     }
                 }
             }
@@ -164,12 +164,18 @@ fn main() {
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);
-    println!("Part 1: The value in register 'b' is {}.", computer.get_register('b'));
+    println!(
+        "Part 1: The value in register 'b' is {}.",
+        computer.get_register('b')
+    );
     // Part 2
     let mut computer = Computer::new();
     computer.increment('a');
     computer.process(&instructions);
-    println!("Part 2: The value in register 'b' is {}.", computer.get_register('b'));
+    println!(
+        "Part 2: The value in register 'b' is {}.",
+        computer.get_register('b')
+    );
 }
 
 #[cfg(test)]

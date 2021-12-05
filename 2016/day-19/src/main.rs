@@ -78,5 +78,4 @@ mod tests {
         let winner = play_white_elephant_version_2(NUM_ELVES);
         assert_eq!(winner, 1420280);
     }
-
 }

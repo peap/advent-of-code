@@ -9,13 +9,14 @@ use std::io::{BufRead, BufReader};
 
 lazy_static! {
     static ref BOT_REGEX: regex::Regex = {
-        regex::Regex::new("^bot ([0-9]+) gives low to (output|bot) ([0-9]+) \
-                          and high to (output|bot) ([0-9]+)$")
-            .expect("Invalid bot regex.")
+        regex::Regex::new(
+            "^bot ([0-9]+) gives low to (output|bot) ([0-9]+) \
+                          and high to (output|bot) ([0-9]+)$",
+        )
+        .expect("Invalid bot regex.")
     };
     static ref VALUE_REGEX: regex::Regex = {
-        regex::Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$")
-            .expect("Invalid value regex.")
+        regex::Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$").expect("Invalid value regex.")
     };
 }
 
@@ -29,18 +30,14 @@ impl Ord for Chip {
     fn cmp(&self, other: &Chip) -> Ordering {
         use Chip::*;
         match *self {
-            Empty => {
-                match *other {
-                    Empty => Ordering::Equal,
-                    Value(_) => Ordering::Less,
-                }
-            }
-            Value(n) => {
-                match *other {
-                    Empty => Ordering::Greater,
-                    Value(m) => n.cmp(&m),
-                }
-            }
+            Empty => match *other {
+                Empty => Ordering::Equal,
+                Value(_) => Ordering::Less,
+            },
+            Value(n) => match *other {
+                Empty => Ordering::Greater,
+                Value(m) => n.cmp(&m),
+            },
         }
     }
 }
@@ -59,7 +56,9 @@ pub enum Recipient {
 
 impl Recipient {
     fn from_text<'a>(kind: &'a str, id: &'a str) -> Recipient {
-        let id: u32 = id.parse().expect("Recipient IDs must be positive integers.");
+        let id: u32 = id
+            .parse()
+            .expect("Recipient IDs must be positive integers.");
         match kind {
             "bot" => Recipient::Bot(id),
             "output" => Recipient::Output(id),
@@ -151,11 +150,13 @@ pub fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
         }
     }
     for text in starting_values {
-        let caps = VALUE_REGEX.captures(&text)
+        let caps = VALUE_REGEX
+            .captures(&text)
             .expect("Found match to value regex, but no captures.");
         let value: u32 = caps.at(1).unwrap().parse().unwrap();
         let bot_id: u32 = caps.at(2).unwrap().parse().unwrap();
-        let mut bot = bots.get_mut(&bot_id)
+        let mut bot = bots
+            .get_mut(&bot_id)
             .expect("Trying to give value to nonexistant bot.");
         bot.receive_chip(Chip::Value(value));
     }
@@ -176,7 +177,9 @@ fn get_active_bot_ids(bots: &HashMap<u32, Bot>) -> Option<Vec<u32>> {
 }
 
 pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option<u32>
-        where F: Fn(&Bot) -> bool {
+where
+    F: Fn(&Bot) -> bool,
+{
     let mut active_bot_ids = match get_active_bot_ids(&bots) {
         Some(ids) => ids,
         None => panic!("Expected one bot to be active at the start!"),
@@ -207,7 +210,7 @@ pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option
                     if n <= 2 {
                         println!("Output {}: Chip {:?}", n, low_chip);
                     }
-                },
+                }
             };
             match high_recip {
                 Recipient::Bot(id) => {
@@ -218,7 +221,7 @@ pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option
                     if n <= 2 {
                         println!("Output {}: Chip {:?}", n, high_chip);
                     }
-                },
+                }
             };
         }
         active_bot_ids = match get_active_bot_ids(&bots) {
@@ -229,13 +232,9 @@ pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option
     None
 }
 
-
 fn main() {
     let mut bots = load_bots("input.txt");
-    let part1_pred = |b: &Bot| {
-        b.chips[0] == Chip::Value(17) &&
-        b.chips[1] == Chip::Value(61)
-    };
+    let part1_pred = |b: &Bot| b.chips[0] == Chip::Value(17) && b.chips[1] == Chip::Value(61);
     if let Some(part1_bot_id) = pass_chips_until(&mut bots, part1_pred) {
         println!("Part 1: Bot {} compares the 17 and 61 chips.", part1_bot_id);
     } else {
@@ -252,12 +251,8 @@ mod tests {
     #[test]
     fn test_part_1_answer() {
         let mut bots = load_bots("input.txt");
-        let part1_pred = |b: &Bot| {
-            b.chips[0] == Chip::Value(17) &&
-            b.chips[1] == Chip::Value(61)
-        };
+        let part1_pred = |b: &Bot| b.chips[0] == Chip::Value(17) && b.chips[1] == Chip::Value(61);
         let result = pass_chips_until(&mut bots, part1_pred);
         assert_eq!(result, Some(98));
     }
-
 }

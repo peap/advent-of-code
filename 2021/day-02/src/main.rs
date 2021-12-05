@@ -53,8 +53,16 @@ mod tests {
     #[test]
     fn test_process_commands() {
         let ex1: Vec<String> = vec![
-            "forward 5", "down 5", "forward 8", "up 3", "down 8", "forward 2"]
-            .iter().map(|&s| s.into()).collect();
+            "forward 5",
+            "down 5",
+            "forward 8",
+            "up 3",
+            "down 8",
+            "forward 2",
+        ]
+        .iter()
+        .map(|&s| s.into())
+        .collect();
         assert_eq!(process_commands(ex1.clone(), false), (15, 10));
         assert_eq!(process_commands(ex1, true), (15, 60));
     }

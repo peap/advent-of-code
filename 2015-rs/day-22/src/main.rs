@@ -122,7 +122,7 @@ impl Combatant {
         }
         if self.t_recharing > 0 {
             self.t_recharing -= 1;
-            self.mana += 101;  // doesn't subtract from expenses
+            self.mana += 101; // doesn't subtract from expenses
         }
     }
 
@@ -172,7 +172,9 @@ pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> i32 {
         let (ref mut player, ref mut boss) = q.pop_front().unwrap();
         // Player turn
         player.apply_effects(true);
-        if player.dead() { continue; }
+        if player.dead() {
+            continue;
+        }
         boss.apply_effects(false);
         player.use_spell(boss);
         if boss.dead() {
@@ -187,7 +189,9 @@ pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> i32 {
         }
         player.apply_effects(false);
         boss.use_spell(player);
-        if player.dead() { continue; }
+        if player.dead() {
+            continue;
+        }
         // Get next moves
         for p in player.get_next_spells(&boss) {
             q.push_back((p.clone(), boss.clone()));
@@ -201,12 +205,18 @@ fn main() {
     let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Easy);
     let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
     let mana = find_minimum_mana_to_win(player, boss);
-    println!("\nPart 1: it costs at least {} mana to win in easy mode", mana);
+    println!(
+        "\nPart 1: it costs at least {} mana to win in easy mode",
+        mana
+    );
     // Part 2
     let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Hard);
     let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
     let mana = find_minimum_mana_to_win(player, boss);
-    println!("\nPart 2: it costs at least {} mana to win in hard mode", mana);
+    println!(
+        "\nPart 2: it costs at least {} mana to win in hard mode",
+        mana
+    );
 }
 
 #[cfg(test)]

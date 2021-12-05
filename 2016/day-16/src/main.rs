@@ -10,7 +10,7 @@ pub fn expand<'a>(state: &'a str) -> String {
         match c {
             '0' => expanded.push('1'),
             '1' => expanded.push('0'),
-            _ => ()
+            _ => (),
         }
     }
     expanded
@@ -88,5 +88,4 @@ mod tests {
         let checksum = fill_and_checksum(INITIAL_STATE, DISK_LEN_2);
         assert_eq!(checksum, "01100001101101001");
     }
-
 }

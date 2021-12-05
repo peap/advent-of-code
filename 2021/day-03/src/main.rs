@@ -24,8 +24,10 @@ fn gamma_epsilon(numbers: Vec<String>) -> (u32, u32) {
             epsilon.push('1');
         }
     }
-    (u32::from_str_radix(&gamma, 2).unwrap(),
-     u32::from_str_radix(&epsilon, 2).unwrap())
+    (
+        u32::from_str_radix(&gamma, 2).unwrap(),
+        u32::from_str_radix(&epsilon, 2).unwrap(),
+    )
 }
 
 fn gas_rating(numbers: Vec<String>, most_common: bool) -> u32 {
@@ -60,7 +62,12 @@ fn main() {
     println!("Part 1: gamma: {}, epsilon: {}; g * e = {}", g, e, g * e);
     let o2 = gas_rating(numbers.clone(), true);
     let co2 = gas_rating(numbers, false);
-    println!("Part 2: oxygen: {}, co2: {}; product = {}", o2, co2, o2 * co2);
+    println!(
+        "Part 2: oxygen: {}, co2: {}; product = {}",
+        o2,
+        co2,
+        o2 * co2
+    );
 }
 
 #[cfg(test)]
@@ -70,9 +77,12 @@ mod tests {
     #[test]
     fn test_examples() {
         let ex1: Vec<String> = vec![
-            "00100", "11110", "10110", "10111", "10101", "01111", "00111",
-            "11100", "10000", "11001", "00010", "01010",
-        ].iter().map(|&s| s.into()).collect();
+            "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000",
+            "11001", "00010", "01010",
+        ]
+        .iter()
+        .map(|&s| s.into())
+        .collect();
         assert_eq!(gamma_epsilon(ex1.clone()), (22, 9));
         assert_eq!(gas_rating(ex1.clone(), true), 23);
         assert_eq!(gas_rating(ex1.clone(), false), 10);

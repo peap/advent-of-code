@@ -7,7 +7,7 @@ fn count_increases(nums: Vec<i64>, window: usize) -> i64 {
     let mut last: i64 = slider.iter().sum();
     for n in nums[window..nums.len()].iter() {
         slider.rotate_left(1);
-        slider[window-1] = *n;
+        slider[window - 1] = *n;
         let new_sum = slider.iter().sum();
         if new_sum > last {
             count += 1;
@@ -20,7 +20,10 @@ fn count_increases(nums: Vec<i64>, window: usize) -> i64 {
 fn main() {
     let reader = InputReader::new("input.txt");
     let depths = reader.i64_lines();
-    println!("Part 1: depth increases: {}", count_increases(depths.clone(), 1));
+    println!(
+        "Part 1: depth increases: {}",
+        count_increases(depths.clone(), 1)
+    );
     println!("Part 2: depth increases: {}", count_increases(depths, 3));
 }
 

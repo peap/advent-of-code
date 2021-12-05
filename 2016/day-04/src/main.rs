@@ -42,21 +42,17 @@ impl Room {
                 }
             }
         }
-        let mut to_sort: Vec<_> = char_hash.iter()
-            .collect::<Vec<_>>();
+        let mut to_sort: Vec<_> = char_hash.iter().collect::<Vec<_>>();
         to_sort.sort_by(|item1, item2| {
-                let &(c1, count1) = item1;
-                let &(c2, count2) = item2;
-                if count1 == count2 {
-                    c1.cmp(c2)
-                } else {
-                    count2.cmp(count1)
-                }
-            });
-        let expected: String = to_sort.iter()
-                                   .map(|item| item.0.clone())
-                                   .take(5)
-                                   .collect();
+            let &(c1, count1) = item1;
+            let &(c2, count2) = item2;
+            if count1 == count2 {
+                c1.cmp(c2)
+            } else {
+                count2.cmp(count1)
+            }
+        });
+        let expected: String = to_sort.iter().map(|item| item.0.clone()).take(5).collect();
         self.checksum == expected
     }
 
@@ -68,11 +64,11 @@ impl Room {
                 continue;
             }
             let to_rotate = (self.sector % 26) as u8;
-            let code = (
-                ((c as u8)
-                    .checked_sub(MIN_LETTER)).expect("Got a letter < 'a'.")
-                    .checked_add(to_rotate).expect("Overflow after sector addition!")
-            ) % 26;
+            let code = (((c as u8).checked_sub(MIN_LETTER))
+                .expect("Got a letter < 'a'.")
+                .checked_add(to_rotate)
+                .expect("Overflow after sector addition!"))
+                % 26;
             rotated.push((code + MIN_LETTER) as u8 as char);
         }
         rotated.into_iter().collect()
@@ -93,7 +89,7 @@ fn load_rooms(filename: &'static str) -> Vec<Room> {
                 let checksum = caps.at(3).unwrap();
                 Room::new(name, sector, checksum)
             }
-            None => panic!("Unparsable line: {}", text)
+            None => panic!("Unparsable line: {}", text),
         };
         rooms.push(room)
     }
@@ -106,10 +102,14 @@ fn main() {
     let sum: i32 = valid.iter().fold(0, |acc, room| acc + room.get_sector());
     println!(
         "Part 1: {} of {} rooms are valid; sector sum is {}",
-        valid.len(), rooms.len(), sum,
+        valid.len(),
+        rooms.len(),
+        sum,
     );
-    let sector = valid.iter()
-                     .find(|room| room.decrypt().starts_with(NAMED)).unwrap()
-                     .get_sector();
+    let sector = valid
+        .iter()
+        .find(|room| room.decrypt().starts_with(NAMED))
+        .unwrap()
+        .get_sector();
     println!("Part 2: northpole-object-storage is in sector {}", sector);
 }

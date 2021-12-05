@@ -17,16 +17,23 @@ impl Value {
         let int_re = Regex::new(r"^([0-9-]+)$").expect("Bad integer regex");
         let reg_re = Regex::new(r"^([a-z])$").expect("Bad register regex");
         if int_re.is_match(text) {
-            let num: i32 = int_re.captures(text)
+            let num: i32 = int_re
+                .captures(text)
                 .expect("Matched int_re, but no captures???")
-                .at(1).expect("Matched int_re, but no match group???")
-                .parse().expect("Matched int_re, but non-numeric???");
+                .at(1)
+                .expect("Matched int_re, but no match group???")
+                .parse()
+                .expect("Matched int_re, but non-numeric???");
             Value::Integer(num)
         } else if reg_re.is_match(text) {
-            let reg = reg_re.captures(text)
+            let reg = reg_re
+                .captures(text)
                 .expect("Matched reg_re, but no captures???")
-                .at(1).expect("Matched reg_re, but no match group???")
-                .chars().nth(0).expect("Matched reg_re, but no first char???");
+                .at(1)
+                .expect("Matched reg_re, but no match group???")
+                .chars()
+                .nth(0)
+                .expect("Matched reg_re, but no first char???");
             Value::Register(reg)
         } else {
             panic!("Got an unparseable Value: {}", text);
@@ -90,7 +97,9 @@ impl Computer {
     fn copy(&mut self, from: Value, to: Value) {
         let int_value = match from {
             Value::Integer(num) => num.clone(),
-            Value::Register(reg) => self.registers.get(&reg)
+            Value::Register(reg) => self
+                .registers
+                .get(&reg)
                 .expect("Attempted copy from uninitialized register!")
                 .clone(),
         };
@@ -177,10 +186,16 @@ fn main() {
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);
-    println!("Part 1: The value in register 'a' is {}.", computer.get_register('a'));
+    println!(
+        "Part 1: The value in register 'a' is {}.",
+        computer.get_register('a')
+    );
     // Part 2
     let mut computer2 = Computer::new();
     computer2.copy(Value::Integer(1), Value::Register('c'));
     computer2.process(&instructions);
-    println!("Part 2: The value in register 'a' is {}.", computer2.get_register('a'));
+    println!(
+        "Part 2: The value in register 'a' is {}.",
+        computer2.get_register('a')
+    );
 }

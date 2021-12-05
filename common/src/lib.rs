@@ -7,7 +7,7 @@ pub struct InputReader {
 
 impl InputReader {
     pub fn new(path: &'static str) -> InputReader {
-        InputReader{path}
+        InputReader { path }
     }
 
     pub fn string_lines(&self) -> Vec<String> {
@@ -17,7 +17,10 @@ impl InputReader {
     }
 
     pub fn i64_lines(&self) -> Vec<i64> {
-        self.string_lines().iter().map(|l| l.parse().unwrap()).collect()
+        self.string_lines()
+            .iter()
+            .map(|l| l.parse().unwrap())
+            .collect()
     }
 }
 

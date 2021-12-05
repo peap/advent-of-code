@@ -143,7 +143,10 @@ fn main() {
     let path1 = get_shortest_path(MY_HASH);
     println!("Part 1: the shortest path is {:?}", path1);
     let path2 = get_longest_path(MY_HASH);
-    println!("Part 2: the longest path has {} steps", path2.unwrap().len());
+    println!(
+        "Part 2: the longest path has {} steps",
+        path2.unwrap().len()
+    );
 }
 
 #[cfg(test)]
@@ -207,5 +210,4 @@ mod tests {
         let path = get_longest_path(MY_HASH);
         assert_eq!(path.unwrap().len(), 398);
     }
-
 }

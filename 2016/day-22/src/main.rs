@@ -11,9 +11,8 @@ use itertools::Itertools;
 use regex::Regex;
 
 lazy_static! {
-    static ref LINE_RE: Regex = Regex::new(
-        r"/dev/grid/node-x(\d+)-y(\d+) +(\d+)T +(\d+)T +(\d+)T +(\d+)%$"
-    ).unwrap();
+    static ref LINE_RE: Regex =
+        Regex::new(r"/dev/grid/node-x(\d+)-y(\d+) +(\d+)T +(\d+)T +(\d+)T +(\d+)%$").unwrap();
 }
 
 pub type Position = (u32, u32);
@@ -68,18 +67,15 @@ impl Node {
     }
 
     fn can_pair_with(&self, other: &Node) -> bool {
-        self.position != other.position &&
-        self.used_tb > 0 &&
-        self.used_tb <= other.available_tb
+        self.position != other.position && self.used_tb > 0 && self.used_tb <= other.available_tb
     }
 
     fn is_adjacent_to(&self, other: &Node) -> bool {
         let (sx, sy) = self.position;
         let (ox, oy) = other.position;
-        (sx == ox && (sy as i32 - oy as i32).abs() == 1) ||
-        (sy == oy && (sx as i32 - ox as i32).abs() == 1)
+        (sx == ox && (sy as i32 - oy as i32).abs() == 1)
+            || (sy == oy && (sx as i32 - ox as i32).abs() == 1)
     }
-
 }
 
 #[derive(Clone)]
@@ -176,8 +172,11 @@ impl Grid {
     }
 
     fn optimize_data_movement(&self) -> Option<u32> {
-        let target_data = self.nodes.iter()
-            .max_by_key(|n| n.position.0 as i32 - n.position.1 as i32 ).unwrap()
+        let target_data = self
+            .nodes
+            .iter()
+            .max_by_key(|n| n.position.0 as i32 - n.position.1 as i32)
+            .unwrap()
             .chunks[0];
         let mut q: VecDeque<(Grid, u32)> = VecDeque::new();
         q.push_back((self.clone(), 0));
@@ -193,14 +192,15 @@ impl Grid {
         }
         None
     }
-
 }
-
 
 fn main() {
     let grid = Grid::load_from_file("input.txt");
     grid.print();
-    println!("Part 1: There are {} viable pairs.", grid.count_viable_pairs());
+    println!(
+        "Part 1: There are {} viable pairs.",
+        grid.count_viable_pairs()
+    );
     if let Some(n_steps) = grid.optimize_data_movement() {
         println!("\nPart 2: It takes {} steps to move the data.", n_steps);
     } else {

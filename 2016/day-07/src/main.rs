@@ -31,8 +31,10 @@ impl IPv7 {
                 in_brackets = false;
                 continue;
             }
-            if last_four[0] == last_four[3] && last_four[1] == last_four[2] &&
-               last_four[0] != last_four[1] {
+            if last_four[0] == last_four[3]
+                && last_four[1] == last_four[2]
+                && last_four[0] != last_four[1]
+            {
                 if in_brackets {
                     tls_compliant = false;
                     break;
@@ -131,10 +133,14 @@ fn main() {
     let ipaddrs = load_ipaddrs("input.txt");
     let num_tls = ipaddrs.iter().filter(|a| a.supports_tls()).count();
     let num_ssl = ipaddrs.iter().filter(|a| a.supports_ssl()).count();
-    println!("Part 1: {}/{} IPv7 addrs support TLS",
-             num_tls,
-             ipaddrs.len());
-    println!("Part 2: {}/{} IPv7 addrs support SSL",
-             num_ssl,
-             ipaddrs.len());
+    println!(
+        "Part 1: {}/{} IPv7 addrs support TLS",
+        num_tls,
+        ipaddrs.len()
+    );
+    println!(
+        "Part 2: {}/{} IPv7 addrs support SSL",
+        num_ssl,
+        ipaddrs.len()
+    );
 }
