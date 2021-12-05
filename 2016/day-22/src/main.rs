@@ -31,18 +31,18 @@ pub struct Node {
 impl Node {
     fn from_line(text: String) -> Node {
         let caps = LINE_RE.captures(&text).expect("No regex match.");
-        let x = caps.at(1).unwrap().parse().unwrap();
-        let y = caps.at(2).unwrap().parse().unwrap();
+        let x = caps.get(1).unwrap().as_str().parse().unwrap();
+        let y = caps.get(2).unwrap().as_str().parse().unwrap();
         let position = (x, y);
-        let used = caps.at(4).unwrap().parse().unwrap();
+        let used = caps.get(4).unwrap().as_str().parse().unwrap();
         let chunk = (position, used);
         Node {
             position: position,
             chunks: vec![chunk],
-            size_tb: caps.at(3).unwrap().parse().unwrap(),
+            size_tb: caps.get(3).unwrap().as_str().parse().unwrap(),
             used_tb: used,
-            available_tb: caps.at(5).unwrap().parse().unwrap(),
-            // used_pct: caps.at(6).unwrap().parse().unwrap(),
+            available_tb: caps.get(5).unwrap().as_str().parse().unwrap(),
+            // used_pct: caps.get(6).unwrap().as_str().parse().unwrap(),
         }
     }
 
@@ -139,11 +139,11 @@ impl Grid {
         let to_idx = self.nodes.iter().position(|n| n.position == to).unwrap();
         let mut new_grid = self.clone();
         let chunks = {
-            let mut source_node = new_grid.nodes.get_mut(from_idx).unwrap();
+            let source_node = new_grid.nodes.get_mut(from_idx).unwrap();
             source_node.transfer_chunks()
         };
         {
-            let mut dest_node = new_grid.nodes.get_mut(to_idx).unwrap();
+            let dest_node = new_grid.nodes.get_mut(to_idx).unwrap();
             dest_node.receive_chunks(chunks);
         }
         new_grid

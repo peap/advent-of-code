@@ -25,7 +25,7 @@ pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str, extra: u32) -
     let mut no_longer_potential: Vec<usize> = Vec::new();
     let mut keys: Vec<u64> = Vec::new();
     let mut hasher = Md5::new();
-    let mut output = String::new();
+    let mut output: String;
     for i in 0..std::u64::MAX {
         hasher.reset();
         hasher.input_str(salt);

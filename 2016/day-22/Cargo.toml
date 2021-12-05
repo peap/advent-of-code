@@ -6,4 +6,4 @@ authors = ["Eric Petersen <eric@huskers.unl.edu>"]
 [dependencies]
 lazy_static = "1"
 itertools = "0.5"
-regex = "0.1"
+regex = "1"

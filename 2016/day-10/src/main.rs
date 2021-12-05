@@ -77,12 +77,17 @@ pub struct Bot {
 impl Bot {
     fn from_text(text: String) -> Bot {
         let caps = BOT_REGEX.captures(&text).expect("No bot regex captures.");
-        let bot_id: u32 = caps.at(1).unwrap().parse().expect("Non-numeric bot ID.");
-        let low_recip_type = caps.at(2).unwrap();
-        let low_recip_id = caps.at(3).unwrap();
+        let bot_id: u32 = caps
+            .get(1)
+            .unwrap()
+            .as_str()
+            .parse()
+            .expect("Non-numeric bot ID.");
+        let low_recip_type = caps.get(2).unwrap().as_str();
+        let low_recip_id = caps.get(3).unwrap().as_str();
         let low_recip = Recipient::from_text(low_recip_type, low_recip_id);
-        let high_recip_type = caps.at(4).unwrap();
-        let high_recip_id = caps.at(5).unwrap();
+        let high_recip_type = caps.get(4).unwrap().as_str();
+        let high_recip_id = caps.get(5).unwrap().as_str();
         let high_recip = Recipient::from_text(high_recip_type, high_recip_id);
         Bot {
             id: bot_id,
@@ -153,9 +158,9 @@ pub fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
         let caps = VALUE_REGEX
             .captures(&text)
             .expect("Found match to value regex, but no captures.");
-        let value: u32 = caps.at(1).unwrap().parse().unwrap();
-        let bot_id: u32 = caps.at(2).unwrap().parse().unwrap();
-        let mut bot = bots
+        let value: u32 = caps.get(1).unwrap().as_str().parse().unwrap();
+        let bot_id: u32 = caps.get(2).unwrap().as_str().parse().unwrap();
+        let bot = bots
             .get_mut(&bot_id)
             .expect("Trying to give value to nonexistant bot.");
         bot.receive_chip(Chip::Value(value));
@@ -192,7 +197,7 @@ where
             let high_recip: Recipient;
             {
                 // Introduce scope to let this mutable borrow expire.
-                let mut bot = bots.get_mut(&id).unwrap();
+                let bot = bots.get_mut(&id).unwrap();
                 if predicate(bot) {
                     return Some(id);
                 }
@@ -203,7 +208,7 @@ where
             }
             match low_recip {
                 Recipient::Bot(id) => {
-                    let mut receiver = bots.get_mut(&id).unwrap();
+                    let receiver = bots.get_mut(&id).unwrap();
                     receiver.receive_chip(low_chip);
                 }
                 Recipient::Output(n) => {
@@ -214,7 +219,7 @@ where
             };
             match high_recip {
                 Recipient::Bot(id) => {
-                    let mut receiver = bots.get_mut(&id).unwrap();
+                    let receiver = bots.get_mut(&id).unwrap();
                     receiver.receive_chip(high_chip);
                 }
                 Recipient::Output(n) => {

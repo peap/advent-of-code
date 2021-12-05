@@ -19,18 +19,18 @@ impl Instruction {
         let rcol_re = Regex::new(r"^rotate column x=([0-9]+) by ([0-9]+)$").unwrap();
         if rect_re.is_match(&text) {
             let caps = rect_re.captures(&text).unwrap();
-            let x = caps.at(1).unwrap().parse::<usize>().unwrap();
-            let y = caps.at(2).unwrap().parse::<usize>().unwrap();
+            let x = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
+            let y = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
             Rect(x, y)
         } else if rrow_re.is_match(&text) {
             let caps = rrow_re.captures(&text).unwrap();
-            let y = caps.at(1).unwrap().parse::<usize>().unwrap();
-            let amount = caps.at(2).unwrap().parse::<usize>().unwrap();
+            let y = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
+            let amount = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
             RotateRow(y, amount)
         } else if rcol_re.is_match(&text) {
             let caps = rcol_re.captures(&text).unwrap();
-            let x = caps.at(1).unwrap().parse::<usize>().unwrap();
-            let amount = caps.at(2).unwrap().parse::<usize>().unwrap();
+            let x = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
+            let amount = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
             RotateCol(x, amount)
         } else {
             panic!("Could not understand instruction: {}", &text)

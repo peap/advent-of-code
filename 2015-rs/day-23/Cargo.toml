@@ -5,4 +5,4 @@ authors = ["Eric Petersen <eric@huskers.unl.edu>"]
 
 [dependencies]
 lazy_static = "1"
-regex = "0.1"
+regex = "1"

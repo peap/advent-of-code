@@ -20,8 +20,9 @@ impl Value {
             let num: i32 = int_re
                 .captures(text)
                 .expect("Matched int_re, but no captures???")
-                .at(1)
+                .get(1)
                 .expect("Matched int_re, but no match group???")
+                .as_str()
                 .parse()
                 .expect("Matched int_re, but non-numeric???");
             Value::Integer(num)
@@ -29,8 +30,9 @@ impl Value {
             let reg = reg_re
                 .captures(text)
                 .expect("Matched reg_re, but no captures???")
-                .at(1)
+                .get(1)
                 .expect("Matched reg_re, but no match group???")
+                .as_str()
                 .chars()
                 .nth(0)
                 .expect("Matched reg_re, but no first char???");
@@ -61,29 +63,29 @@ impl Instruction {
         let out_re = Regex::new(r"^out (.+)$").expect("Bad out regex.");
         if cpy_re.is_match(line) {
             let caps = cpy_re.captures(line).unwrap();
-            let from_val = Value::from_text(caps.at(1).unwrap());
-            let to_val = Value::from_text(caps.at(2).unwrap());
+            let from_val = Value::from_text(caps.get(1).unwrap().as_str());
+            let to_val = Value::from_text(caps.get(2).unwrap().as_str());
             Instruction::Cpy(from_val, to_val)
         } else if inc_re.is_match(line) {
             let caps = inc_re.captures(line).unwrap();
-            let val = Value::from_text(caps.at(1).unwrap());
+            let val = Value::from_text(caps.get(1).unwrap().as_str());
             Instruction::Inc(val)
         } else if dec_re.is_match(line) {
             let caps = dec_re.captures(line).unwrap();
-            let val = Value::from_text(caps.at(1).unwrap());
+            let val = Value::from_text(caps.get(1).unwrap().as_str());
             Instruction::Dec(val)
         } else if jnz_re.is_match(line) {
             let caps = jnz_re.captures(line).unwrap();
-            let val1 = Value::from_text(caps.at(1).unwrap());
-            let val2 = Value::from_text(caps.at(2).unwrap());
+            let val1 = Value::from_text(caps.get(1).unwrap().as_str());
+            let val2 = Value::from_text(caps.get(2).unwrap().as_str());
             Instruction::Jnz(val1, val2)
         } else if tgl_re.is_match(line) {
             let caps = tgl_re.captures(line).unwrap();
-            let val = Value::from_text(caps.at(1).unwrap());
+            let val = Value::from_text(caps.get(1).unwrap().as_str());
             Instruction::Tgl(val)
         } else if out_re.is_match(line) {
             let caps = out_re.captures(line).unwrap();
-            let val = Value::from_text(caps.at(1).unwrap());
+            let val = Value::from_text(caps.get(1).unwrap().as_str());
             Instruction::Out(val)
         } else {
             panic!("Unparsable line: {}", line)

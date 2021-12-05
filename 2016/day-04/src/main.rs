@@ -84,9 +84,9 @@ fn load_rooms(filename: &'static str) -> Vec<Room> {
         let text = line.expect("Couldn't read a line.");
         let room = match line_re.captures(&text) {
             Some(caps) => {
-                let name = caps.at(1).unwrap();
-                let sector = caps.at(2).unwrap().parse().unwrap();
-                let checksum = caps.at(3).unwrap();
+                let name = caps.get(1).unwrap().as_str();
+                let sector = caps.get(2).unwrap().as_str().parse().unwrap();
+                let checksum = caps.get(3).unwrap().as_str();
                 Room::new(name, sector, checksum)
             }
             None => panic!("Unparsable line: {}", text),

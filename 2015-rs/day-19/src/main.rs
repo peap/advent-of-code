@@ -26,7 +26,7 @@ pub fn get_replacements_and_medicine<'a>(filename: &'a str) -> (Replacements, St
                     let from = split.next().expect("Expected a first part of the split.");
                     let to = split.next().expect("Expected a second part of the split.");
                     if replacements.contains_key(from) {
-                        let mut tovec = replacements.get_mut(from).unwrap();
+                        let tovec = replacements.get_mut(from).unwrap();
                         tovec.push(to.to_string());
                     } else {
                         replacements.insert(from.to_string(), vec![to.to_string()]);
@@ -58,9 +58,12 @@ pub fn find_min_steps_reverse(from: String, to: String, replacements: &Replaceme
     let re = Regex::new(&pattern.join("|")).expect("Could not build regex.");
     while molecule != from {
         let replaced = re.replace(&molecule, |caps: &Captures| {
-            repls.get(caps.at(0).unwrap()).unwrap().to_string()
+            repls
+                .get(caps.get(0).unwrap().as_str())
+                .unwrap()
+                .to_string()
         });
-        molecule = replaced;
+        molecule = replaced.into_owned();
         count += 1;
     }
     count

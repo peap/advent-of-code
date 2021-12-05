@@ -20,16 +20,16 @@ lazy_static! {
     static ref JIO_RE: Regex = Regex::new(r"^jio (a|b), ([0-9-+]+)$").unwrap();
 }
 
-fn parse_register<'a>(captures: Option<&'a str>) -> Register {
+fn parse_register(captures: Option<regex::Match>) -> Register {
     match captures {
-        Some(s) => s.chars().next().unwrap(),
+        Some(s) => s.as_str().chars().next().unwrap(),
         None => panic!("No register captured."),
     }
 }
 
-fn parse_offset<'a>(captures: Option<&'a str>) -> Offset {
+fn parse_offset<'a>(captures: Option<regex::Match>) -> Offset {
     match captures {
-        Some(s) => s.parse::<Offset>().expect("Invalid offset value."),
+        Some(s) => s.as_str().parse::<Offset>().expect("Invalid offset value."),
         None => panic!("No register captured."),
     }
 }
@@ -48,29 +48,29 @@ impl Instruction {
     fn from_line<'a>(line: &'a str) -> Instruction {
         if HLF_RE.is_match(line) {
             let caps = HLF_RE.captures(line).unwrap();
-            let register = parse_register(caps.at(1));
+            let register = parse_register(caps.get(1));
             Instruction::Hlf(register)
         } else if TPL_RE.is_match(line) {
             let caps = TPL_RE.captures(line).unwrap();
-            let register = parse_register(caps.at(1));
+            let register = parse_register(caps.get(1));
             Instruction::Tpl(register)
         } else if INC_RE.is_match(line) {
             let caps = INC_RE.captures(line).unwrap();
-            let register = parse_register(caps.at(1));
+            let register = parse_register(caps.get(1));
             Instruction::Inc(register)
         } else if JMP_RE.is_match(line) {
             let caps = JMP_RE.captures(line).unwrap();
-            let offset = parse_offset(caps.at(1));
+            let offset = parse_offset(caps.get(1));
             Instruction::Jmp(offset)
         } else if JIE_RE.is_match(line) {
             let caps = JIE_RE.captures(line).unwrap();
-            let register = parse_register(caps.at(1));
-            let offset = parse_offset(caps.at(2));
+            let register = parse_register(caps.get(1));
+            let offset = parse_offset(caps.get(2));
             Instruction::Jie(register, offset)
         } else if JIO_RE.is_match(line) {
             let caps = JIO_RE.captures(line).unwrap();
-            let register = parse_register(caps.at(1));
-            let offset = parse_offset(caps.at(2));
+            let register = parse_register(caps.get(1));
+            let offset = parse_offset(caps.get(2));
             Instruction::Jio(register, offset)
         } else {
             panic!("Unparsable line: {}", line)
