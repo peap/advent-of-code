@@ -137,8 +137,7 @@ fn play_bingo(nums: Vec<i64>, mut boards: Vec<Board>) -> Vec<Board> {
 }
 
 fn main() {
-    let reader = InputReader::new("input.txt");
-    let bingo = reader.string_lines();
+    let bingo = InputReader::new("input.txt").string_lines();
     let (nums, boards) = parse_bingo(&bingo);
     let winners = play_bingo(nums, boards);
     let (first, last) = (winners.first().unwrap(), winners.last().unwrap());
@@ -189,8 +188,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let reader = InputReader::new("input.txt");
-        let bingo = reader.string_lines();
+        let bingo = InputReader::new("input.txt").string_lines();
         let (nums, boards) = parse_bingo(&bingo);
         let winners = play_bingo(nums, boards);
         let (first, last) = (winners.first().unwrap(), winners.last().unwrap());

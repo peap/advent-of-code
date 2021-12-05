@@ -141,8 +141,7 @@ fn cloud_map(line_strings: Vec<String>, with_diagonals: bool) -> Map {
 }
 
 fn main() {
-    let reader = InputReader::new("input.txt");
-    let lines = reader.string_lines();
+    let lines = InputReader::new("input.txt").string_lines();
     let map1 = cloud_map(lines.clone(), false);
     let overlaps1 = map1.count_overlapping(2);
     println!("Part 1: overlapping points: {}", overlaps1);
@@ -185,16 +184,14 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let reader = InputReader::new("input.txt");
-        let lines = reader.string_lines();
+        let lines = InputReader::new("input.txt").string_lines();
         let map = cloud_map(lines.clone(), false);
         assert_eq!(map.count_overlapping(2), 5306);
     }
 
     #[test]
     fn test_part2() {
-        let reader = InputReader::new("input.txt");
-        let lines = reader.string_lines();
+        let lines = InputReader::new("input.txt").string_lines();
         let map = cloud_map(lines.clone(), true);
         assert_eq!(map.count_overlapping(2), 17787);
     }

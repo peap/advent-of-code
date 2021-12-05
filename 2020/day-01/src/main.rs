@@ -25,8 +25,7 @@ fn find_three_nums_with_sum(nums: Vec<i64>, sum: i64) -> Vec<i64> {
 }
 
 fn main() {
-    let reader = InputReader::new("input.txt");
-    let expenses = reader.i64_lines();
+    let expenses = InputReader::new("input.txt").i64_lines();
     let nums2 = find_two_nums_with_sum(expenses.clone(), 2020);
     let product = nums2[0] * nums2[1];
     println!("Part 1: {} * {} = {}", nums2[0], nums2[1], product);
@@ -61,8 +60,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let reader = InputReader::new("input.txt");
-        let expenses = reader.i64_lines();
+        let expenses = InputReader::new("input.txt").i64_lines();
         let nums = find_two_nums_with_sum(expenses, 2020);
         assert_eq!(nums[0], 247);
         assert_eq!(nums[1], 1773);
@@ -70,8 +68,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        let reader = InputReader::new("input.txt");
-        let expenses = reader.i64_lines();
+        let expenses = InputReader::new("input.txt").i64_lines();
         let nums = find_three_nums_with_sum(expenses, 2020);
         assert_eq!(nums[0], 188);
         assert_eq!(nums[1], 936);

@@ -56,8 +56,7 @@ fn gas_rating(numbers: Vec<String>, most_common: bool) -> u32 {
 }
 
 fn main() {
-    let reader = InputReader::new("input.txt");
-    let numbers = reader.string_lines();
+    let numbers = InputReader::new("input.txt").string_lines();
     let (g, e) = gamma_epsilon(numbers.clone());
     println!("Part 1: gamma: {}, epsilon: {}; g * e = {}", g, e, g * e);
     let o2 = gas_rating(numbers.clone(), true);
@@ -90,15 +89,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let reader = InputReader::new("input.txt");
-        let numbers = reader.string_lines();
+        let numbers = InputReader::new("input.txt").string_lines();
         assert_eq!(gamma_epsilon(numbers), (3529, 566));
     }
 
     #[test]
     fn test_part2() {
-        let reader = InputReader::new("input.txt");
-        let numbers = reader.string_lines();
+        let numbers = InputReader::new("input.txt").string_lines();
         assert_eq!(gas_rating(numbers.clone(), true), 3573);
         assert_eq!(gas_rating(numbers.clone(), false), 289);
     }
