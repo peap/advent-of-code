@@ -1,21 +1,11 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-
-fn load_commands(filename: &'static str) -> Vec<String> {
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    reader
-        .lines()
-        .map(|l| l.unwrap())
-        .collect()
-}
+use common::InputReader;
 
 fn process_commands(commands: Vec<String>, with_aim: bool) -> (i64, i64) {
     let mut horiz = 0;
     let mut depth = 0;
     let mut aim = 0;
     for command in commands.iter() {
-        let splits: Vec<&str> = command.split(" ").collect();
+        let splits: Vec<&str> = command.split(' ').collect();
         let dir = splits[0];
         let num: i64 = splits[1].parse().unwrap();
         match dir {
@@ -46,11 +36,12 @@ fn process_commands(commands: Vec<String>, with_aim: bool) -> (i64, i64) {
 }
 
 fn main() {
-    let commands = load_commands("input.txt");
+    let reader = InputReader::new("input.txt");
+    let commands = reader.string_lines();
     let (horiz, depth) = process_commands(commands.clone(), false);
     let product = horiz * depth;
     println!("Part 1: h: {}, d: {}; h * d = {}", horiz, depth, product);
-    let (horiz2, depth2) = process_commands(commands.clone(), true);
+    let (horiz2, depth2) = process_commands(commands, true);
     let product2 = horiz2 * depth2;
     println!("Part 2: h: {}, d: {}; h * d = {}", horiz2, depth2, product2);
 }
@@ -65,18 +56,20 @@ mod tests {
             "forward 5", "down 5", "forward 8", "up 3", "down 8", "forward 2"]
             .iter().map(|&s| s.into()).collect();
         assert_eq!(process_commands(ex1.clone(), false), (15, 10));
-        assert_eq!(process_commands(ex1.clone(), true), (15, 60));
+        assert_eq!(process_commands(ex1, true), (15, 60));
     }
 
     #[test]
     fn test_part1() {
-        let commands = load_commands("input.txt");
+        let reader = InputReader::new("input.txt");
+        let commands = reader.string_lines();
         assert_eq!(process_commands(commands, false), (1927, 1091));
     }
 
     #[test]
     fn test_part2() {
-        let commands = load_commands("input.txt");
+        let reader = InputReader::new("input.txt");
+        let commands = reader.string_lines();
         assert_eq!(process_commands(commands, true), (1927, 1090312));
     }
 }

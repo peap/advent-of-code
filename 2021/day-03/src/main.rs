@@ -1,14 +1,4 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-
-fn load_report(filename: &'static str) -> Vec<String> {
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    reader
-        .lines()
-        .map(|l| l.unwrap())
-        .collect()
-}
+use common::InputReader;
 
 fn sum_digits(numbers: &[String]) -> Vec<u32> {
     let mut sums = vec![0; numbers[0].len()];
@@ -64,7 +54,8 @@ fn gas_rating(numbers: Vec<String>, most_common: bool) -> u32 {
 }
 
 fn main() {
-    let numbers = load_report("input.txt");
+    let reader = InputReader::new("input.txt");
+    let numbers = reader.string_lines();
     let (g, e) = gamma_epsilon(numbers.clone());
     println!("Part 1: gamma: {}, epsilon: {}; g * e = {}", g, e, g * e);
     let o2 = gas_rating(numbers.clone(), true);
@@ -89,13 +80,15 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let numbers = load_report("input.txt");
+        let reader = InputReader::new("input.txt");
+        let numbers = reader.string_lines();
         assert_eq!(gamma_epsilon(numbers), (3529, 566));
     }
 
     #[test]
     fn test_part2() {
-        let numbers = load_report("input.txt");
+        let reader = InputReader::new("input.txt");
+        let numbers = reader.string_lines();
         assert_eq!(gas_rating(numbers.clone(), true), 3573);
         assert_eq!(gas_rating(numbers.clone(), false), 289);
     }
