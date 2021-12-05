@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "common",
     "2015-rs/day-*",
     "2016/day-*",
     "2017/day-*",
@@ -7,5 +8,4 @@ members = [
     "2019/intcode/",
     "2020/day-*",
     "2021/day-*",
-    "2021/common",
 ]
