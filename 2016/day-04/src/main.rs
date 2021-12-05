@@ -1,13 +1,11 @@
-extern crate regex;
-
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use regex::Regex;
 
-const MIN_LETTER: u8 = 'a' as u8;
-const NAMED: &'static str = "northpole-object-storage";
+use common::InputReader;
+
+const MIN_LETTER: u8 = b'a';
+const NAMED: &str = "northpole-object-storage";
 
 struct Room {
     name: String,
@@ -19,7 +17,7 @@ impl Room {
     fn new(name: &str, sector: i32, checksum: &str) -> Room {
         Room {
             name: name.to_string(),
-            sector: sector,
+            sector,
             checksum: checksum.to_string(),
         }
     }
@@ -37,9 +35,7 @@ impl Room {
                 if let Some(count) = char_hash.get_mut(&c) {
                     *count += 1;
                 }
-                if !char_hash.contains_key(&c) {
-                    char_hash.insert(c, 1);
-                }
+                char_hash.entry(c).or_insert(1);
             }
         }
         let mut to_sort: Vec<_> = char_hash.iter().collect::<Vec<_>>();
@@ -52,7 +48,7 @@ impl Room {
                 count2.cmp(count1)
             }
         });
-        let expected: String = to_sort.iter().map(|item| item.0.clone()).take(5).collect();
+        let expected: String = to_sort.iter().map(|item| *item.0).take(5).collect();
         self.checksum == expected
     }
 
@@ -75,21 +71,18 @@ impl Room {
     }
 }
 
-fn load_rooms(filename: &'static str) -> Vec<Room> {
+fn load_rooms(lines: Vec<String>) -> Vec<Room> {
     let line_re = Regex::new(r"^([a-z-]+)([0-9]+)\[([a-z]{5})\]$").unwrap();
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
     let mut rooms = Vec::new();
-    for line in reader.lines() {
-        let text = line.expect("Couldn't read a line.");
-        let room = match line_re.captures(&text) {
+    for line in lines.iter() {
+        let room = match line_re.captures(line) {
             Some(caps) => {
                 let name = caps.get(1).unwrap().as_str();
                 let sector = caps.get(2).unwrap().as_str().parse().unwrap();
                 let checksum = caps.get(3).unwrap().as_str();
                 Room::new(name, sector, checksum)
             }
-            None => panic!("Unparsable line: {}", text),
+            None => panic!("Unparsable line: {}", line),
         };
         rooms.push(room)
     }
@@ -97,7 +90,8 @@ fn load_rooms(filename: &'static str) -> Vec<Room> {
 }
 
 fn main() {
-    let rooms = load_rooms("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let rooms = load_rooms(lines);
     let valid: Vec<&Room> = rooms.iter().filter(|r| r.is_valid()).collect();
     let sum: i32 = valid.iter().fold(0, |acc, room| acc + room.get_sector());
     println!(

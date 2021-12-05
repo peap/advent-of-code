@@ -1,6 +1,8 @@
+#![allow(clippy::ptr_arg)]
+
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+
+use common::InputReader;
 
 type Button = char;
 type ButtonLocations = HashMap<Button, (usize, usize)>;
@@ -28,19 +30,6 @@ fn get_keypad_2() -> KeyPad {
     ]
 }
 
-fn load_moves(filename: &'static str) -> MoveSet {
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    let mut lines = Vec::new();
-    for line in reader.lines() {
-        match line {
-            Ok(text) => lines.push(text),
-            _ => (),
-        }
-    }
-    lines
-}
-
 fn get_code(keypad: KeyPad, start: Button, all_moves: &MoveSet) -> String {
     let button_locations = get_button_locations(&keypad);
     let mut buttons: Vec<Button> = Vec::new();
@@ -55,7 +44,7 @@ fn get_button_locations(keypad: &KeyPad) -> ButtonLocations {
     let mut locations = HashMap::new();
     for (y, row) in keypad.iter().enumerate() {
         for (x, button) in row.iter().enumerate() {
-            locations.insert(button.clone(), (x, y));
+            locations.insert(*button, (x, y));
         }
     }
     locations
@@ -112,7 +101,8 @@ fn get_button(keypad: &KeyPad, x: i32, y: i32) -> Button {
 }
 
 fn main() {
-    let all_moves = load_moves("input.txt");
+    // let all_moves = load_moves("input.txt");
+    let all_moves = InputReader::new("input.txt").string_lines();
     let code1 = get_code(get_keypad_1(), '5', &all_moves);
     println!("The first code: {}", code1);
     let code2 = get_code(get_keypad_2(), '5', &all_moves);

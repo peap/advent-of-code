@@ -1,5 +1,4 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use common::InputReader;
 
 struct IPv7 {
     address: String,
@@ -7,7 +6,7 @@ struct IPv7 {
 
 impl IPv7 {
     fn new(address: String) -> IPv7 {
-        IPv7 { address: address }
+        IPv7 { address }
     }
 
     fn supports_tls(&self) -> bool {
@@ -74,7 +73,7 @@ impl IPv7 {
                 bab_candidates.push(bab);
             }
         }
-        if bab_candidates.len() == 0 {
+        if bab_candidates.is_empty() {
             false
         } else {
             // Look for corresponding ABA in supernets.
@@ -83,7 +82,7 @@ impl IPv7 {
                 let bytes = bab.as_bytes();
                 let aba: String = [bytes[1], bytes[0], bytes[1]]
                     .iter()
-                    .map(|c| c.clone() as char)
+                    .map(|c| *c as char)
                     .collect();
                 for supernet in supernets.iter() {
                     if supernet.contains(&aba) {
@@ -109,28 +108,16 @@ impl IPv7 {
             }
             last3 = [last3[1], last3[2], chr];
             if last3[0] == last3[2] && last3[0] != last3[1] {
-                babs.push(last3.iter().map(|c| c.clone()).collect())
+                babs.push(last3.iter().copied().collect())
             }
         }
         babs
     }
 }
 
-fn load_ipaddrs(filename: &'static str) -> Vec<IPv7> {
-    let mut ipaddrs = Vec::new();
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    for line in reader.lines() {
-        match line {
-            Ok(text) => ipaddrs.push(IPv7::new(text)),
-            Err(_) => (),
-        }
-    }
-    ipaddrs
-}
-
 fn main() {
-    let ipaddrs = load_ipaddrs("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let ipaddrs: Vec<IPv7> = lines.iter().map(|l| IPv7::new(l.to_string())).collect();
     let num_tls = ipaddrs.iter().filter(|a| a.supports_tls()).count();
     let num_ssl = ipaddrs.iter().filter(|a| a.supports_ssl()).count();
     println!(

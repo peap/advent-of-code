@@ -1,5 +1,3 @@
-extern crate crypto;
-
 use std::collections::HashSet;
 
 use crypto::digest::Digest;
@@ -41,16 +39,13 @@ fn get_password_2(id: &str, length: usize) -> String {
             let hashed_str = hasher.result_str();
             let mut hex_chars = hashed_str.chars(); // .nth() requires mut
             let index = hex_chars.nth(5).unwrap().to_string().parse::<usize>();
-            match index {
-                Ok(idx) => {
-                    if idx < length && !indices.contains(&idx) {
-                        // first 6 chars already consumed
-                        let chr = hex_chars.nth(0).unwrap();
-                        password_chars[idx] = chr;
-                        indices.insert(idx);
-                    }
+            if let Ok(idx) = index {
+                if idx < length && !indices.contains(&idx) {
+                    // first 6 chars already consumed
+                    let chr = hex_chars.next().unwrap();
+                    password_chars[idx] = chr;
+                    indices.insert(idx);
                 }
-                _ => (),
             }
             if indices.len() == length {
                 break;

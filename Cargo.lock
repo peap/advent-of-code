@@ -378,19 +378,29 @@ version = "0.1.0"
 [[package]]
 name = "year-2016-day-01"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-02"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-03"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-04"
 version = "0.1.0"
 dependencies = [
+ "common",
  "regex",
 ]
 
@@ -404,15 +414,22 @@ dependencies = [
 [[package]]
 name = "year-2016-day-06"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-07"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-08"
 version = "0.1.0"
 dependencies = [
+ "common",
  "regex",
 ]
 

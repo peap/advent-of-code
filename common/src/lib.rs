@@ -10,6 +10,10 @@ impl InputReader {
         InputReader { path }
     }
 
+    // =============================
+    // One-to-one line parsing
+    // =============================
+
     pub fn string_lines(&self) -> Vec<String> {
         let file = File::open(&self.path).unwrap();
         let reader = BufReader::new(file);
@@ -23,12 +27,23 @@ impl InputReader {
             .collect()
     }
 
+    // =============================
+    // Expanding a single line
+    // =============================
+
     pub fn u8_line(&self) -> Vec<u8> {
         self.string_lines()[0]
             .trim()
             .chars()
             .map(|c| c.to_digit(10).unwrap() as u8)
             .collect()
+    }
+
+    pub fn csv_line(&self) -> Vec<String> {
+        self.string_lines()[0]
+            .trim()
+            .split(',')
+            .map(|x| x.trim().to_string()).collect()
     }
 }
 

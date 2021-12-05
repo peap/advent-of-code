@@ -1,9 +1,6 @@
-extern crate regex;
-
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-
 use regex::Regex;
+
+use common::InputReader;
 
 enum Instruction {
     Rect(usize, usize),
@@ -12,28 +9,28 @@ enum Instruction {
 }
 
 impl Instruction {
-    fn from_line(text: String) -> Instruction {
+    fn from_line(line: &str) -> Instruction {
         use Instruction::*;
         let rect_re = Regex::new(r"^rect ([0-9]+)x([0-9]+)$").unwrap();
         let rrow_re = Regex::new(r"^rotate row y=([0-9]+) by ([0-9]+)$").unwrap();
         let rcol_re = Regex::new(r"^rotate column x=([0-9]+) by ([0-9]+)$").unwrap();
-        if rect_re.is_match(&text) {
-            let caps = rect_re.captures(&text).unwrap();
+        if rect_re.is_match(line) {
+            let caps = rect_re.captures(line).unwrap();
             let x = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
             let y = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
             Rect(x, y)
-        } else if rrow_re.is_match(&text) {
-            let caps = rrow_re.captures(&text).unwrap();
+        } else if rrow_re.is_match(line) {
+            let caps = rrow_re.captures(line).unwrap();
             let y = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
             let amount = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
             RotateRow(y, amount)
-        } else if rcol_re.is_match(&text) {
-            let caps = rcol_re.captures(&text).unwrap();
+        } else if rcol_re.is_match(line) {
+            let caps = rcol_re.captures(line).unwrap();
             let x = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
             let amount = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
             RotateCol(x, amount)
         } else {
-            panic!("Could not understand instruction: {}", &text)
+            panic!("Could not understand instruction: {}", line)
         }
     }
 }
@@ -48,20 +45,16 @@ impl Display {
     fn new(width: usize, height: usize) -> Display {
         let mut pixels = Vec::new();
         for _ in 0..height {
-            let mut row = Vec::with_capacity(width);
-            for _ in 0..width {
-                row.push(false);
-            }
-            pixels.push(row);
+            pixels.push(vec![false; width]);
         }
         Display {
-            width: width,
-            height: height,
-            pixels: pixels,
+            width,
+            height,
+            pixels,
         }
     }
 
-    fn process(&mut self, instructions: &Vec<Instruction>) {
+    fn process(&mut self, instructions: &[Instruction]) {
         use Instruction::*;
         for instruction in instructions {
             match *instruction {
@@ -81,11 +74,8 @@ impl Display {
     }
 
     fn rotate_row(&mut self, y: usize, amount: usize) {
-        let mut new_row: Vec<bool> = Vec::with_capacity(self.width);
-        for _ in 0..self.width {
-            new_row.push(false);
-        }
-        let ref mut row = self.pixels[y];
+        let mut new_row = vec![false; self.width];
+        let row = &mut self.pixels[y];
         for (ix, pixel) in row.iter().enumerate() {
             let new_ix = (ix + amount) % self.width;
             new_row[new_ix] = *pixel;
@@ -96,10 +86,7 @@ impl Display {
     }
 
     fn rotate_col(&mut self, x: usize, amount: usize) {
-        let mut new_col: Vec<bool> = Vec::with_capacity(self.height);
-        for _ in 0..self.height {
-            new_col.push(false);
-        }
+        let mut new_col = vec![false; self.height];
         for (iy, row) in self.pixels.iter().enumerate() {
             let new_iy = (iy + amount) % self.height;
             new_col[new_iy] = row[x];
@@ -125,7 +112,7 @@ impl Display {
         for _ in 0..(self.width + 2) {
             print!("-");
         }
-        print!("\n");
+        println!();
         for row in self.pixels.iter() {
             print!("|");
             for pixel in row {
@@ -135,30 +122,18 @@ impl Display {
                     print!(" ");
                 }
             }
-            print!("|\n");
+            println!("|");
         }
         for _ in 0..(self.width + 2) {
             print!("-");
         }
-        print!("\n");
+        println!();
     }
-}
-
-fn load_instructions(filename: &'static str) -> Vec<Instruction> {
-    let mut instructions = Vec::new();
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    for line in reader.lines() {
-        match line {
-            Ok(text) => instructions.push(Instruction::from_line(text)),
-            Err(e) => panic!("Couldn't read a line from {}: {}", filename, e),
-        }
-    }
-    instructions
 }
 
 fn main() {
-    let instructions = load_instructions("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
     let mut display = Display::new(50, 6);
     display.process(&instructions);
     println!("Part 1: The display has {} lights on.", display.num_on());
@@ -168,7 +143,8 @@ fn main() {
 
 #[test]
 fn test_part_1() {
-    let instructions = load_instructions("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
     let mut display = Display::new(50, 6);
     display.process(&instructions);
     assert_eq!(display.num_on(), 123);

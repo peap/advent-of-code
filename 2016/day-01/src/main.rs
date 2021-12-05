@@ -1,8 +1,7 @@
 use std::collections::HashSet;
 use std::fmt;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
+
+use common::InputReader;
 
 #[derive(Debug)]
 enum Heading {
@@ -101,19 +100,8 @@ impl fmt::Display for Walker {
     }
 }
 
-fn parse_instructions(filename: &'static str) -> Vec<String> {
-    let file = File::open(filename).unwrap();
-    let mut reader = BufReader::new(file);
-    let mut line = String::new();
-    reader.read_line(&mut line).unwrap();
-    let instructions: Vec<String> = line.split(",").map(|x| x.to_string()).collect();
-    let num = instructions.len();
-    println!("Read {} instructions from input.txt", num);
-    instructions
-}
-
 fn main() {
-    let instructions = parse_instructions("input.txt");
+    let instructions = InputReader::new("input.txt").csv_line();
     let mut walker = Walker::new();
     walker.follow(instructions);
     println!("{} is {} blocks from the start", walker, &walker.distance());
@@ -128,29 +116,34 @@ fn main() {
     }
 }
 
-#[test]
-fn easy_walk() {
-    let mut walker = Walker::new();
-    let instructions: Vec<String> = ["R1"].iter().map(|x| x.to_string()).collect();
-    walker.follow(instructions);
-    assert_eq!(walker.distance(), 1);
-    assert_eq!((walker.x, walker.y), (0, -1));
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-fn less_easy_walk() {
-    let mut walker = Walker::new();
-    let instructions: Vec<String> = ["R1", "R10"].iter().map(|x| x.to_string()).collect();
-    walker.follow(instructions);
-    assert_eq!(walker.distance(), 11);
-    assert_eq!((walker.x, walker.y), (-10, -1));
-}
+    #[test]
+    fn easy_walk() {
+        let mut walker = Walker::new();
+        let instructions: Vec<String> = vec!["R1".to_string()];
+        walker.follow(instructions);
+        assert_eq!(walker.distance(), 1);
+        assert_eq!((walker.x, walker.y), (0, -1));
+    }
 
-#[test]
-fn longer_walker() {
-    let mut walker = Walker::new();
-    let instructions: Vec<String> = ["R1", "R10", "L50"].iter().map(|x| x.to_string()).collect();
-    walker.follow(instructions);
-    assert_eq!(walker.distance(), 61);
-    assert_eq!((walker.x, walker.y), (-10, -51));
+    #[test]
+    fn less_easy_walk() {
+        let mut walker = Walker::new();
+        let instructions: Vec<String> = vec!["R1".to_string(), "R10".to_string()];
+        walker.follow(instructions);
+        assert_eq!(walker.distance(), 11);
+        assert_eq!((walker.x, walker.y), (-10, -1));
+    }
+
+    #[test]
+    fn longer_walker() {
+        let mut walker = Walker::new();
+        let instructions: Vec<String> = vec!["R1".to_string(), "R10".to_string(), "L50".to_string()];
+        walker.follow(instructions);
+        assert_eq!(walker.distance(), 61);
+        assert_eq!((walker.x, walker.y), (-10, -51));
+    }
 }

@@ -1,5 +1,4 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use common::InputReader;
 
 struct Triangle {
     a: i32,
@@ -16,9 +15,9 @@ impl Triangle {
         }
     }
 
-    fn from_line(line: String) -> Triangle {
+    fn from_str(line: &str) -> Triangle {
         let (a, b, c) = parse_line(line);
-        Triangle { a: a, b: b, c: c }
+        Triangle { a, b, c }
     }
 
     fn is_valid(&self) -> bool {
@@ -26,44 +25,24 @@ impl Triangle {
     }
 }
 
-fn parse_line(line: String) -> (i32, i32, i32) {
+fn parse_line(line: &str) -> (i32, i32, i32) {
     let a = line[..5].trim().parse::<i32>().unwrap();
     let b = line[5..10].trim().parse::<i32>().unwrap();
     let c = line[10..].trim().parse::<i32>().unwrap();
     (a, b, c)
 }
 
-fn load_triangles_1(filename: &'static str) -> Vec<Triangle> {
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    let mut triangles = Vec::new();
-    for line in reader.lines() {
-        match line {
-            Ok(text) => triangles.push(Triangle::from_line(text)),
-            _ => (),
-        }
-    }
-    triangles
-}
-
-fn load_triangles_2(filename: &'static str) -> Vec<Triangle> {
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
+fn load_triangles_2(lines: Vec<String>) -> Vec<Triangle> {
     let mut triangles = Vec::new();
     let mut idx = 0;
     let mut t1 = [0; 3];
     let mut t2 = [0; 3];
     let mut t3 = [0; 3];
-    for line in reader.lines() {
-        match line {
-            Ok(text) => {
-                let (a, b, c) = parse_line(text);
-                t1[idx] = a;
-                t2[idx] = b;
-                t3[idx] = c;
-            }
-            _ => (),
-        }
+    for line in lines.iter() {
+        let (a, b, c) = parse_line(line);
+        t1[idx] = a;
+        t2[idx] = b;
+        t3[idx] = c;
         idx += 1;
         if idx == 3 {
             triangles.push(Triangle::from_array(t1));
@@ -75,21 +54,22 @@ fn load_triangles_2(filename: &'static str) -> Vec<Triangle> {
     triangles
 }
 
-fn count_valid(triangles: &Vec<Triangle>) -> i32 {
+fn count_valid(triangles: &[Triangle]) -> i32 {
     triangles
         .iter()
         .fold(0, |count, t| if t.is_valid() { count + 1 } else { count })
 }
 
 fn main() {
-    let triangles1 = load_triangles_1("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let triangles1: Vec<Triangle> = lines.iter().map(|l| Triangle::from_str(l)).collect();
     let num1 = count_valid(&triangles1);
     println!(
         "Part 1: {} triangles; {} are valid.",
         &triangles1.len(),
         num1
     );
-    let triangles2 = load_triangles_2("input.txt");
+    let triangles2 = load_triangles_2(lines);
     let num2 = count_valid(&triangles2);
     println!(
         "Part 2: {} triangles; {} are valid.",
