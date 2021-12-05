@@ -31,19 +31,19 @@ impl Floor {
         let mut generators = HashSet::new();
         let mut microchips = HashSet::new();
         for item in items.iter() {
-            match item {
-                &Generator(ref iso) => generators.insert(iso.clone()),
-                &Microchip(ref iso) => microchips.insert(iso.clone()),
+            match *item {
+                Generator(ref iso) => generators.insert(*iso),
+                Microchip(ref iso) => microchips.insert(*iso),
             };
         }
         Floor {
-            generators: generators,
-            microchips: microchips,
+            generators,
+            microchips,
         }
     }
 
     fn is_safe_for_microchips(&self) -> bool {
-        if self.generators.len() == 0 {
+        if self.generators.is_empty() {
             return true;
         }
         for isotope in self.microchips.iter() {
@@ -55,7 +55,7 @@ impl Floor {
     }
 
     fn is_empty(&self) -> bool {
-        self.generators.len() == 0 && self.microchips.len() == 0
+        self.generators.is_empty() && self.microchips.is_empty()
     }
 }
 
@@ -87,9 +87,9 @@ impl Hash for Building {
 
 impl fmt::Display for Building {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "+----------------------------+\n").unwrap();
-        write!(f, "| Fn  E  Pm  Pu  Ru  Sr  Tm  |\n").unwrap();
-        write!(f, "+----------------------------+\n").unwrap();
+        writeln!(f, "+----------------------------+").unwrap();
+        writeln!(f, "| Fn  E  Pm  Pu  Ru  Sr  Tm  |").unwrap();
+        writeln!(f, "+----------------------------+").unwrap();
         let mut reversed_floors = self.floors.clone();
         reversed_floors.reverse();
         for (i, floor) in reversed_floors.iter().enumerate() {
@@ -105,9 +105,9 @@ impl fmt::Display for Building {
             for _ in floor.microchips.iter() {
                 write!(f, "  .").unwrap();
             }
-            write!(f, "\n").unwrap();
+            writeln!(f).unwrap();
         }
-        write!(f, "+----------------------------+\n")
+        writeln!(f, "+----------------------------+")
     }
 }
 
@@ -119,8 +119,8 @@ impl Building {
             floors.push(Floor::new(floor_items));
         }
         Building {
-            floors: floors,
-            height: height,
+            floors,
+            height,
             elevator: 0,
             n_moves: 0,
         }
@@ -182,13 +182,13 @@ impl Building {
         // matters, not the particulars of which isotope is where. So, add them
         // to the building hash as pairs.
         let mut iso_pairs: Vec<Vec<usize>> = Vec::new();
-        for iso in vec![Pm, Pu, Ru, Sr, Tm, Elerium, Dilithium] {
-            let generator_floor = self.find_item(Generator(iso));
-            let microchip_floor = self.find_item(Microchip(iso));
+        for iso in &[Pm, Pu, Ru, Sr, Tm, Elerium, Dilithium] {
+            let generator_floor = self.find_item(Generator(*iso));
+            let microchip_floor = self.find_item(Microchip(*iso));
             if generator_floor.is_some() && microchip_floor.is_some() {
                 let mut pair_floors: Vec<usize> =
                     vec![generator_floor.unwrap(), microchip_floor.unwrap()];
-                pair_floors.sort();
+                pair_floors.sort_unstable();
                 iso_pairs.push(pair_floors);
             }
         }
@@ -200,8 +200,8 @@ impl Building {
         let mut new = self.clone();
         new.n_moves += 1;
         new.elevator = to;
-        match item1 {
-            Some(item) => match item {
+        if let Some(item) = item1 {
+            match item {
                 Item::Generator(iso) => {
                     new.floors[self.elevator].generators.remove(&iso);
                     new.floors[to].generators.insert(iso);
@@ -210,11 +210,10 @@ impl Building {
                     new.floors[self.elevator].microchips.remove(&iso);
                     new.floors[to].microchips.insert(iso);
                 }
-            },
-            None => (),
+            }
         }
-        match item2 {
-            Some(item) => match item {
+        if let Some(item) = item2 {
+            match item {
                 Item::Generator(iso) => {
                     new.floors[self.elevator].generators.remove(&iso);
                     new.floors[to].generators.insert(iso);
@@ -223,8 +222,7 @@ impl Building {
                     new.floors[self.elevator].microchips.remove(&iso);
                     new.floors[to].microchips.insert(iso);
                 }
-            },
-            None => (),
+            }
         }
         new
     }
@@ -235,7 +233,7 @@ impl Building {
         if self.has_everything_on_top_floor() {
             return states;
         }
-        let ref curr_floor = self.floors[self.elevator];
+        let curr_floor = &self.floors[self.elevator];
         let mut possible_floors: Vec<usize> = Vec::new();
         if self.elevator_can_go_up() {
             possible_floors.push(self.elevator + 1);
@@ -255,21 +253,21 @@ impl Building {
             let gens: Vec<_> = curr_floor.generators.clone().into_iter().collect();
             let chps: Vec<_> = curr_floor.microchips.clone().into_iter().collect();
             for (i, iso) in gens.iter().enumerate() {
-                let item = Some(Generator(iso.clone()));
+                let item = Some(Generator(*iso));
                 add_state(item, None);
-                if chps.contains(&iso) {
-                    add_state(item, Some(Microchip(iso.clone())));
+                if chps.contains(iso) {
+                    add_state(item, Some(Microchip(*iso)));
                 }
-                for j in (i + 1)..gens.len() {
-                    let item2 = Some(Generator(gens[j].clone()));
+                for gen in gens.iter().skip(i + 1) {
+                    let item2 = Some(Generator(*gen));
                     add_state(item, item2);
                 }
             }
             for (i, iso) in chps.iter().enumerate() {
-                let item = Some(Microchip(iso.clone()));
+                let item = Some(Microchip(*iso));
                 add_state(item, None);
-                for j in (i + 1)..chps.len() {
-                    let item2 = Some(Microchip(chps[j].clone()));
+                for chp in chps.iter().skip(i + 1) {
+                    let item2 = Some(Microchip(*chp));
                     add_state(item, item2);
                 }
             }
@@ -356,9 +354,8 @@ pub fn minimize_elevator_trips(building: Building) -> u32 {
         } else {
             let next_states = new_building.get_next_states();
             for bldg in next_states {
-                match unique_buildings.get(&bldg) {
-                    Some(_) => continue,
-                    None => (),
+                if unique_buildings.get(&bldg).is_some() {
+                    continue;
                 }
                 unique_buildings.insert(bldg.clone(), bldg.n_moves());
                 bq.push_back(bldg);

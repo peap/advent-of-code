@@ -457,6 +457,7 @@ version = "0.1.0"
 name = "year-2016-day-12"
 version = "0.1.0"
 dependencies = [
+ "common",
  "regex",
 ]
 

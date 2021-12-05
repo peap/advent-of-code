@@ -10,7 +10,7 @@ pub struct Point {
 
 impl Point {
     fn new(x: u8, y: u8) -> Point {
-        Point { x: x, y: y }
+        Point { x, y }
     }
 
     fn get_valid_neighbors(&self) -> Vec<Point> {

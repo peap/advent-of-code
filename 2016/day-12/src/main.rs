@@ -1,10 +1,8 @@
-extern crate regex;
-
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use regex::Regex;
+
+use common::InputReader;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Value {
@@ -13,7 +11,7 @@ enum Value {
 }
 
 impl Value {
-    fn from_text<'a>(text: &'a str) -> Value {
+    fn from_text(text: &str) -> Value {
         let int_re = Regex::new(r"^([0-9-]+)$").expect("Bad integer regex");
         let reg_re = Regex::new(r"^([a-z])$").expect("Bad register regex");
         if int_re.is_match(text) {
@@ -34,7 +32,7 @@ impl Value {
                 .expect("Matched reg_re, but no match group???")
                 .as_str()
                 .chars()
-                .nth(0)
+                .next()
                 .expect("Matched reg_re, but no first char???");
             Value::Register(reg)
         } else {
@@ -52,7 +50,7 @@ enum Instruction {
 }
 
 impl Instruction {
-    fn from_line<'a>(line: &'a str) -> Instruction {
+    fn from_line(line: &str) -> Instruction {
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -93,21 +91,20 @@ impl Computer {
     }
 
     fn get_register(&self, register: char) -> i32 {
-        self.registers.get(&register).unwrap_or(&0).clone()
+        *self.registers.get(&register).unwrap_or(&0)
     }
 
     fn copy(&mut self, from: Value, to: Value) {
         let int_value = match from {
-            Value::Integer(num) => num.clone(),
-            Value::Register(reg) => self
+            Value::Integer(num) => num,
+            Value::Register(reg) => *self
                 .registers
                 .get(&reg)
-                .expect("Attempted copy from uninitialized register!")
-                .clone(),
+                .expect("Attempted copy from uninitialized register!"),
         };
         let to_reg = match to {
             Value::Integer(_) => panic!("Attempted copy to non-register."),
-            Value::Register(reg) => reg.clone(),
+            Value::Register(reg) => reg,
         };
         self.registers.insert(to_reg, int_value);
     }
@@ -138,7 +135,7 @@ impl Computer {
         }
     }
 
-    fn process(&mut self, instructions: &Vec<Instruction>) {
+    fn process(&mut self, instructions: &[Instruction]) {
         let mut pos: i32 = 0;
         let max_pos: i32 = instructions.len() as i32 - 1;
         loop {
@@ -171,20 +168,9 @@ impl Computer {
     }
 }
 
-fn load_instructions<'a>(filename: &'a str) -> Vec<Instruction> {
-    let mut instructions = Vec::new();
-    let f = File::open(filename).expect("Couldn't open file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        if let Ok(text) = line {
-            instructions.push(Instruction::from_line(&text));
-        }
-    }
-    instructions
-}
-
 fn main() {
-    let instructions = load_instructions("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);

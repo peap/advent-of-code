@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate lazy_static;
+use lazy_static::lazy_static;
 
 #[derive(Clone)]
 pub struct Disc {
@@ -11,9 +10,9 @@ pub struct Disc {
 impl Disc {
     fn new(id: u32, n_pos: u32, start_pos: u32) -> Disc {
         Disc {
-            id: id,
-            n_pos: n_pos,
-            start_pos: start_pos,
+            id,
+            n_pos,
+            start_pos,
         }
     }
 
@@ -44,13 +43,11 @@ lazy_static! {
     };
 }
 
-fn capsule_reaches_bottom<'a>(discs: &'a Vec<Disc>, time: u32) -> bool {
-    discs
-        .iter()
-        .fold(true, |acc, disc| acc && disc.would_accept(time))
+fn capsule_reaches_bottom(discs: &[Disc], time: u32) -> bool {
+    discs.iter().all(|disc| disc.would_accept(time))
 }
 
-pub fn get_first_drop_window<'a>(discs: &'a Vec<Disc>) -> Option<u32> {
+pub fn get_first_drop_window(discs: &[Disc]) -> Option<u32> {
     (0..).find(|t| capsule_reaches_bottom(discs, *t))
 }
 

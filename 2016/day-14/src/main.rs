@@ -1,12 +1,10 @@
-extern crate crypto;
-
 use crypto::digest::Digest;
 use crypto::md5::Md5;
 
-pub const MY_SALT: &'static str = "ngcjuoqr";
+pub const MY_SALT: &str = "ngcjuoqr";
 const MAX_AGE: u64 = 1000;
 
-pub fn find_consecutive<'a>(n: u32, string: &'a str) -> Option<char> {
+pub fn find_consecutive(n: u32, string: &str) -> Option<char> {
     let mut last = 0 as char;
     let mut count: u32 = 0;
     for c in string.chars() {
@@ -20,7 +18,7 @@ pub fn find_consecutive<'a>(n: u32, string: &'a str) -> Option<char> {
     None
 }
 
-pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str, extra: u32) -> u64 {
+pub fn get_index_that_produces_n_keys(n: usize, salt: &str, extra: u32) -> u64 {
     let mut potentials_keys: Vec<(String, char, u64)> = Vec::new();
     let mut no_longer_potential: Vec<usize> = Vec::new();
     let mut keys: Vec<u64> = Vec::new();
@@ -45,7 +43,7 @@ pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str, extra: u32) -
                 if *char3 == char5 && age <= MAX_AGE {
                     no_longer_potential.push(j);
                     keys.push(*idx);
-                    keys.sort();
+                    keys.sort_unstable();
                 }
                 if age > MAX_AGE {
                     // this match is too old now
@@ -64,7 +62,7 @@ pub fn get_index_that_produces_n_keys<'a>(n: usize, salt: &'a str, extra: u32) -
             // sort the indices that we need to remove from potentials_keys so
             // that we process them in order and can safely subtract off the
             // number of keys we've taken out so far (k)
-            no_longer_potential.sort();
+            no_longer_potential.sort_unstable();
             for (k, idx) in no_longer_potential.iter().enumerate() {
                 potentials_keys.remove(*idx - k);
             }
