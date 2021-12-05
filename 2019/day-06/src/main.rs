@@ -21,7 +21,7 @@ impl System {
     fn from_lines(lines: Vec<String>) -> System {
         let mut system = System::new();
         for line in lines.iter() {
-            let names: Vec<&str> = line.split(")").collect();
+            let names: Vec<&str> = line.split(')').collect();
             if names.len() != 2 {
                 panic!("Got the wrong number of bodies: {:?}", names);
             }
@@ -34,18 +34,15 @@ impl System {
 
     fn add_body(&mut self, name: String) -> usize {
         let bodies = &mut self.bodies;
-        self.map
-            .entry(name.clone())
-            .or_insert_with(|| {
-                let next_idx = bodies.len();
-                bodies.push(Body { focus: None });
-                next_idx
-            })
-            .clone()
+        *self.map.entry(name).or_insert_with(|| {
+            let next_idx = bodies.len();
+            bodies.push(Body { focus: None });
+            next_idx
+        })
     }
 
     fn set_focus(&mut self, body_idx: usize, focus_idx: usize) {
-        self.bodies[body_idx].focus = Some(focus_idx.clone());
+        self.bodies[body_idx].focus = Some(focus_idx);
     }
 
     fn count_orbits(&self, body_idx: usize) -> i32 {
@@ -65,13 +62,9 @@ impl System {
     fn build_path(&self, idx: usize) -> Vec<usize> {
         let mut path = vec![idx];
         let mut current = idx;
-        loop {
-            if let Some(focus_idx) = self.bodies[current].focus {
-                path.push(focus_idx);
-                current = focus_idx;
-            } else {
-                break;
-            }
+        while let Some(focus_idx) = self.bodies[current].focus {
+            path.push(focus_idx);
+            current = focus_idx;
         }
         path
     }

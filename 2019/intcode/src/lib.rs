@@ -9,21 +9,22 @@ pub type Val = i64;
 
 #[derive(Debug, Eq, FromPrimitive, PartialEq)]
 enum Instruction {
-    ADD = 1,
-    MUL = 2,
-    INPUT = 3,
-    OUTPUT = 4,
-    JUMPT = 5,
-    JUMPF = 6,
+    Add = 1,
+    Mul = 2,
+    Input = 3,
+    Output = 4,
+    JumpT = 5,
+    JumpF = 6,
     LT = 7,
     EQ = 8,
-    RBOFFSET = 9,
-    END = 99,
+    RbOffset = 9,
+    End = 99,
 }
 
 impl From<Val> for Instruction {
     fn from(value: Val) -> Instruction {
-        num::FromPrimitive::from_i64(value).expect(&format!("Unknown Instruction {}", value))
+        num::FromPrimitive::from_i64(value)
+            .unwrap_or_else(|| panic!("Unknown Instruction {}", value))
     }
 }
 
@@ -31,16 +32,16 @@ impl Instruction {
     fn num_params(&self) -> usize {
         use Instruction::*;
         match self {
-            ADD => 3,
-            MUL => 3,
-            INPUT => 1,
-            OUTPUT => 1,
-            JUMPT => 2,
-            JUMPF => 2,
+            Add => 3,
+            Mul => 3,
+            Input => 1,
+            Output => 1,
+            JumpT => 2,
+            JumpF => 2,
             LT => 3,
             EQ => 3,
-            RBOFFSET => 1,
-            END => 0,
+            RbOffset => 1,
+            End => 0,
         }
     }
 }
@@ -54,7 +55,7 @@ enum ParamMode {
 
 impl From<Val> for ParamMode {
     fn from(value: Val) -> ParamMode {
-        num::FromPrimitive::from_i64(value).expect(&format!("Unknown ParamMode {}", value))
+        num::FromPrimitive::from_i64(value).unwrap_or_else(|| panic!("Unknown ParamMode {}", value))
     }
 }
 
@@ -64,7 +65,7 @@ impl ParamMode {
         (0..num)
             .map(|_| {
                 let mode = ParamMode::from(remainder % 10);
-                remainder = remainder / 10;
+                remainder /= 10;
                 mode
             })
             .collect()
@@ -88,8 +89,8 @@ impl From<Val> for Opcode {
         let param_modes = ParamMode::get_modes(code, num_params);
         Opcode {
             instruction: instr,
-            num_params: num_params,
-            param_modes: param_modes,
+            num_params,
+            param_modes,
             input: None,
             consumed_input: false,
             needs_input: false,
@@ -140,9 +141,9 @@ impl Opcode {
         let mut new_rb = *rb;
         let mut output = None;
         match self.instruction {
-            ADD => program[k] = params[0] + params[1],
-            MUL => program[k] = params[0] * params[1],
-            INPUT => {
+            Add => program[k] = params[0] + params[1],
+            Mul => program[k] = params[0] * params[1],
+            Input => {
                 self.needs_input = true;
                 if let Some(input) = self.input {
                     program[idxs[0].unwrap()] = input;
@@ -150,15 +151,15 @@ impl Opcode {
                     self.needs_input = false;
                 }
             }
-            OUTPUT => {
+            Output => {
                 output = Some(params[0]);
             }
-            JUMPT => {
+            JumpT => {
                 if params[0] != 0 {
                     new_pos = params[1] as usize;
                 }
             }
-            JUMPF => {
+            JumpF => {
                 if params[0] == 0 {
                     new_pos = params[1] as usize;
                 }
@@ -177,16 +178,16 @@ impl Opcode {
                     program[k] = 0;
                 }
             }
-            RBOFFSET => {
+            RbOffset => {
                 new_rb += params[0];
             }
-            END => {}
+            End => {}
         };
         (new_pos, new_rb, output)
     }
 
     fn end(&self) -> bool {
-        self.instruction == Instruction::END
+        self.instruction == Instruction::End
     }
 
     fn set_possible_input(&mut self, input: Val) {
@@ -209,7 +210,7 @@ pub struct Computer {
 impl Computer {
     pub fn new(program: Program) -> Computer {
         Computer {
-            program: program,
+            program,
             pos: 0,
             relative_base: 0,
             inputs: vec![],
@@ -251,7 +252,7 @@ impl Computer {
                 self.finished = true;
                 break;
             }
-            if self.inputs.len() > 0 {
+            if !self.inputs.is_empty() {
                 opcode.set_possible_input(self.inputs[0]);
             }
             let (new_pos, new_rb, output) =

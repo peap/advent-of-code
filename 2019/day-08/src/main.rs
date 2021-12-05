@@ -6,16 +6,17 @@ struct Layer {
 }
 
 impl Layer {
-    fn new(width: usize, height: usize, nums: &Vec<u8>) -> Layer {
+    fn new(width: usize, height: usize, nums: &[u8]) -> Layer {
         let mut pixels = vec![vec![0; width]; height];
         let mut i = 0;
+        #[allow(clippy::needless_range_loop)]
         for y in 0..height {
             for x in 0..width {
                 pixels[y][x] = nums[i];
                 i += 1;
             }
         }
-        Layer { pixels: pixels }
+        Layer { pixels }
     }
 
     fn count_pixels(&self, value: u8) -> u32 {
@@ -34,7 +35,7 @@ struct Image {
 }
 
 impl Image {
-    fn new(width: usize, height: usize, nums: &Vec<u8>) -> Image {
+    fn new(width: usize, height: usize, nums: &[u8]) -> Image {
         let num_pixels = width * height;
         let (mut start, mut end) = (0, num_pixels);
         let mut layers = vec![];
@@ -44,9 +45,9 @@ impl Image {
             end += num_pixels;
         }
         Image {
-            width: width,
-            height: height,
-            layers: layers,
+            width,
+            height,
+            layers,
         }
     }
 
@@ -121,7 +122,7 @@ fn main() {
             };
             print!("{}", pixel);
         }
-        println!("");
+        println!();
     }
     println!("--> CJZHR");
 }

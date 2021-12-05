@@ -4,14 +4,14 @@ fn part1() -> Val {
     let mut comp = Computer::from_file("input.txt");
     comp.set_input(1);
     comp.execute();
-    comp.final_output().unwrap().clone()
+    *comp.final_output().unwrap()
 }
 
 fn part2() -> Val {
     let mut comp = Computer::from_file("input.txt");
     comp.set_input(2);
     comp.execute();
-    comp.final_output().unwrap().clone()
+    *comp.final_output().unwrap()
 }
 
 fn main() {

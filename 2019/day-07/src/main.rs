@@ -31,7 +31,7 @@ fn maximize_amplifiers(comp: Computer, settings: Vec<PhaseSettings>) -> Val {
             new_comp.set_input(amp_phase);
             new_comp.set_input(last_amp_output);
             new_comp.execute();
-            last_amp_output = new_comp.final_output().unwrap().clone();
+            last_amp_output = *new_comp.final_output().unwrap();
             last_amp_finished = new_comp.is_finished();
             computers.push(new_comp);
         }
@@ -39,7 +39,7 @@ fn maximize_amplifiers(comp: Computer, settings: Vec<PhaseSettings>) -> Val {
             for comp in computers.iter_mut() {
                 comp.set_input(last_amp_output);
                 comp.execute();
-                last_amp_output = comp.final_output().unwrap().clone();
+                last_amp_output = *comp.final_output().unwrap();
                 last_amp_finished = comp.is_finished();
             }
         }

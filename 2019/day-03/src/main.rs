@@ -43,7 +43,7 @@ struct Point {
 
 impl Point {
     fn new(x: i32, y: i32) -> Point {
-        Point { x: x, y: y }
+        Point { x, y }
     }
 
     fn taxicab(&self) -> i32 {
@@ -59,7 +59,7 @@ struct Span {
 
 impl Span {
     fn new(a: Point, b: Point) -> Span {
-        Span { a: a, b: b }
+        Span { a, b }
     }
 
     fn contains_x(&self, x: i32) -> bool {
@@ -89,10 +89,8 @@ impl Span {
             if self.contains_x(other.a.x) && other.contains_y(self.a.y) {
                 return Some(Point::new(other.a.x, self.a.y));
             }
-        } else {
-            if self.contains_y(other.a.y) && other.contains_x(self.a.x) {
-                return Some(Point::new(self.a.x, other.a.y));
-            }
+        } else if self.contains_y(other.a.y) && other.contains_x(self.a.x) {
+            return Some(Point::new(self.a.x, other.a.y));
         }
         None
     }
@@ -120,8 +118,8 @@ struct Wire {
 
 impl Wire {
     fn new(s: &str) -> Wire {
-        let paths = s.split(",").map(|p| Path::new(p)).collect();
-        Wire { paths: paths }
+        let paths = s.split(',').map(|p| Path::new(p)).collect();
+        Wire { paths }
     }
 
     fn spans(&self) -> Vec<Span> {
@@ -150,10 +148,7 @@ struct Intersection {
 
 impl Intersection {
     fn new(point: Point, steps: i32) -> Intersection {
-        Intersection {
-            point: point,
-            steps: steps,
-        }
+        Intersection { point, steps }
     }
 
     fn taxicab(&self) -> i32 {

@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 const INPUT: RangeInclusive<i32> = 134564..=585159;
 
 fn is_valid(password: i32, exact_double: bool) -> bool {
-    let in_range = password >= 100000 && password <= 999999;
+    let in_range = (100000..=999999).contains(&password);
     let mut has_repeaters = false;
     let mut has_any_exact_double = false;
     let mut repeat_count = 1;
