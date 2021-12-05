@@ -1,23 +1,21 @@
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+
+use lazy_static::lazy_static;
+use regex::Regex;
+
+use common::InputReader;
 
 lazy_static! {
-    static ref BOT_REGEX: regex::Regex = {
-        regex::Regex::new(
+    static ref BOT_REGEX: Regex = {
+        Regex::new(
             "^bot ([0-9]+) gives low to (output|bot) ([0-9]+) \
                           and high to (output|bot) ([0-9]+)$",
         )
         .expect("Invalid bot regex.")
     };
-    static ref VALUE_REGEX: regex::Regex = {
-        regex::Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$").expect("Invalid value regex.")
-    };
+    static ref VALUE_REGEX: Regex =
+        { Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$").expect("Invalid value regex.") };
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -55,7 +53,7 @@ pub enum Recipient {
 }
 
 impl Recipient {
-    fn from_text<'a>(kind: &'a str, id: &'a str) -> Recipient {
+    fn from_text(kind: &str, id: &str) -> Recipient {
         let id: u32 = id
             .parse()
             .expect("Recipient IDs must be positive integers.");
@@ -75,8 +73,8 @@ pub struct Bot {
 }
 
 impl Bot {
-    fn from_text(text: String) -> Bot {
-        let caps = BOT_REGEX.captures(&text).expect("No bot regex captures.");
+    fn from_text(text: &str) -> Bot {
+        let caps = BOT_REGEX.captures(text).expect("No bot regex captures.");
         let bot_id: u32 = caps
             .get(1)
             .unwrap()
@@ -137,19 +135,16 @@ impl Bot {
     }
 }
 
-pub fn load_bots<'a>(filename: &'a str) -> HashMap<u32, Bot> {
+pub fn load_bots(lines: Vec<String>) -> HashMap<u32, Bot> {
     let mut bots = HashMap::new();
     let mut starting_values: Vec<String> = Vec::new(); // process after bots
-    let f = File::open(filename).expect("Could not find input file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        let text = line.expect("Error reading input file.");
-        if BOT_REGEX.is_match(&text) {
+    for text in lines.iter() {
+        if BOT_REGEX.is_match(text) {
             let bot = Bot::from_text(text);
             bots.insert(bot.id(), bot);
-        } else if VALUE_REGEX.is_match(&text) {
+        } else if VALUE_REGEX.is_match(text) {
             // file this away until the end, after we know about all the bots
-            starting_values.push(text)
+            starting_values.push(text.to_string())
         } else {
             println!("Unparsable text: {}", text);
         }
@@ -185,7 +180,7 @@ pub fn pass_chips_until<F>(bots: &mut HashMap<u32, Bot>, predicate: F) -> Option
 where
     F: Fn(&Bot) -> bool,
 {
-    let mut active_bot_ids = match get_active_bot_ids(&bots) {
+    let mut active_bot_ids = match get_active_bot_ids(bots) {
         Some(ids) => ids,
         None => panic!("Expected one bot to be active at the start!"),
     };
@@ -229,7 +224,7 @@ where
                 }
             };
         }
-        active_bot_ids = match get_active_bot_ids(&bots) {
+        active_bot_ids = match get_active_bot_ids(bots) {
             Some(ids) => ids,
             None => break,
         }
@@ -238,7 +233,8 @@ where
 }
 
 fn main() {
-    let mut bots = load_bots("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let mut bots = load_bots(lines);
     let part1_pred = |b: &Bot| b.chips[0] == Chip::Value(17) && b.chips[1] == Chip::Value(61);
     if let Some(part1_bot_id) = pass_chips_until(&mut bots, part1_pred) {
         println!("Part 1: Bot {} compares the 17 and 61 chips.", part1_bot_id);
@@ -255,7 +251,8 @@ mod tests {
 
     #[test]
     fn test_part_1_answer() {
-        let mut bots = load_bots("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let mut bots = load_bots(lines);
         let part1_pred = |b: &Bot| b.chips[0] == Chip::Value(17) && b.chips[1] == Chip::Value(61);
         let result = pass_chips_until(&mut bots, part1_pred);
         assert_eq!(result, Some(98));

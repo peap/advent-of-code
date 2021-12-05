@@ -444,6 +444,7 @@ dependencies = [
 name = "year-2016-day-10"
 version = "0.1.0"
 dependencies = [
+ "common",
  "lazy_static",
  "regex",
 ]
