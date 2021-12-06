@@ -1,11 +1,7 @@
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-
+use lazy_static::lazy_static;
 use regex::Regex;
+
+use common::InputReader;
 
 lazy_static! {
     static ref SWAP_POSITION_RE: Regex =
@@ -32,7 +28,7 @@ pub enum Operation {
 }
 
 impl Operation {
-    fn from_text<'a>(text: &'a str) -> Operation {
+    fn from_text(text: &str) -> Operation {
         use Operation::*;
         if SWAP_POSITION_RE.is_match(text) {
             let caps = SWAP_POSITION_RE.captures(text).unwrap();
@@ -160,20 +156,7 @@ impl Operation {
     }
 }
 
-pub fn load_operations<'a>(filename: &'a str) -> Vec<Operation> {
-    let mut ops = Vec::new();
-    let f = File::open(filename).expect("Could not open file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        match line {
-            Ok(text) => ops.push(Operation::from_text(&text)),
-            Err(e) => panic!("Error reading line: {}", e),
-        }
-    }
-    ops
-}
-
-pub fn scramble<'a>(operations: &'a Vec<Operation>, input: &'a str) -> String {
+pub fn scramble(operations: &[Operation], input: &str) -> String {
     let mut scrambled: Vec<char> = input.chars().collect();
     for op in operations {
         op.apply_to(&mut scrambled);
@@ -181,7 +164,7 @@ pub fn scramble<'a>(operations: &'a Vec<Operation>, input: &'a str) -> String {
     scrambled.into_iter().collect()
 }
 
-pub fn unscramble<'a>(operations: &'a Vec<Operation>, input: &'a str) -> String {
+pub fn unscramble(operations: &[Operation], input: &str) -> String {
     let mut unscrambled: Vec<char> = input.chars().collect();
     for op in operations.iter().rev() {
         op.unapply_to(&mut unscrambled);
@@ -190,7 +173,8 @@ pub fn unscramble<'a>(operations: &'a Vec<Operation>, input: &'a str) -> String 
 }
 
 fn main() {
-    let operations = load_operations("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let operations: Vec<Operation> = lines.iter().map(|l| Operation::from_text(l)).collect();
     let input = "abcdefgh";
     let scrambled = scramble(&operations, input);
     println!("Part 1: {} -> {}", input, scrambled);
@@ -244,7 +228,8 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let operations = load_operations("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let operations: Vec<Operation> = lines.iter().map(|l| Operation::from_text(l)).collect();
         let input = "abcdefgh";
         let scrambled = scramble(&operations, input);
         assert_eq!(scrambled, "ghfacdbe");
@@ -252,7 +237,8 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let operations = load_operations("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let operations: Vec<Operation> = lines.iter().map(|l| Operation::from_text(l)).collect();
         let input = "fbgdceah";
         let unscrambled = unscramble(&operations, input);
         assert_eq!(unscrambled, "fhgcdaeb")

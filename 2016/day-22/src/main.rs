@@ -1,14 +1,10 @@
-extern crate itertools;
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-
 use std::collections::VecDeque;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use itertools::Itertools;
+use lazy_static::lazy_static;
 use regex::Regex;
+
+use common::InputReader;
 
 lazy_static! {
     static ref LINE_RE: Regex =
@@ -29,15 +25,15 @@ pub struct Node {
 }
 
 impl Node {
-    fn from_line(text: String) -> Node {
-        let caps = LINE_RE.captures(&text).expect("No regex match.");
+    fn from_line(line: &str) -> Node {
+        let caps = LINE_RE.captures(line).expect("No regex match.");
         let x = caps.get(1).unwrap().as_str().parse().unwrap();
         let y = caps.get(2).unwrap().as_str().parse().unwrap();
         let position = (x, y);
         let used = caps.get(4).unwrap().as_str().parse().unwrap();
         let chunk = (position, used);
         Node {
-            position: position,
+            position,
             chunks: vec![chunk],
             size_tb: caps.get(3).unwrap().as_str().parse().unwrap(),
             used_tb: used,
@@ -84,28 +80,23 @@ pub struct Grid {
 }
 
 impl Grid {
-    fn load_from_file<'a>(filename: &'a str) -> Grid {
+    fn from_lines(lines: Vec<String>) -> Grid {
         let mut nodes = Vec::new();
-        let f = File::open(filename).expect("Could not open file.");
-        let reader = BufReader::new(f);
-        let mut lines = reader.lines();
+        let mut lines = lines.iter();
         lines.next(); // skip command prompt
         lines.next(); // skip header
         for line in lines {
-            match line {
-                Ok(text) => nodes.push(Node::from_line(text)),
-                Err(e) => panic!("Error reading line: {}", e),
-            }
+            nodes.push(Node::from_line(line));
         }
         nodes.sort_by(|a, b| a.position.cmp(&b.position));
-        Grid { nodes: nodes }
+        Grid { nodes }
     }
 
     fn print(&self) {
         for node in self.nodes.iter() {
             let (_, y) = node.position;
             if y == 0 {
-                print!("\n");
+                println!();
             }
             if node.used_tb > 100 {
                 print!("X");
@@ -117,7 +108,7 @@ impl Grid {
                 print!("o");
             }
         }
-        print!("\n");
+        println!();
     }
 
     fn count_viable_pairs(&self) -> u64 {
@@ -195,7 +186,8 @@ impl Grid {
 }
 
 fn main() {
-    let grid = Grid::load_from_file("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let grid = Grid::from_lines(lines);
     grid.print();
     println!(
         "Part 1: There are {} viable pairs.",
@@ -225,7 +217,8 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let grid = Grid::load_from_file("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let grid = Grid::from_lines(lines);
         let n_pairs = grid.count_viable_pairs();
         assert_eq!(n_pairs, 950);
     }
@@ -247,8 +240,10 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // Long time
     fn test_example() {
-        let grid = Grid::load_from_file("example.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let grid = Grid::from_lines(lines);
         let n_steps = grid.optimize_data_movement();
         assert_eq!(n_steps, Some(7));
     }

@@ -509,6 +509,7 @@ dependencies = [
 name = "year-2016-day-21"
 version = "0.1.0"
 dependencies = [
+ "common",
  "lazy_static",
  "regex",
 ]
@@ -517,6 +518,7 @@ dependencies = [
 name = "year-2016-day-22"
 version = "0.1.0"
 dependencies = [
+ "common",
  "itertools",
  "lazy_static",
  "regex",
