@@ -4,11 +4,13 @@ struct IPv7 {
     address: String,
 }
 
-impl IPv7 {
-    fn new(address: String) -> IPv7 {
+impl From<String> for IPv7 {
+    fn from(address: String) -> Self {
         IPv7 { address }
     }
+}
 
+impl IPv7 {
     fn supports_tls(&self) -> bool {
         // Would use the regex crate, but version 0.1 doesn't support back
         // references, and I think I need those: "([a-z])([a-z])\2\1". So,
@@ -116,8 +118,7 @@ impl IPv7 {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let ipaddrs: Vec<IPv7> = lines.iter().map(|l| IPv7::new(l.to_string())).collect();
+    let ipaddrs = InputReader::new("input.txt").converted_lines::<IPv7>();
     let num_tls = ipaddrs.iter().filter(|a| a.supports_tls()).count();
     let num_ssl = ipaddrs.iter().filter(|a| a.supports_ssl()).count();
     println!(

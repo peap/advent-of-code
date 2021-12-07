@@ -6,6 +6,13 @@ struct Triangle {
     c: i32,
 }
 
+impl From<String> for Triangle {
+    fn from(line: String) -> Self {
+        let (a, b, c) = parse_line(&line);
+        Triangle { a, b, c }
+    }
+}
+
 impl Triangle {
     fn from_array(sides: [i32; 3]) -> Triangle {
         Triangle {
@@ -13,11 +20,6 @@ impl Triangle {
             b: sides[1],
             c: sides[2],
         }
-    }
-
-    fn from_str(line: &str) -> Triangle {
-        let (a, b, c) = parse_line(line);
-        Triangle { a, b, c }
     }
 
     fn is_valid(&self) -> bool {
@@ -61,14 +63,14 @@ fn count_valid(triangles: &[Triangle]) -> i32 {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let triangles1: Vec<Triangle> = lines.iter().map(|l| Triangle::from_str(l)).collect();
+    let triangles1 = InputReader::new("input.txt").converted_lines();
     let num1 = count_valid(&triangles1);
     println!(
         "Part 1: {} triangles; {} are valid.",
         &triangles1.len(),
         num1
     );
+    let lines = InputReader::new("input.txt").string_lines();
     let triangles2 = load_triangles_2(lines);
     let num2 = count_valid(&triangles2);
     println!(

@@ -52,8 +52,9 @@ pub enum Instruction {
     Out(Value),
 }
 
-impl Instruction {
-    fn from_line(line: &str) -> Instruction {
+impl From<String> for Instruction {
+    fn from(string: String) -> Self {
+        let line = &string;
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -232,8 +233,7 @@ pub fn find_register_a_value(instructions: &[Instruction]) -> Option<i32> {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
+    let instructions = InputReader::new("input.txt").converted_lines();
     // Part 1
     if let Some(a_val) = find_register_a_value(&instructions) {
         println!("\nPart 1: The value for register 'a' is {}.", a_val);
@@ -248,9 +248,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let instructions: Vec<Instruction> =
-            lines.iter().map(|l| Instruction::from_line(l)).collect();
+        let instructions = InputReader::new("input.txt").converted_lines();
         let a_val = find_register_a_value(&instructions);
         assert_eq!(a_val, Some(175));
     }

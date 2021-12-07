@@ -27,6 +27,10 @@ impl InputReader {
             .collect()
     }
 
+    pub fn converted_lines<T: From<String>>(&self) -> Vec<T> {
+        self.string_lines().into_iter().map(T::from).collect()
+    }
+
     // =============================
     // Expanding a single line
     // =============================

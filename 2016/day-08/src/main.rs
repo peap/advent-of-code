@@ -8,12 +8,13 @@ enum Instruction {
     RotateCol(usize, usize),
 }
 
-impl Instruction {
-    fn from_line(line: &str) -> Instruction {
+impl From<String> for Instruction {
+    fn from(string: String) -> Self {
         use Instruction::*;
         let rect_re = Regex::new(r"^rect ([0-9]+)x([0-9]+)$").unwrap();
         let rrow_re = Regex::new(r"^rotate row y=([0-9]+) by ([0-9]+)$").unwrap();
         let rcol_re = Regex::new(r"^rotate column x=([0-9]+) by ([0-9]+)$").unwrap();
+        let line = &string;
         if rect_re.is_match(line) {
             let caps = rect_re.captures(line).unwrap();
             let x = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
@@ -132,8 +133,7 @@ impl Display {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
+    let instructions = InputReader::new("input.txt").converted_lines();
     let mut display = Display::new(50, 6);
     display.process(&instructions);
     println!("Part 1: The display has {} lights on.", display.num_on());
@@ -141,11 +141,15 @@ fn main() {
     display.print();
 }
 
-#[test]
-fn test_part_1() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
-    let mut display = Display::new(50, 6);
-    display.process(&instructions);
-    assert_eq!(display.num_on(), 123);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part_1() {
+        let instructions = InputReader::new("input.txt").converted_lines();
+        let mut display = Display::new(50, 6);
+        display.process(&instructions);
+        assert_eq!(display.num_on(), 123);
+    }
 }

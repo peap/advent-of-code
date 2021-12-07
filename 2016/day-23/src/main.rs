@@ -51,8 +51,9 @@ pub enum Instruction {
     Tgl(Value),
 }
 
-impl Instruction {
-    fn from_line(line: &str) -> Instruction {
+impl From<String> for Instruction {
+    fn from(string: String) -> Self {
+        let line = &string;
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -196,8 +197,7 @@ impl Computer {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
+    let instructions = InputReader::new("input.txt").converted_lines();
     // Part 1
     let mut computer = Computer::new();
     computer.copy(Value::Integer(7), Value::Register('a'));
@@ -240,9 +240,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let instructions: Vec<Instruction> =
-            lines.iter().map(|l| Instruction::from_line(l)).collect();
+        let instructions = InputReader::new("input.txt").converted_lines();
         let mut computer = Computer::new();
         computer.copy(Value::Integer(7), Value::Register('a'));
         computer.process(&instructions);
@@ -252,9 +250,7 @@ mod tests {
     #[test]
     #[ignore] // 2619s
     fn test_part_2() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let instructions: Vec<Instruction> =
-            lines.iter().map(|l| Instruction::from_line(l)).collect();
+        let instructions = InputReader::new("input.txt").converted_lines();
         let mut computer = Computer::new();
         computer.copy(Value::Integer(12), Value::Register('a'));
         computer.process(&instructions);

@@ -115,6 +115,12 @@ struct Wire {
     paths: Vec<Path>,
 }
 
+impl From<String> for Wire {
+    fn from(string: String) -> Self {
+        Wire::new(&string)
+    }
+}
+
 impl Wire {
     fn new(s: &str) -> Wire {
         let paths = s.split(',').map(|p| Path::new(p)).collect();
@@ -180,8 +186,7 @@ fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
 }
 
 fn setup() -> Vec<Intersection> {
-    let raw_strings = InputReader::new("input.txt").string_lines();
-    let wires: Vec<Wire> = raw_strings.iter().map(|s| Wire::new(s)).collect();
+    let wires = InputReader::new("input.txt").converted_lines();
     find_intersections(&wires[0], &wires[1])
 }
 

@@ -41,8 +41,9 @@ pub enum Instruction {
     Jio(Register, Offset),
 }
 
-impl Instruction {
-    fn from_line(line: &str) -> Instruction {
+impl From<String> for Instruction {
+    fn from(string: String) -> Self {
+        let line = &string;
         if HLF_RE.is_match(line) {
             let caps = HLF_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
@@ -143,8 +144,7 @@ impl Computer {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
+    let instructions = InputReader::new("input.txt").converted_lines();
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);
@@ -168,9 +168,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let instructions: Vec<Instruction> =
-            lines.iter().map(|l| Instruction::from_line(l)).collect();
+        let instructions = InputReader::new("input.txt").converted_lines();
         let mut computer = Computer::new();
         computer.process(&instructions);
         assert_eq!(computer.get_register('b'), 307);
@@ -178,9 +176,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let instructions: Vec<Instruction> =
-            lines.iter().map(|l| Instruction::from_line(l)).collect();
+        let instructions = InputReader::new("input.txt").converted_lines();
         let mut computer = Computer::new();
         computer.increment('a');
         computer.process(&instructions);

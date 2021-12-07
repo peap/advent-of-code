@@ -49,8 +49,9 @@ enum Instruction {
     Jnz(Value, Value),
 }
 
-impl Instruction {
-    fn from_line(line: &str) -> Instruction {
+impl From<String> for Instruction {
+    fn from(string: String) -> Self {
+        let line = &string;
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -169,8 +170,7 @@ impl Computer {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
+    let instructions = InputReader::new("input.txt").converted_lines();
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);

@@ -27,9 +27,10 @@ pub enum Operation {
     Move(usize, usize),
 }
 
-impl Operation {
-    fn from_text(text: &str) -> Operation {
+impl From<String> for Operation {
+    fn from(string: String) -> Self {
         use Operation::*;
+        let text = &string;
         if SWAP_POSITION_RE.is_match(text) {
             let caps = SWAP_POSITION_RE.captures(text).unwrap();
             let pos1: usize = caps.get(1).unwrap().as_str().parse().unwrap();
@@ -66,7 +67,9 @@ impl Operation {
             panic!("Unrecognized operation: {}", text);
         }
     }
+}
 
+impl Operation {
     fn apply_to(&self, chars: &mut Vec<char>) {
         use Operation::*;
         match *self {
@@ -173,8 +176,7 @@ pub fn unscramble(operations: &[Operation], input: &str) -> String {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
-    let operations: Vec<Operation> = lines.iter().map(|l| Operation::from_text(l)).collect();
+    let operations = InputReader::new("input.txt").converted_lines();
     let input = "abcdefgh";
     let scrambled = scramble(&operations, input);
     println!("Part 1: {} -> {}", input, scrambled);
@@ -228,8 +230,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let operations: Vec<Operation> = lines.iter().map(|l| Operation::from_text(l)).collect();
+        let operations = InputReader::new("input.txt").converted_lines();
         let input = "abcdefgh";
         let scrambled = scramble(&operations, input);
         assert_eq!(scrambled, "ghfacdbe");
@@ -237,8 +238,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let lines = InputReader::new("input.txt").string_lines();
-        let operations: Vec<Operation> = lines.iter().map(|l| Operation::from_text(l)).collect();
+        let operations = InputReader::new("input.txt").converted_lines();
         let input = "fbgdceah";
         let unscrambled = unscramble(&operations, input);
         assert_eq!(unscrambled, "fhgcdaeb")
