@@ -43,7 +43,7 @@ pub struct Combatant {
 }
 
 impl Combatant {
-    fn new_player<'a>(weapon: &'a Item, armor: &'a Item, rings: Vec<&'a Item>) -> Self {
+    fn new_player(weapon: &Item, armor: &Item, rings: Vec<&Item>) -> Self {
         let mut damage = weapon.1;
         let mut armor_pts = armor.2;
         let mut gold = 0;
@@ -56,17 +56,17 @@ impl Combatant {
         }
         Combatant {
             hp: 100,
-            damage: damage,
+            damage,
             armor: armor_pts,
-            gold: gold,
+            gold,
         }
     }
 
     fn new_boss(hp: i32, damage: i32, armor: i32) -> Self {
         Combatant {
-            hp: hp,
-            damage: damage,
-            armor: armor,
+            hp,
+            damage,
+            armor,
             gold: 0,
         }
     }

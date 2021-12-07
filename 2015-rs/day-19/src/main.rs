@@ -1,41 +1,32 @@
-extern crate regex;
-
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use regex::{Captures, Regex};
 
+use common::InputReader;
+
 type Replacements = HashMap<String, Vec<String>>;
 
-pub fn get_replacements_and_medicine<'a>(filename: &'a str) -> (Replacements, String) {
-    let f = File::open(filename).expect("Could not open file.");
-    let reader = BufReader::new(f);
+pub fn get_replacements_and_medicine(lines: Vec<String>) -> (Replacements, String) {
     let mut replacements: Replacements = HashMap::new();
     let mut medicine = String::new();
     let mut reading_replacements = true;
-    for line in reader.lines() {
-        match line {
-            Ok(text) => {
-                if reading_replacements {
-                    if text.trim() == "" {
-                        reading_replacements = false;
-                        continue;
-                    }
-                    let mut split = text.split(" => ");
-                    let from = split.next().expect("Expected a first part of the split.");
-                    let to = split.next().expect("Expected a second part of the split.");
-                    if replacements.contains_key(from) {
-                        let tovec = replacements.get_mut(from).unwrap();
-                        tovec.push(to.to_string());
-                    } else {
-                        replacements.insert(from.to_string(), vec![to.to_string()]);
-                    }
-                } else {
-                    medicine = text;
-                }
+    for line in lines.iter() {
+        if reading_replacements {
+            if line.trim() == "" {
+                reading_replacements = false;
+                continue;
             }
-            Err(e) => panic!("Error reading file: {}", e),
+            let mut split = line.split(" => ");
+            let from = split.next().expect("Expected a first part of the split.");
+            let to = split.next().expect("Expected a second part of the split.");
+            if replacements.contains_key(from) {
+                let tovec = replacements.get_mut(from).unwrap();
+                tovec.push(to.to_string());
+            } else {
+                replacements.insert(from.to_string(), vec![to.to_string()]);
+            }
+        } else {
+            medicine = line.to_string();
         }
     }
     (replacements, medicine)
@@ -70,7 +61,8 @@ pub fn find_min_steps_reverse(from: String, to: String, replacements: &Replaceme
 }
 
 fn main() {
-    let (replacements, medicine) = get_replacements_and_medicine("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let (replacements, medicine) = get_replacements_and_medicine(lines);
     let from = "e".to_string();
     let num_steps = find_min_steps_reverse(from, medicine, &replacements);
     println!(
@@ -85,7 +77,8 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let (replacements, medicine) = get_replacements_and_medicine("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let (replacements, medicine) = get_replacements_and_medicine(lines);
         let from = "e".to_string();
         let num_steps = find_min_steps_reverse(from, medicine, &replacements);
         assert_eq!(num_steps, 212);

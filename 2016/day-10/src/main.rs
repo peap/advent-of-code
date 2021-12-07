@@ -15,7 +15,7 @@ lazy_static! {
         .expect("Invalid bot regex.")
     };
     static ref VALUE_REGEX: Regex =
-        { Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$").expect("Invalid value regex.") };
+        Regex::new("^value ([0-9]+) goes to bot ([0-9]+)$").expect("Invalid value regex.");
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
