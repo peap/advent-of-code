@@ -31,29 +31,6 @@ name = "common"
 version = "0.1.0"
 
 [[package]]
-name = "day-05"
-version = "0.1.0"
-dependencies = [
- "common",
- "lazy_static",
- "regex",
-]
-
-[[package]]
-name = "day-06"
-version = "0.1.0"
-dependencies = [
- "common",
-]
-
-[[package]]
-name = "day-07"
-version = "0.1.0"
-dependencies = [
- "common",
-]
-
-[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -671,5 +648,28 @@ name = "year-2021-day-04"
 version = "0.1.0"
 dependencies = [
  "ansi_term",
+ "common",
+]
+
+[[package]]
+name = "year-2021-day-05"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "year-2021-day-06"
+version = "0.1.0"
+dependencies = [
+ "common",
+]
+
+[[package]]
+name = "year-2021-day-07"
+version = "0.1.0"
+dependencies = [
  "common",
 ]
