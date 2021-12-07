@@ -535,17 +535,22 @@ dependencies = [
 name = "year-2016-day-23"
 version = "0.1.0"
 dependencies = [
+ "common",
  "regex",
 ]
 
 [[package]]
 name = "year-2016-day-24"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-25"
 version = "0.1.0"
 dependencies = [
+ "common",
  "regex",
 ]
 

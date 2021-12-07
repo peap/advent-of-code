@@ -1,7 +1,7 @@
 use std::collections::{HashSet, VecDeque};
-use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::io::{BufRead, BufReader};
+
+use common::InputReader;
 
 const WATCH_QUEUE_SIZE: bool = false;
 
@@ -30,10 +30,7 @@ impl Item {
     }
 
     fn is_waypoint(&self) -> bool {
-        match self {
-            &Item::Waypoint(_) => true,
-            _ => false,
-        }
+        matches!(*self, Item::Waypoint(_))
     }
 }
 
@@ -45,17 +42,23 @@ pub struct Maze {
     max_y: usize,
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq)]
 struct RobotState {
     coords: Coordinate,
     visited: Vec<bool>,
     n_steps: u32,
 }
 
+impl PartialEq for RobotState {
+    fn eq(&self, other: &Self) -> bool {
+        self.coords == other.coords && self.visited == other.visited
+    }
+}
+
 impl Hash for RobotState {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.coords.hash(state);
-        self.visited.hash(state);
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        self.coords.hash(hasher);
+        self.visited.hash(hasher);
     }
 }
 
@@ -64,8 +67,8 @@ impl RobotState {
         let mut visited = vec![false; n_waypoints];
         visited[0] = true;
         RobotState {
-            coords: coords,
-            visited: visited,
+            coords,
+            visited,
             n_steps: 0,
         }
     }
@@ -77,10 +80,9 @@ impl RobotState {
     fn clone_and_move(&self, coords: Coordinate, item: Item) -> RobotState {
         let mut new_state = self.clone();
         new_state.coords = coords;
-        match item {
-            Item::Waypoint(n) => new_state.visited[n] = true,
-            _ => (),
-        };
+        if let Item::Waypoint(n) = item {
+            new_state.visited[n] = true;
+        }
         new_state.n_steps += 1;
         new_state
     }
@@ -94,20 +96,17 @@ impl Maze {
         let max_x = items[0].len() - 1;
         let max_y = items.len() - 1;
         Maze {
-            items: items,
+            items,
             n_waypoints: n,
-            max_x: max_x,
-            max_y: max_y,
+            max_x,
+            max_y,
         }
     }
 
-    fn from_file<'a>(filename: &'a str) -> Maze {
-        let f = File::open(filename).expect("Could not open file.");
-        let reader = BufReader::new(f);
+    fn from_lines(lines: Vec<String>) -> Maze {
         let mut items = Vec::new();
-        for line in reader.lines() {
-            let text = line.expect("Could not read line from file.");
-            let line_items = text.chars().map(|c| Item::from_char(c));
+        for line in lines.iter() {
+            let line_items = line.chars().map(Item::from_char);
             items.push(line_items.collect());
         }
         Maze::new(items)
@@ -163,20 +162,21 @@ impl Maze {
         seen.insert(start_state.clone());
         q.push_back(start_state);
         while !q.is_empty() {
-            if WATCH_QUEUE_SIZE {
-                if q.len() % 1000 < 5 {
-                    print!("\rQueue: {}", q.len());
-                }
+            if WATCH_QUEUE_SIZE && q.len() % 1000 < 5 {
+                print!("\rQueue: {}", q.len());
             }
             let state = q.pop_front().unwrap();
             if state.has_visited_all() {
-                if WATCH_QUEUE_SIZE {
-                    print!("\n");
-                }
                 if return_to_start && state.coords == start_coords {
+                    if WATCH_QUEUE_SIZE {
+                        println!();
+                    }
                     return Some(state.n_steps);
                 }
                 if !return_to_start {
+                    if WATCH_QUEUE_SIZE {
+                        println!();
+                    }
                     return Some(state.n_steps);
                 }
             }
@@ -194,7 +194,8 @@ impl Maze {
 }
 
 fn main() {
-    let maze = Maze::from_file("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let maze = Maze::from_lines(lines);
     if let Some(n_steps) = maze.minimize_steps(false) {
         println!("\nPart 1: takes {} steps to visit all waypoints", n_steps);
     } else {
@@ -220,23 +221,24 @@ mod tests {
 
     #[test]
     fn test_example() {
-        let maze = Maze::from_file("example.txt");
+        let lines = InputReader::new("example.txt").string_lines();
+        let maze = Maze::from_lines(lines);
         let n_steps = maze.minimize_steps(false);
         assert_eq!(n_steps, Some(14));
     }
 
     #[test]
-    #[ignore] // 6743s
     fn test_part_1() {
-        let maze = Maze::from_file("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let maze = Maze::from_lines(lines);
         let n_steps = maze.minimize_steps(false);
         assert_eq!(n_steps, Some(498));
     }
 
     #[test]
-    #[ignore] // 6743s
     fn test_part_2() {
-        let maze = Maze::from_file("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let maze = Maze::from_lines(lines);
         let n_steps = maze.minimize_steps(true);
         assert_eq!(n_steps, Some(804));
     }

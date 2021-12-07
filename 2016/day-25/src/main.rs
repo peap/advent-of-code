@@ -1,10 +1,9 @@
-extern crate regex;
-
+use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use regex::Regex;
+
+use common::InputReader;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Value {
@@ -13,7 +12,7 @@ pub enum Value {
 }
 
 impl Value {
-    fn from_text<'a>(text: &'a str) -> Value {
+    fn from_text(text: &str) -> Value {
         let int_re = Regex::new(r"^([0-9-]+)$").expect("Bad integer regex");
         let reg_re = Regex::new(r"^([a-z])$").expect("Bad register regex");
         if int_re.is_match(text) {
@@ -34,11 +33,11 @@ impl Value {
                 .expect("Matched reg_re, but no match group???")
                 .as_str()
                 .chars()
-                .nth(0)
+                .next()
                 .expect("Matched reg_re, but no first char???");
             Value::Register(reg)
         } else {
-            panic!("Got an unparseable Value: {}", text);
+            panic!("Got an unparseable Value: {}", text)
         }
     }
 }
@@ -54,7 +53,7 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    fn from_line<'a>(line: &'a str) -> Instruction {
+    fn from_line(line: &str) -> Instruction {
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -107,7 +106,7 @@ impl Computer {
         registers.insert('c', 0);
         registers.insert('d', 0);
         Computer {
-            registers: registers,
+            registers,
             last_output: 1,
             is_valid_signal_clock: true,
         }
@@ -121,7 +120,7 @@ impl Computer {
     }
 
     fn get_register(&self, register: char) -> i32 {
-        self.registers.get(&register).unwrap_or(&0).clone()
+        *self.registers.get(&register).unwrap_or(&0)
     }
 
     fn copy(&mut self, from: Value, to: Value) {
@@ -170,19 +169,15 @@ impl Computer {
 
     fn output(&mut self, value: Value) {
         let num = self.get_num(value);
-        if num == self.last_output {
+        if num == self.last_output || (num != 0 && num != 1) {
             self.is_valid_signal_clock = false;
-        } else {
-            if num != 0 && num != 1 {
-                self.is_valid_signal_clock = false;
-            }
         }
         self.last_output = num;
     }
 
-    fn process(&mut self, instructions: &Vec<Instruction>, max: u32) {
+    fn process(&mut self, instructions: &[Instruction], max: u32) {
         let mut count = 0;
-        let mut instructions = instructions.clone();
+        let mut instructions = instructions.to_owned();
         let mut pos: i32 = 0;
         let max_pos: i32 = instructions.len() as i32 - 1;
         loop {
@@ -201,10 +196,10 @@ impl Computer {
                     let tgl_pos = pos as usize + num as usize;
                     if tgl_pos <= max_pos as usize {
                         let old_instr = instructions.remove(tgl_pos);
-                        if tgl_pos < instructions.len() {
-                            instructions.insert(tgl_pos, self.toggle(&old_instr));
-                        } else if tgl_pos == instructions.len() {
-                            instructions.push(self.toggle(&old_instr));
+                        match tgl_pos.cmp(&instructions.len()) {
+                            Ordering::Less => instructions.insert(tgl_pos, self.toggle(&old_instr)),
+                            Ordering::Equal => instructions.push(self.toggle(&old_instr)),
+                            Ordering::Greater => (),
                         }
                     }
                 }
@@ -222,25 +217,13 @@ impl Computer {
     }
 }
 
-pub fn load_instructions<'a>(filename: &'a str) -> Vec<Instruction> {
-    let mut instructions = Vec::new();
-    let f = File::open(filename).expect("Couldn't open file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        if let Ok(text) = line {
-            instructions.push(Instruction::from_line(&text));
-        }
-    }
-    instructions
-}
-
-pub fn find_register_a_value(instructions: &Vec<Instruction>) -> Option<i32> {
+pub fn find_register_a_value(instructions: &[Instruction]) -> Option<i32> {
     let max_instructions: u32 = 1_000_000;
     for i in 0.. {
         print!("\ra: {}", i);
         let mut computer = Computer::new();
         computer.copy(Value::Integer(i), Value::Register('a'));
-        computer.process(&instructions, max_instructions);
+        computer.process(instructions, max_instructions);
         if computer.is_valid_signal_clock {
             return Some(i);
         }
@@ -249,7 +232,8 @@ pub fn find_register_a_value(instructions: &Vec<Instruction>) -> Option<i32> {
 }
 
 fn main() {
-    let instructions = load_instructions("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
     // Part 1
     if let Some(a_val) = find_register_a_value(&instructions) {
         println!("\nPart 1: The value for register 'a' is {}.", a_val);
@@ -264,7 +248,9 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let instructions = load_instructions("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let instructions: Vec<Instruction> =
+            lines.iter().map(|l| Instruction::from_line(l)).collect();
         let a_val = find_register_a_value(&instructions);
         assert_eq!(a_val, Some(175));
     }

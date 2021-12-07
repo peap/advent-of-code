@@ -13,7 +13,7 @@ fn simulate_lanternfish(fish: Vec<u8>, days: u64) -> u64 {
         let new_fish = fish_timers[0];
         for d in 0..ages {
             if d < ages - 1 {
-                fish_timers[d] = fish_timers[d+1]
+                fish_timers[d] = fish_timers[d + 1]
             } else {
                 fish_timers[d] = new_fish
             }
@@ -23,13 +23,13 @@ fn simulate_lanternfish(fish: Vec<u8>, days: u64) -> u64 {
     fish_timers.iter().sum()
 }
 
-fn part1() -> u64{
+fn part1() -> u64 {
     let num_strs = InputReader::new("input.txt").csv_line();
     let fish: Vec<u8> = num_strs.iter().map(|s| s.parse().unwrap()).collect();
     simulate_lanternfish(fish, 80)
 }
 
-fn part2() -> u64{
+fn part2() -> u64 {
     let num_strs = InputReader::new("input.txt").csv_line();
     let fish: Vec<u8> = num_strs.iter().map(|s| s.parse().unwrap()).collect();
     simulate_lanternfish(fish, 256)

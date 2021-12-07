@@ -1,10 +1,9 @@
-extern crate regex;
-
+use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use regex::Regex;
+
+use common::InputReader;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Value {
@@ -13,7 +12,7 @@ pub enum Value {
 }
 
 impl Value {
-    fn from_text<'a>(text: &'a str) -> Value {
+    fn from_text(text: &str) -> Value {
         let int_re = Regex::new(r"^([0-9-]+)$").expect("Bad integer regex");
         let reg_re = Regex::new(r"^([a-z])$").expect("Bad register regex");
         if int_re.is_match(text) {
@@ -34,11 +33,11 @@ impl Value {
                 .expect("Matched reg_re, but no match group???")
                 .as_str()
                 .chars()
-                .nth(0)
+                .next()
                 .expect("Matched reg_re, but no first char???");
             Value::Register(reg)
         } else {
-            panic!("Got an unparseable Value: {}", text);
+            panic!("Got an unparseable Value: {}", text)
         }
     }
 }
@@ -53,7 +52,7 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    fn from_line<'a>(line: &'a str) -> Instruction {
+    fn from_line(line: &str) -> Instruction {
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -98,9 +97,7 @@ impl Computer {
         registers.insert('b', 0);
         registers.insert('c', 0);
         registers.insert('d', 0);
-        Computer {
-            registers: registers,
-        }
+        Computer { registers }
     }
 
     fn get_num(&self, value: Value) -> i32 {
@@ -111,7 +108,7 @@ impl Computer {
     }
 
     fn get_register(&self, register: char) -> i32 {
-        self.registers.get(&register).unwrap_or(&0).clone()
+        *self.registers.get(&register).unwrap_or(&0)
     }
 
     fn copy(&mut self, from: Value, to: Value) {
@@ -157,8 +154,8 @@ impl Computer {
         }
     }
 
-    fn process(&mut self, instructions: &Vec<Instruction>) {
-        let mut instructions = instructions.clone();
+    fn process(&mut self, instructions: &[Instruction]) {
+        let mut instructions = instructions.to_owned();
         let mut pos: i32 = 0;
         let max_pos: i32 = instructions.len() as i32 - 1;
         loop {
@@ -182,10 +179,10 @@ impl Computer {
                     let tgl_pos = pos as usize + num as usize;
                     if tgl_pos <= max_pos as usize {
                         let old_instr = instructions.remove(tgl_pos);
-                        if tgl_pos < instructions.len() {
-                            instructions.insert(tgl_pos, self.toggle(&old_instr));
-                        } else if tgl_pos == instructions.len() {
-                            instructions.push(self.toggle(&old_instr));
+                        match tgl_pos.cmp(&instructions.len()) {
+                            Ordering::Less => instructions.insert(tgl_pos, self.toggle(&old_instr)),
+                            Ordering::Equal => instructions.push(self.toggle(&old_instr)),
+                            Ordering::Greater => (),
                         }
                     }
                 }
@@ -198,20 +195,9 @@ impl Computer {
     }
 }
 
-pub fn load_instructions<'a>(filename: &'a str) -> Vec<Instruction> {
-    let mut instructions = Vec::new();
-    let f = File::open(filename).expect("Couldn't open file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        if let Ok(text) = line {
-            instructions.push(Instruction::from_line(&text));
-        }
-    }
-    instructions
-}
-
 fn main() {
-    let instructions = load_instructions("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
     // Part 1
     let mut computer = Computer::new();
     computer.copy(Value::Integer(7), Value::Register('a'));
@@ -254,7 +240,9 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let instructions = load_instructions("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let instructions: Vec<Instruction> =
+            lines.iter().map(|l| Instruction::from_line(l)).collect();
         let mut computer = Computer::new();
         computer.copy(Value::Integer(7), Value::Register('a'));
         computer.process(&instructions);
@@ -264,7 +252,9 @@ mod tests {
     #[test]
     #[ignore] // 2619s
     fn test_part_2() {
-        let instructions = load_instructions("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let instructions: Vec<Instruction> =
+            lines.iter().map(|l| Instruction::from_line(l)).collect();
         let mut computer = Computer::new();
         computer.copy(Value::Integer(12), Value::Register('a'));
         computer.process(&instructions);
