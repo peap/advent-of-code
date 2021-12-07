@@ -46,13 +46,13 @@ pub struct Combatant {
 impl Combatant {
     fn new(hp: i32, damage: i32, mana: i32, spell: Spell, mode: Mode) -> Combatant {
         Combatant {
-            hp: hp,
-            damage: damage,
+            hp,
+            damage,
             armor: 0,
-            mana: mana,
+            mana,
             expenses: 0,
-            spell: spell,
-            mode: mode,
+            spell,
+            mode,
             t_shielded: 0,
             t_poisoned: 0,
             t_recharing: 0,
@@ -193,7 +193,7 @@ pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> i32 {
             continue;
         }
         // Get next moves
-        for p in player.get_next_spells(&boss) {
+        for p in player.get_next_spells(boss) {
             q.push_back((p.clone(), boss.clone()));
         }
     }

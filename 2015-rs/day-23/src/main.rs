@@ -1,12 +1,9 @@
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
+use lazy_static::lazy_static;
 use regex::Regex;
+
+use common::InputReader;
 
 type Register = char;
 type Offset = i32;
@@ -27,7 +24,7 @@ fn parse_register(captures: Option<regex::Match>) -> Register {
     }
 }
 
-fn parse_offset<'a>(captures: Option<regex::Match>) -> Offset {
+fn parse_offset(captures: Option<regex::Match>) -> Offset {
     match captures {
         Some(s) => s.as_str().parse::<Offset>().expect("Invalid offset value."),
         None => panic!("No register captured."),
@@ -45,7 +42,7 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    fn from_line<'a>(line: &'a str) -> Instruction {
+    fn from_line(line: &str) -> Instruction {
         if HLF_RE.is_match(line) {
             let caps = HLF_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
@@ -87,13 +84,11 @@ impl Computer {
         let mut registers = HashMap::new();
         registers.insert('a', 0);
         registers.insert('b', 0);
-        Computer {
-            registers: registers,
-        }
+        Computer { registers }
     }
 
     fn get_register(&self, register: char) -> i32 {
-        self.registers.get(&register).unwrap_or(&0).clone()
+        *self.registers.get(&register).unwrap_or(&0)
     }
 
     fn half(&mut self, register: Register) {
@@ -111,7 +106,7 @@ impl Computer {
         self.registers.insert(register, current_value + 1);
     }
 
-    fn process(&mut self, instructions: &Vec<Instruction>) {
+    fn process(&mut self, instructions: &[Instruction]) {
         let mut pos: i32 = 0;
         let max_pos: i32 = instructions.len() as i32 - 1;
         loop {
@@ -147,20 +142,9 @@ impl Computer {
     }
 }
 
-pub fn load_instructions<'a>(filename: &'a str) -> Vec<Instruction> {
-    let mut instructions = Vec::new();
-    let f = File::open(filename).expect("Couldn't open file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        if let Ok(text) = line {
-            instructions.push(Instruction::from_line(&text));
-        }
-    }
-    instructions
-}
-
 fn main() {
-    let instructions = load_instructions("input.txt");
+    let lines = InputReader::new("input.txt").string_lines();
+    let instructions: Vec<Instruction> = lines.iter().map(|l| Instruction::from_line(l)).collect();
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);
@@ -184,7 +168,9 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let instructions = load_instructions("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let instructions: Vec<Instruction> =
+            lines.iter().map(|l| Instruction::from_line(l)).collect();
         let mut computer = Computer::new();
         computer.process(&instructions);
         assert_eq!(computer.get_register('b'), 307);
@@ -192,7 +178,9 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let instructions = load_instructions("input.txt");
+        let lines = InputReader::new("input.txt").string_lines();
+        let instructions: Vec<Instruction> =
+            lines.iter().map(|l| Instruction::from_line(l)).collect();
         let mut computer = Computer::new();
         computer.increment('a');
         computer.process(&instructions);

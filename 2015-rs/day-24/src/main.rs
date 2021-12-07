@@ -1,31 +1,18 @@
-extern crate itertools;
-
 use std::cmp;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 
 use itertools::Itertools;
 
-pub type Gift = u64;
+use common::InputReader;
+
+pub type Gift = i64;
 pub type Group = Vec<Gift>;
+pub type GroupArg<'a> = &'a [Gift];
 
-pub fn load_gifts<'a>(filename: &'a str) -> Group {
-    let mut gifts: Group = vec![];
-    let f = File::open(filename).expect("Couldn't open file.");
-    let reader = BufReader::new(f);
-    for line in reader.lines() {
-        if let Ok(text) = line {
-            gifts.push(text.parse().unwrap());
-        }
-    }
-    gifts
-}
-
-pub fn can_split_remainder(to_exclude: &Group, gifts: &Group, n: usize) -> bool {
+pub fn can_split_remainder(to_exclude: GroupArg, gifts: GroupArg, n: usize) -> bool {
     let mut remainder = Vec::new();
     for gift in gifts.iter() {
-        if !to_exclude.contains(&gift) {
-            remainder.push(gift.clone());
+        if !to_exclude.contains(gift) {
+            remainder.push(*gift);
         }
     }
     let sum = remainder.iter().sum::<Gift>();
@@ -44,15 +31,16 @@ pub fn can_split_remainder(to_exclude: &Group, gifts: &Group, n: usize) -> bool 
     false
 }
 
-pub fn optimize_sleigh(gifts: &Group, n: usize) -> Option<(usize, Gift)> {
+pub fn optimize_sleigh(gifts: GroupArg, n: usize) -> Option<(usize, Gift)> {
     let target: Gift = gifts.iter().sum::<Gift>() / n as Gift;
     let mut lowest_qe = Gift::max_value();
     for k in 1..gifts.len() {
         let combinations = gifts.iter().combinations(k);
         for combo in combinations {
-            let owned_combo: Group = combo.iter().map(|g| **g).collect();
+            // let owned_combo: Group = combo.into_iter().map(|g| *g).collect();
+            let owned_combo: Group = combo.into_iter().copied().collect();
             let sum = owned_combo.iter().fold(0, |acc, g| acc + *g);
-            if sum == target && can_split_remainder(&owned_combo, &gifts, n - 1) {
+            if sum == target && can_split_remainder(&owned_combo, gifts, n - 1) {
                 lowest_qe = cmp::min(lowest_qe, owned_combo.iter().fold(1, |acc, g| acc * *g));
             }
         }
@@ -64,7 +52,7 @@ pub fn optimize_sleigh(gifts: &Group, n: usize) -> Option<(usize, Gift)> {
 }
 
 fn main() {
-    let gifts = load_gifts("input.txt");
+    let gifts: Group = InputReader::new("input.txt").i64_lines();
     // Part 1
     if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 3) {
         println!(
@@ -122,7 +110,7 @@ mod tests {
     #[test]
     #[ignore] // 107s
     fn test_part_1() {
-        let gifts = load_gifts("input.txt");
+        let gifts: Group = InputReader::new("input.txt").i64_lines();
         let optimized = optimize_sleigh(&gifts, 3);
         assert_eq!(optimized, Some((6, 11846773891)));
     }
@@ -136,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let gifts = load_gifts("input.txt");
+        let gifts: Group = InputReader::new("input.txt").i64_lines();
         let optimized = optimize_sleigh(&gifts, 4);
         assert_eq!(optimized, Some((4, 80393059)));
     }
