@@ -102,7 +102,7 @@ fn get_button(keypad: &KeyPad, x: i32, y: i32) -> Button {
 
 fn main() {
     // let all_moves = load_moves("input.txt");
-    let all_moves = InputReader::new("input.txt").string_lines();
+    let all_moves = InputReader::new("input.txt").parsed_lines();
     let code1 = get_code(get_keypad_1(), '5', &all_moves);
     println!("The first code: {}", code1);
     let code2 = get_code(get_keypad_2(), '5', &all_moves);

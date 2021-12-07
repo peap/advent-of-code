@@ -14,7 +14,7 @@ fn fuel_for_weight_recur(weight: &i64) -> i64 {
 }
 
 fn main() {
-    let weights = InputReader::new("input.txt").i64_lines();
+    let weights = InputReader::new("input.txt").parsed_lines();
     let total1 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight(w));
     println!("Part 1: total weight is {}", total1);
     let total2 = weights
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let weights = InputReader::new("input.txt").i64_lines();
+        let weights = InputReader::new("input.txt").parsed_lines();
         let total1 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight(w));
         assert_eq!(total1, 3324332);
     }
@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        let weights = InputReader::new("input.txt").i64_lines();
+        let weights = InputReader::new("input.txt").parsed_lines();
         let total2 = weights
             .iter()
             .fold(0, |sum, w| sum + fuel_for_weight_recur(w));

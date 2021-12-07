@@ -1,7 +1,9 @@
+use std::str::FromStr;
+
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::InputReader;
+use common::{BadInput, InputReader};
 
 lazy_static! {
     static ref SWAP_POSITION_RE: Regex =
@@ -27,44 +29,45 @@ pub enum Operation {
     Move(usize, usize),
 }
 
-impl From<String> for Operation {
-    fn from(string: String) -> Self {
+impl FromStr for Operation {
+    type Err = BadInput;
+
+    fn from_str(text: &str) -> Result<Self, Self::Err> {
         use Operation::*;
-        let text = &string;
         if SWAP_POSITION_RE.is_match(text) {
             let caps = SWAP_POSITION_RE.captures(text).unwrap();
             let pos1: usize = caps.get(1).unwrap().as_str().parse().unwrap();
             let pos2: usize = caps.get(2).unwrap().as_str().parse().unwrap();
-            SwapPosition(pos1, pos2)
+            Ok(SwapPosition(pos1, pos2))
         } else if SWAP_LETTER_RE.is_match(text) {
             let caps = SWAP_LETTER_RE.captures(text).unwrap();
             let letter1: char = caps.get(1).unwrap().as_str().chars().next().unwrap();
             let letter2: char = caps.get(2).unwrap().as_str().chars().next().unwrap();
-            SwapLetter(letter1, letter2)
+            Ok(SwapLetter(letter1, letter2))
         } else if ROTATE_LEFT_RE.is_match(text) {
             let caps = ROTATE_LEFT_RE.captures(text).unwrap();
             let num: usize = caps.get(1).unwrap().as_str().parse().unwrap();
-            RotateLeft(num)
+            Ok(RotateLeft(num))
         } else if ROTATE_RIGHT_RE.is_match(text) {
             let caps = ROTATE_RIGHT_RE.captures(text).unwrap();
             let num: usize = caps.get(1).unwrap().as_str().parse().unwrap();
-            RotateRight(num)
+            Ok(RotateRight(num))
         } else if ROTATE_BY_LETTER_RE.is_match(text) {
             let caps = ROTATE_BY_LETTER_RE.captures(text).unwrap();
             let letter: char = caps.get(1).unwrap().as_str().chars().next().unwrap();
-            RotateByLetter(letter)
+            Ok(RotateByLetter(letter))
         } else if REVERSE_RE.is_match(text) {
             let caps = REVERSE_RE.captures(text).unwrap();
             let pos1: usize = caps.get(1).unwrap().as_str().parse().unwrap();
             let pos2: usize = caps.get(2).unwrap().as_str().parse().unwrap();
-            Reverse(pos1, pos2)
+            Ok(Reverse(pos1, pos2))
         } else if MOVE_RE.is_match(text) {
             let caps = MOVE_RE.captures(text).unwrap();
             let pos1: usize = caps.get(1).unwrap().as_str().parse().unwrap();
             let pos2: usize = caps.get(2).unwrap().as_str().parse().unwrap();
-            Move(pos1, pos2)
+            Ok(Move(pos1, pos2))
         } else {
-            panic!("Unrecognized operation: {}", text);
+            Err(BadInput)
         }
     }
 }
@@ -176,7 +179,7 @@ pub fn unscramble(operations: &[Operation], input: &str) -> String {
 }
 
 fn main() {
-    let operations = InputReader::new("input.txt").converted_lines();
+    let operations = InputReader::new("input.txt").parsed_lines();
     let input = "abcdefgh";
     let scrambled = scramble(&operations, input);
     println!("Part 1: {} -> {}", input, scrambled);
@@ -230,7 +233,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let operations = InputReader::new("input.txt").converted_lines();
+        let operations = InputReader::new("input.txt").parsed_lines();
         let input = "abcdefgh";
         let scrambled = scramble(&operations, input);
         assert_eq!(scrambled, "ghfacdbe");
@@ -238,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let operations = InputReader::new("input.txt").converted_lines();
+        let operations = InputReader::new("input.txt").parsed_lines();
         let input = "fbgdceah";
         let unscrambled = unscramble(&operations, input);
         assert_eq!(unscrambled, "fhgcdaeb")

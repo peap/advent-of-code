@@ -90,7 +90,7 @@ fn load_rooms(lines: Vec<String>) -> Vec<Room> {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let rooms = load_rooms(lines);
     let valid: Vec<&Room> = rooms.iter().filter(|r| r.is_valid()).collect();
     let sum: i32 = valid.iter().fold(0, |acc, room| acc + room.get_sector());

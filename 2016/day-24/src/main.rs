@@ -194,7 +194,7 @@ impl Maze {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let maze = Maze::from_lines(lines);
     if let Some(n_steps) = maze.minimize_steps(false) {
         println!("\nPart 1: takes {} steps to visit all waypoints", n_steps);
@@ -221,7 +221,7 @@ mod tests {
 
     #[test]
     fn test_example() {
-        let lines = InputReader::new("example.txt").string_lines();
+        let lines = InputReader::new("example.txt").parsed_lines();
         let maze = Maze::from_lines(lines);
         let n_steps = maze.minimize_steps(false);
         assert_eq!(n_steps, Some(14));
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let maze = Maze::from_lines(lines);
         let n_steps = maze.minimize_steps(false);
         assert_eq!(n_steps, Some(498));
@@ -237,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let maze = Maze::from_lines(lines);
         let n_steps = maze.minimize_steps(true);
         assert_eq!(n_steps, Some(804));

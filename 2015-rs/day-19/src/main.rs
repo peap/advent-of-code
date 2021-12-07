@@ -61,7 +61,7 @@ pub fn find_min_steps_reverse(from: String, to: String, replacements: &Replaceme
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let (replacements, medicine) = get_replacements_and_medicine(lines);
     let from = "e".to_string();
     let num_steps = find_min_steps_reverse(from, medicine, &replacements);
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let (replacements, medicine) = get_replacements_and_medicine(lines);
         let from = "e".to_string();
         let num_steps = find_min_steps_reverse(from, medicine, &replacements);

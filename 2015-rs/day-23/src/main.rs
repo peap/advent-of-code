@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::InputReader;
+use common::{BadInput, InputReader};
 
 type Register = char;
 type Offset = i32;
@@ -41,37 +42,37 @@ pub enum Instruction {
     Jio(Register, Offset),
 }
 
-impl From<String> for Instruction {
-    fn from(string: String) -> Self {
-        let line = &string;
+impl FromStr for Instruction {
+    type Err = BadInput;
+    fn from_str(line: &str) -> Result<Self, Self::Err> {
         if HLF_RE.is_match(line) {
             let caps = HLF_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
-            Instruction::Hlf(register)
+            Ok(Instruction::Hlf(register))
         } else if TPL_RE.is_match(line) {
             let caps = TPL_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
-            Instruction::Tpl(register)
+            Ok(Instruction::Tpl(register))
         } else if INC_RE.is_match(line) {
             let caps = INC_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
-            Instruction::Inc(register)
+            Ok(Instruction::Inc(register))
         } else if JMP_RE.is_match(line) {
             let caps = JMP_RE.captures(line).unwrap();
             let offset = parse_offset(caps.get(1));
-            Instruction::Jmp(offset)
+            Ok(Instruction::Jmp(offset))
         } else if JIE_RE.is_match(line) {
             let caps = JIE_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
             let offset = parse_offset(caps.get(2));
-            Instruction::Jie(register, offset)
+            Ok(Instruction::Jie(register, offset))
         } else if JIO_RE.is_match(line) {
             let caps = JIO_RE.captures(line).unwrap();
             let register = parse_register(caps.get(1));
             let offset = parse_offset(caps.get(2));
-            Instruction::Jio(register, offset)
+            Ok(Instruction::Jio(register, offset))
         } else {
-            panic!("Unparsable line: {}", line)
+            Err(BadInput)
         }
     }
 }
@@ -144,7 +145,7 @@ impl Computer {
 }
 
 fn main() {
-    let instructions = InputReader::new("input.txt").converted_lines();
+    let instructions = InputReader::new("input.txt").parsed_lines();
     // Part 1
     let mut computer = Computer::new();
     computer.process(&instructions);
@@ -168,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let instructions = InputReader::new("input.txt").converted_lines();
+        let instructions = InputReader::new("input.txt").parsed_lines();
         let mut computer = Computer::new();
         computer.process(&instructions);
         assert_eq!(computer.get_register('b'), 307);
@@ -176,7 +177,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let instructions = InputReader::new("input.txt").converted_lines();
+        let instructions = InputReader::new("input.txt").parsed_lines();
         let mut computer = Computer::new();
         computer.increment('a');
         computer.process(&instructions);

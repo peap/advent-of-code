@@ -36,7 +36,7 @@ fn process_commands(commands: Vec<String>, with_aim: bool) -> (i64, i64) {
 }
 
 fn main() {
-    let commands = InputReader::new("input.txt").string_lines();
+    let commands = InputReader::new("input.txt").parsed_lines();
     let (horiz, depth) = process_commands(commands.clone(), false);
     let product = horiz * depth;
     println!("Part 1: h: {}, d: {}; h * d = {}", horiz, depth, product);
@@ -68,13 +68,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let commands = InputReader::new("input.txt").string_lines();
+        let commands = InputReader::new("input.txt").parsed_lines();
         assert_eq!(process_commands(commands, false), (1927, 1091));
     }
 
     #[test]
     fn test_part2() {
-        let commands = InputReader::new("input.txt").string_lines();
+        let commands = InputReader::new("input.txt").parsed_lines();
         assert_eq!(process_commands(commands, true), (1927, 1090312));
     }
 }

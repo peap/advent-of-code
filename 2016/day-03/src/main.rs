@@ -1,4 +1,6 @@
-use common::InputReader;
+use std::str::FromStr;
+
+use common::{BadInput, InputReader};
 
 struct Triangle {
     a: i32,
@@ -6,10 +8,12 @@ struct Triangle {
     c: i32,
 }
 
-impl From<String> for Triangle {
-    fn from(line: String) -> Self {
-        let (a, b, c) = parse_line(&line);
-        Triangle { a, b, c }
+impl FromStr for Triangle {
+    type Err = BadInput;
+
+    fn from_str(line: &str) -> Result<Self, Self::Err> {
+        let (a, b, c) = parse_line(line);
+        Ok(Triangle { a, b, c })
     }
 }
 
@@ -63,14 +67,14 @@ fn count_valid(triangles: &[Triangle]) -> i32 {
 }
 
 fn main() {
-    let triangles1 = InputReader::new("input.txt").converted_lines();
+    let triangles1 = InputReader::new("input.txt").parsed_lines();
     let num1 = count_valid(&triangles1);
     println!(
         "Part 1: {} triangles; {} are valid.",
         &triangles1.len(),
         num1
     );
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let triangles2 = load_triangles_2(lines);
     let num2 = count_valid(&triangles2);
     println!(

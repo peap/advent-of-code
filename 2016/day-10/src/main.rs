@@ -233,7 +233,7 @@ where
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let mut bots = load_bots(lines);
     let part1_pred = |b: &Bot| b.chips[0] == Chip::Value(17) && b.chips[1] == Chip::Value(61);
     if let Some(part1_bot_id) = pass_chips_until(&mut bots, part1_pred) {
@@ -251,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_part_1_answer() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let mut bots = load_bots(lines);
         let part1_pred = |b: &Bot| b.chips[0] == Chip::Value(17) && b.chips[1] == Chip::Value(61);
         let result = pass_chips_until(&mut bots, part1_pred);

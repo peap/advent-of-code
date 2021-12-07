@@ -1,12 +1,18 @@
-use common::InputReader;
+use std::str::FromStr;
+
+use common::{BadInput, InputReader};
 
 struct IPv7 {
     address: String,
 }
 
-impl From<String> for IPv7 {
-    fn from(address: String) -> Self {
-        IPv7 { address }
+impl FromStr for IPv7 {
+    type Err = BadInput;
+
+    fn from_str(addr: &str) -> Result<Self, Self::Err> {
+        Ok(IPv7 {
+            address: addr.to_string(),
+        })
     }
 }
 
@@ -118,7 +124,7 @@ impl IPv7 {
 }
 
 fn main() {
-    let ipaddrs = InputReader::new("input.txt").converted_lines::<IPv7>();
+    let ipaddrs = InputReader::new("input.txt").parsed_lines::<IPv7>();
     let num_tls = ipaddrs.iter().filter(|a| a.supports_tls()).count();
     let num_ssl = ipaddrs.iter().filter(|a| a.supports_ssl()).count();
     println!(

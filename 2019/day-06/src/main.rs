@@ -93,13 +93,13 @@ struct Body {
 }
 
 fn part1() -> i32 {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let system = System::from_lines(lines);
     system.total_orbits()
 }
 
 fn part2() -> i32 {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let system = System::from_lines(lines);
     system.minimal_transfer("YOU", "SAN")
 }

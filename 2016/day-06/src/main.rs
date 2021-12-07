@@ -52,7 +52,7 @@ fn decode_signal_2(counts: &[HashMap<char, i32>]) -> String {
 }
 
 fn main() {
-    let signals = InputReader::new("input.txt").string_lines();
+    let signals = InputReader::new("input.txt").parsed_lines();
     let count_maps = get_count_maps(signals);
     let signal_1 = decode_signal_1(&count_maps);
     let signal_2 = decode_signal_2(&count_maps);

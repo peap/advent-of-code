@@ -52,7 +52,7 @@ pub fn optimize_sleigh(gifts: GroupArg, n: usize) -> Option<(usize, Gift)> {
 }
 
 fn main() {
-    let gifts: Group = InputReader::new("input.txt").i64_lines();
+    let gifts = InputReader::new("input.txt").parsed_lines();
     // Part 1
     if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 3) {
         println!(
@@ -110,7 +110,7 @@ mod tests {
     #[test]
     #[ignore] // 107s
     fn test_part_1() {
-        let gifts: Group = InputReader::new("input.txt").i64_lines();
+        let gifts = InputReader::new("input.txt").parsed_lines();
         let optimized = optimize_sleigh(&gifts, 3);
         assert_eq!(optimized, Some((6, 11846773891)));
     }
@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let gifts: Group = InputReader::new("input.txt").i64_lines();
+        let gifts = InputReader::new("input.txt").parsed_lines();
         let optimized = optimize_sleigh(&gifts, 4);
         assert_eq!(optimized, Some((4, 80393059)));
     }

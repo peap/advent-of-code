@@ -18,7 +18,7 @@ fn count_increases(nums: Vec<i64>, window: usize) -> i64 {
 }
 
 fn main() {
-    let depths = InputReader::new("input.txt").i64_lines();
+    let depths = InputReader::new("input.txt").parsed_lines();
     println!(
         "Part 1: depth increases: {}",
         count_increases(depths.clone(), 1)
@@ -39,13 +39,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let depths = InputReader::new("input.txt").i64_lines();
+        let depths = InputReader::new("input.txt").parsed_lines();
         assert_eq!(count_increases(depths, 1), 1722);
     }
 
     #[test]
     fn test_part2() {
-        let depths = InputReader::new("input.txt").i64_lines();
+        let depths = InputReader::new("input.txt").parsed_lines();
         assert_eq!(count_increases(depths, 3), 1748);
     }
 }

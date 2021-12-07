@@ -1,7 +1,7 @@
 use common::InputReader;
 
 fn part1() -> Vec<String> {
-    InputReader::new("input.txt").string_lines()
+    InputReader::new("input.txt").parsed_lines()
 }
 
 fn main() {

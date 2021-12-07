@@ -1,9 +1,10 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 use regex::Regex;
 
-use common::InputReader;
+use common::{BadInput, InputReader};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Value {
@@ -52,9 +53,10 @@ pub enum Instruction {
     Out(Value),
 }
 
-impl From<String> for Instruction {
-    fn from(string: String) -> Self {
-        let line = &string;
+impl FromStr for Instruction {
+    type Err = BadInput;
+
+    fn from_str(line: &str) -> Result<Self, Self::Err> {
         let cpy_re = Regex::new(r"^cpy (.+) (.+)$").expect("Bad cpy regex.");
         let inc_re = Regex::new(r"^inc (.+)$").expect("Bad inc regex.");
         let dec_re = Regex::new(r"^dec (.+)$").expect("Bad dec regex.");
@@ -65,30 +67,30 @@ impl From<String> for Instruction {
             let caps = cpy_re.captures(line).unwrap();
             let from_val = Value::from_text(caps.get(1).unwrap().as_str());
             let to_val = Value::from_text(caps.get(2).unwrap().as_str());
-            Instruction::Cpy(from_val, to_val)
+            Ok(Instruction::Cpy(from_val, to_val))
         } else if inc_re.is_match(line) {
             let caps = inc_re.captures(line).unwrap();
             let val = Value::from_text(caps.get(1).unwrap().as_str());
-            Instruction::Inc(val)
+            Ok(Instruction::Inc(val))
         } else if dec_re.is_match(line) {
             let caps = dec_re.captures(line).unwrap();
             let val = Value::from_text(caps.get(1).unwrap().as_str());
-            Instruction::Dec(val)
+            Ok(Instruction::Dec(val))
         } else if jnz_re.is_match(line) {
             let caps = jnz_re.captures(line).unwrap();
             let val1 = Value::from_text(caps.get(1).unwrap().as_str());
             let val2 = Value::from_text(caps.get(2).unwrap().as_str());
-            Instruction::Jnz(val1, val2)
+            Ok(Instruction::Jnz(val1, val2))
         } else if tgl_re.is_match(line) {
             let caps = tgl_re.captures(line).unwrap();
             let val = Value::from_text(caps.get(1).unwrap().as_str());
-            Instruction::Tgl(val)
+            Ok(Instruction::Tgl(val))
         } else if out_re.is_match(line) {
             let caps = out_re.captures(line).unwrap();
             let val = Value::from_text(caps.get(1).unwrap().as_str());
-            Instruction::Out(val)
+            Ok(Instruction::Out(val))
         } else {
-            panic!("Unparsable line: {}", line)
+            Err(BadInput)
         }
     }
 }
@@ -233,7 +235,7 @@ pub fn find_register_a_value(instructions: &[Instruction]) -> Option<i32> {
 }
 
 fn main() {
-    let instructions = InputReader::new("input.txt").converted_lines();
+    let instructions = InputReader::new("input.txt").parsed_lines();
     // Part 1
     if let Some(a_val) = find_register_a_value(&instructions) {
         println!("\nPart 1: The value for register 'a' is {}.", a_val);
@@ -248,7 +250,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let instructions = InputReader::new("input.txt").converted_lines();
+        let instructions = InputReader::new("input.txt").parsed_lines();
         let a_val = find_register_a_value(&instructions);
         assert_eq!(a_val, Some(175));
     }

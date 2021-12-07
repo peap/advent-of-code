@@ -54,7 +54,7 @@ pub fn count_unblocked_ips(blocklist: &[(u32, u32)], max: u32) -> u32 {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let blocklist = load_blocklist(lines);
     let lowest = find_lowest_unblocked_ip(&blocklist);
     println!("Part 1: lowest unblocked IP is {}", lowest);
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let blocklist = load_blocklist(lines);
         let lowest = find_lowest_unblocked_ip(&blocklist);
         assert_eq!(lowest, 32259706);
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let blocklist = load_blocklist(lines);
         let count = count_unblocked_ips(&blocklist, u32::max_value());
         assert_eq!(count, 113);

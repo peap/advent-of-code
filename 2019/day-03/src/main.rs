@@ -1,4 +1,6 @@
-use common::InputReader;
+use std::str::FromStr;
+
+use common::{BadInput, InputReader};
 
 enum Direction {
     Up,
@@ -115,9 +117,11 @@ struct Wire {
     paths: Vec<Path>,
 }
 
-impl From<String> for Wire {
-    fn from(string: String) -> Self {
-        Wire::new(&string)
+impl FromStr for Wire {
+    type Err = BadInput;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        Ok(Wire::new(string))
     }
 }
 
@@ -186,7 +190,7 @@ fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
 }
 
 fn setup() -> Vec<Intersection> {
-    let wires = InputReader::new("input.txt").converted_lines();
+    let wires = InputReader::new("input.txt").parsed_lines();
     find_intersections(&wires[0], &wires[1])
 }
 

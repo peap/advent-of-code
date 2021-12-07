@@ -186,7 +186,7 @@ impl Grid {
 }
 
 fn main() {
-    let lines = InputReader::new("input.txt").string_lines();
+    let lines = InputReader::new("input.txt").parsed_lines();
     let grid = Grid::from_lines(lines);
     grid.print();
     println!(
@@ -217,7 +217,7 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let grid = Grid::from_lines(lines);
         let n_pairs = grid.count_viable_pairs();
         assert_eq!(n_pairs, 950);
@@ -242,7 +242,7 @@ mod tests {
     #[test]
     #[ignore] // Long time
     fn test_example() {
-        let lines = InputReader::new("input.txt").string_lines();
+        let lines = InputReader::new("input.txt").parsed_lines();
         let grid = Grid::from_lines(lines);
         let n_steps = grid.optimize_data_movement();
         assert_eq!(n_steps, Some(7));
