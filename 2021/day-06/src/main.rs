@@ -24,14 +24,12 @@ fn simulate_lanternfish(fish: Vec<u8>, days: u64) -> u64 {
 }
 
 fn part1() -> u64 {
-    let num_strs = InputReader::new("input.txt").csv_line();
-    let fish: Vec<u8> = num_strs.iter().map(|s| s.parse().unwrap()).collect();
+    let fish = InputReader::new("input.txt").csv_u8_line();
     simulate_lanternfish(fish, 80)
 }
 
 fn part2() -> u64 {
-    let num_strs = InputReader::new("input.txt").csv_line();
-    let fish: Vec<u8> = num_strs.iter().map(|s| s.parse().unwrap()).collect();
+    let fish = InputReader::new("input.txt").csv_u8_line();
     simulate_lanternfish(fish, 256)
 }
 

@@ -55,8 +55,7 @@ fn minimize_moves(crabs: Vec<u64>, cost_fn: &dyn Fn(u64) -> u64) -> u64 {
 }
 
 fn main() {
-    let strs = InputReader::new("input.txt").csv_line();
-    let mut crabs: Vec<u64> = strs.iter().map(|s| s.parse().unwrap()).collect();
+    let mut crabs = InputReader::new("input.txt").csv_u64_line();
     crabs.sort_unstable();
     let best_cost1 = minimize_moves(crabs.clone(), &linear_cost);
     println!("Part 1: best position costs {}", best_cost1);
@@ -78,16 +77,14 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let strs = InputReader::new("input.txt").csv_line();
-        let mut crabs: Vec<u64> = strs.iter().map(|s| s.parse().unwrap()).collect();
+        let mut crabs = InputReader::new("input.txt").csv_u64_line();
         crabs.sort_unstable();
         assert_eq!(minimize_moves(crabs.clone(), &linear_cost), 339321);
     }
 
     #[test]
     fn test_part2() {
-        let strs = InputReader::new("input.txt").csv_line();
-        let mut crabs: Vec<u64> = strs.iter().map(|s| s.parse().unwrap()).collect();
+        let mut crabs = InputReader::new("input.txt").csv_u64_line();
         crabs.sort_unstable();
         assert_eq!(minimize_moves(crabs, &triangle_cost), 95476244);
     }

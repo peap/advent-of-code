@@ -101,7 +101,7 @@ impl fmt::Display for Walker {
 }
 
 fn main() {
-    let instructions = InputReader::new("input.txt").csv_line();
+    let instructions = InputReader::new("input.txt").csv_strings_line();
     let mut walker = Walker::new();
     walker.follow(instructions);
     println!("{} is {} blocks from the start", walker, &walker.distance());

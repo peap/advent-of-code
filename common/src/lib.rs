@@ -47,11 +47,27 @@ impl InputReader {
             .collect()
     }
 
-    pub fn csv_line(&self) -> Vec<String> {
+    pub fn csv_strings_line(&self) -> Vec<String> {
         self.string_lines()[0]
             .trim()
             .split(',')
             .map(|x| x.trim().to_string())
+            .collect()
+    }
+
+    pub fn csv_u8_line(&self) -> Vec<u8> {
+        self.string_lines()[0]
+            .trim()
+            .split(',')
+            .map(|x| x.trim().parse::<u8>().unwrap())
+            .collect()
+    }
+
+    pub fn csv_u64_line(&self) -> Vec<u64> {
+        self.string_lines()[0]
+            .trim()
+            .split(',')
+            .map(|x| x.trim().parse::<u64>().unwrap())
             .collect()
     }
 }
