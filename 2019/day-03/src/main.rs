@@ -127,7 +127,7 @@ impl FromStr for Wire {
 
 impl Wire {
     fn new(s: &str) -> Wire {
-        let paths = s.split(',').map(|p| Path::new(p)).collect();
+        let paths = s.split(',').map(Path::new).collect();
         Wire { paths }
     }
 

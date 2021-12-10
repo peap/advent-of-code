@@ -192,16 +192,8 @@ fn sorted_string(s: &str) -> String {
 
 fn parse_line(line: &str) -> (Vec<String>, Vec<String>) {
     let split: Vec<&str> = line.split('|').collect();
-    let codes = split[0]
-        .trim()
-        .split(' ')
-        .map(|d| sorted_string(d))
-        .collect();
-    let digits = split[1]
-        .trim()
-        .split(' ')
-        .map(|v| sorted_string(v))
-        .collect();
+    let codes = split[0].trim().split(' ').map(sorted_string).collect();
+    let digits = split[1].trim().split(' ').map(sorted_string).collect();
     (codes, digits)
 }
 

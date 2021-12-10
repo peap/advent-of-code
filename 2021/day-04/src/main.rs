@@ -41,7 +41,7 @@ impl Board {
         self.rows.push(
             row.split(' ')
                 .filter(|n| !n.is_empty())
-                .map(|n| Space::from_str(n))
+                .map(Space::from_str)
                 .collect(),
         );
     }
