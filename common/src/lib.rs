@@ -64,9 +64,53 @@ impl InputReader {
 
 #[cfg(test)]
 mod tests {
+    use super::InputReader;
+
     #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    fn test_string_lines() {
+        let lines: Vec<String> = InputReader::new("../2021/day-01/input.txt").parsed_lines();
+        assert_eq!(lines.len(), 2000);
+        assert_eq!(lines[0], "183".to_string());
+        assert_eq!(lines[1], "185".to_string());
+        assert_eq!(lines[1999], "9875".to_string());
+    }
+
+    #[test]
+    fn test_u64_lines() {
+        let lines: Vec<u64> = InputReader::new("../2021/day-01/input.txt").parsed_lines();
+        assert_eq!(lines.len(), 2000);
+        assert_eq!(lines[0], 183);
+        assert_eq!(lines[1], 185);
+        assert_eq!(lines[1999], 9875);
+    }
+
+    #[test]
+    fn test_i64_lines() {
+        let lines: Vec<i64> = InputReader::new("../2021/day-01/input.txt").parsed_lines();
+        assert_eq!(lines.len(), 2000);
+        assert_eq!(lines[0], 183);
+        assert_eq!(lines[1], 185);
+        assert_eq!(lines[1999], 9875);
+    }
+
+    #[test]
+    fn test_string_line() {
+        let line = InputReader::new("../2016/day-09/input.txt").string_line();
+        assert_eq!(line.len(), 16919);
+        assert_eq!(line.chars().next(), Some('('));
+    }
+
+    #[test]
+    fn test_u8_line() {
+        let line = InputReader::new("../2019/day-08/input.txt").u8_line();
+        assert_eq!(line.len(), 15000);
+        assert_eq!(line[0..5], vec![2, 2, 2, 2, 0]);
+    }
+
+    #[test]
+    fn test_parsed_csv_line() {
+        let nums: Vec<u16> = InputReader::new("../2021/day-07/input.txt").parsed_csv_line();
+        assert_eq!(nums.len(), 1000);
+        assert_eq!(nums[0..5], vec![1101, 1, 29, 67, 1102]);
     }
 }
