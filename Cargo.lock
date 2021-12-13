@@ -715,3 +715,10 @@ version = "0.1.0"
 dependencies = [
  "common",
 ]
+
+[[package]]
+name = "year-2021-day-13"
+version = "0.1.0"
+dependencies = [
+ "common",
+]
