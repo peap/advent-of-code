@@ -3,6 +3,8 @@ advent-of-code
 
 Eric's solutions to [Advent of Code](http://adventofcode.com/).
 
+New directory: `./new.sh 2021 13 "Transparent Origami"`
+
 Profiling:
 
 ```
