@@ -1,10 +1,10 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
-fn count_increases(nums: Vec<i64>, window: usize) -> i64 {
+fn count_increases(nums: Vec<u64>, window: usize) -> u64 {
     let mut count = 0;
     let mut slider = vec![];
     slider.extend_from_slice(&nums[0..window]);
-    let mut last: i64 = slider.iter().sum();
+    let mut last: u64 = slider.iter().sum();
     for n in nums[window..nums.len()].iter() {
         slider.rotate_left(1);
         slider[window - 1] = *n;
@@ -17,13 +17,25 @@ fn count_increases(nums: Vec<i64>, window: usize) -> i64 {
     count
 }
 
+fn part1(reader: &InputReader) -> Answer {
+    let depths = reader.parsed_lines();
+    count_increases(depths, 1)
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let depths = reader.parsed_lines();
+    count_increases(depths, 3)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Sonar Sweep");
+    puzzle.set_part1(part1, "depth increases (w=1)");
+    puzzle.set_part2(part2, "depth increases (w=3)");
+    puzzle
+}
+
 fn main() {
-    let depths = InputReader::new("input.txt").parsed_lines();
-    println!(
-        "Part 1: depth increases: {}",
-        count_increases(depths.clone(), 1)
-    );
-    println!("Part 2: depth increases: {}", count_increases(depths, 3));
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -39,13 +51,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let depths = InputReader::new("input.txt").parsed_lines();
-        assert_eq!(count_increases(depths, 1), 1722);
+        get_puzzle().test_part1(1722);
     }
 
     #[test]
     fn test_part2() {
-        let depths = InputReader::new("input.txt").parsed_lines();
-        assert_eq!(count_increases(depths, 3), 1748);
+        get_puzzle().test_part2(1748);
     }
 }

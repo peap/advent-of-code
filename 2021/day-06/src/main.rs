@@ -1,4 +1,4 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 const CYCLE: usize = 7;
 const NEW_FISH_BUFFER: usize = 2;
@@ -23,19 +23,25 @@ fn simulate_lanternfish(fish: Vec<u8>, days: u64) -> u64 {
     fish_timers.iter().sum()
 }
 
-fn part1() -> u64 {
-    let fish = InputReader::new("input.txt").parsed_csv_line();
+fn part1(reader: &InputReader) -> Answer {
+    let fish = reader.parsed_csv_line();
     simulate_lanternfish(fish, 80)
 }
 
-fn part2() -> u64 {
-    let fish = InputReader::new("input.txt").parsed_csv_line();
+fn part2(reader: &InputReader) -> Answer {
+    let fish = reader.parsed_csv_line();
     simulate_lanternfish(fish, 256)
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Lanternfish");
+    puzzle.set_part1(part1, "num fish after 80 cycles");
+    puzzle.set_part2(part2, "num fish after 256 cycles");
+    puzzle
+}
+
 fn main() {
-    println!("Part 1: num fish after 80 cycles:  {}", part1());
-    println!("Part 2: num fish after 256 cycles: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -51,11 +57,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 366057);
+        get_puzzle().test_part1(366057);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 1653559299811);
+        get_puzzle().test_part2(1653559299811);
     }
 }

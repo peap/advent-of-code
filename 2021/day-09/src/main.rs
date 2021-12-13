@@ -1,6 +1,6 @@
 use std::collections::{HashSet, VecDeque};
 
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 struct HeightMap {
     grid: Vec<Vec<u8>>,
@@ -28,8 +28,8 @@ impl HeightMap {
             .collect()
     }
 
-    fn get_height(&self, x: i64, y: i64) -> u8 {
-        self.grid[y as usize][x as usize]
+    fn get_height(&self, x: i64, y: i64) -> u64 {
+        self.grid[y as usize][x as usize] as u64
     }
 
     fn get_low_points(&self) -> Vec<(i64, i64)> {
@@ -48,7 +48,7 @@ impl HeightMap {
         points
     }
 
-    fn get_basin_size(&self, x: i64, y: i64) -> i64 {
+    fn get_basin_size(&self, x: i64, y: i64) -> u64 {
         let mut size = 0;
         let mut deq = VecDeque::from([(x, y)]);
         let mut scheduled: HashSet<(i64, i64)> = HashSet::from([(x, y)]);
@@ -70,20 +70,20 @@ impl HeightMap {
     }
 }
 
-fn part1() -> i64 {
-    let lines = InputReader::new("input.txt").parsed_lines();
+fn part1(reader: &InputReader) -> Answer {
+    let lines = reader.parsed_lines();
     let map = HeightMap::from_lines(lines);
     let mut sum = 0;
     for (x, y) in map.get_low_points().into_iter() {
-        sum += map.get_height(x, y) as i64 + 1;
+        sum += map.get_height(x, y) + 1;
     }
     sum
 }
 
-fn part2() -> i64 {
-    let lines = InputReader::new("input.txt").parsed_lines();
+fn part2(reader: &InputReader) -> Answer {
+    let lines = reader.parsed_lines();
     let map = HeightMap::from_lines(lines);
-    let mut basins: Vec<i64> = map
+    let mut basins: Vec<Answer> = map
         .get_low_points()
         .iter()
         .map(|(x, y)| map.get_basin_size(*x, *y))
@@ -92,9 +92,15 @@ fn part2() -> i64 {
     basins.into_iter().take(3).reduce(|acc, b| acc * b).unwrap()
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Smoke Basin");
+    puzzle.set_part1(part1, "sum of low-point risk levels");
+    puzzle.set_part2(part2, "product of three biggest basins");
+    puzzle
+}
+
 fn main() {
-    println!("Part1: sum of low-point risk levels: {}", part1());
-    println!("Part2: product of three biggest basins: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -119,7 +125,7 @@ mod tests {
         // Part 1
         let mut sum = 0;
         for (x, y) in map.get_low_points().into_iter() {
-            sum += map.get_height(x, y) as i64 + 1;
+            sum += map.get_height(x, y) as u64 + 1;
         }
         assert_eq!(sum, 15);
         // Part 2
@@ -131,11 +137,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 494);
+        get_puzzle().test_part1(494);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 1048128);
+        get_puzzle().test_part2(1048128);
     }
 }

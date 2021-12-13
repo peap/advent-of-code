@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use common::{BadInput, InputReader};
+use common::{default_puzzle, Answer, BadInput, InputReader, Puzzle};
 
 struct NavLine {
     line: String,
@@ -18,7 +18,7 @@ impl FromStr for NavLine {
 }
 
 impl NavLine {
-    fn get_illegal_score(&self) -> i64 {
+    fn get_illegal_score(&self) -> u64 {
         let pairs: HashMap<char, char> =
             HashMap::from([('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')]);
         let mut delims: Vec<char> = vec![self.line.chars().next().unwrap()];
@@ -47,7 +47,7 @@ impl NavLine {
         0
     }
 
-    fn get_completion_score(&self) -> i64 {
+    fn get_completion_score(&self) -> u64 {
         let pairs: HashMap<char, char> =
             HashMap::from([('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')]);
         let mut delims: Vec<char> = vec![self.line.chars().next().unwrap()];
@@ -81,14 +81,14 @@ impl NavLine {
     }
 }
 
-fn part1() -> i64 {
-    let lines: Vec<NavLine> = InputReader::new("input.txt").parsed_lines();
+fn part1(reader: &InputReader) -> Answer {
+    let lines: Vec<NavLine> = reader.parsed_lines();
     lines.iter().fold(0, |acc, l| acc + l.get_illegal_score())
 }
 
-fn part2() -> i64 {
-    let lines: Vec<NavLine> = InputReader::new("input.txt").parsed_lines();
-    let mut scores: Vec<i64> = lines
+fn part2(reader: &InputReader) -> Answer {
+    let lines: Vec<NavLine> = reader.parsed_lines();
+    let mut scores: Vec<u64> = lines
         .iter()
         .map(|l| l.get_completion_score())
         .filter(|s| *s > 0)
@@ -97,9 +97,15 @@ fn part2() -> i64 {
     scores[scores.len() / 2]
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Syntax Scoring");
+    puzzle.set_part1(part1, "total syntax error score");
+    puzzle.set_part2(part2, "middle completion score");
+    puzzle
+}
+
 fn main() {
-    println!("Part 1: {}", part1());
-    println!("Part 2: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -127,7 +133,7 @@ mod tests {
             lines.iter().fold(0, |acc, l| acc + l.get_illegal_score()),
             26397
         );
-        let mut scores: Vec<i64> = lines
+        let mut scores: Vec<u64> = lines
             .iter()
             .map(|l| l.get_completion_score())
             .filter(|s| *s > 0)
@@ -138,11 +144,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 366027);
+        get_puzzle().test_part1(366027);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 1118645287);
+        get_puzzle().test_part2(1118645287);
     }
 }

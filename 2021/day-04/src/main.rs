@@ -1,10 +1,10 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 use ansi_term::Style;
 
 #[derive(Clone)]
 struct Space {
-    num: i64,
+    num: u64,
     marked: bool,
 }
 
@@ -24,7 +24,7 @@ impl Space {
 #[derive(Clone)]
 struct Board {
     rows: Vec<Vec<Space>>,
-    winning_num: Option<i64>,
+    winning_num: Option<u64>,
     won: bool,
 }
 
@@ -46,7 +46,7 @@ impl Board {
         );
     }
 
-    fn mark_spaces(&mut self, num: &i64) {
+    fn mark_spaces(&mut self, num: &u64) {
         for row in self.rows.iter_mut() {
             for space in row.iter_mut() {
                 if space.num == *num {
@@ -71,7 +71,7 @@ impl Board {
         cols_marked.iter().any(|c| *c)
     }
 
-    fn score(&self) -> i64 {
+    fn score(&self) -> u64 {
         let mut score = 0;
         for row in self.rows.iter() {
             for space in row.iter() {
@@ -83,7 +83,7 @@ impl Board {
         score
     }
 
-    fn final_score(&self) -> i64 {
+    fn final_score(&self) -> u64 {
         self.score() * self.winning_num.unwrap()
     }
 
@@ -104,8 +104,8 @@ impl Board {
     }
 }
 
-fn parse_bingo(bingo: &[String]) -> (Vec<i64>, Vec<Board>) {
-    let nums: Vec<i64> = bingo[0].split(',').map(|s| s.parse().unwrap()).collect();
+fn parse_bingo(bingo: &[String]) -> (Vec<u64>, Vec<Board>) {
+    let nums: Vec<u64> = bingo[0].split(',').map(|s| s.parse().unwrap()).collect();
     let mut boards = vec![];
     let mut board = Board::new();
     for line in bingo[2..].iter() {
@@ -121,7 +121,7 @@ fn parse_bingo(bingo: &[String]) -> (Vec<i64>, Vec<Board>) {
     (nums, boards)
 }
 
-fn play_bingo(nums: Vec<i64>, mut boards: Vec<Board>) -> Vec<Board> {
+fn play_bingo(nums: Vec<u64>, mut boards: Vec<Board>) -> Vec<Board> {
     let mut winners = vec![];
     for num in nums.iter() {
         for board in boards.iter_mut() {
@@ -136,15 +136,33 @@ fn play_bingo(nums: Vec<i64>, mut boards: Vec<Board>) -> Vec<Board> {
     winners
 }
 
-fn main() {
-    let bingo = InputReader::new("input.txt").parsed_lines();
+fn part1(reader: &InputReader) -> Answer {
+    let bingo = reader.parsed_lines();
     let (nums, boards) = parse_bingo(&bingo);
     let winners = play_bingo(nums, boards);
-    let (first, last) = (winners.first().unwrap(), winners.last().unwrap());
+    let first = winners.first().unwrap();
     first.print();
-    println!("Part 1: final score {}", first.final_score());
+    first.final_score()
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let bingo = reader.parsed_lines();
+    let (nums, boards) = parse_bingo(&bingo);
+    let winners = play_bingo(nums, boards);
+    let last = winners.last().unwrap();
     last.print();
-    println!("Part 2: final score {}", last.final_score());
+    last.final_score()
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Giant Squid");
+    puzzle.set_part1(part1, "winning board score");
+    puzzle.set_part2(part2, "last winner's score");
+    puzzle
+}
+
+fn main() {
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -188,13 +206,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let bingo = InputReader::new("input.txt").parsed_lines();
-        let (nums, boards) = parse_bingo(&bingo);
-        let winners = play_bingo(nums, boards);
-        let (first, last) = (winners.first().unwrap(), winners.last().unwrap());
-        assert_eq!(first.winning_num, Some(5));
-        assert_eq!(first.score(), 1137);
-        assert_eq!(last.winning_num, Some(49));
-        assert_eq!(last.score(), 430);
+        get_puzzle().test_part1(5685);
+    }
+
+    #[test]
+    fn test_part2() {
+        get_puzzle().test_part2(21070);
     }
 }

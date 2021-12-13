@@ -1,13 +1,13 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
-fn process_commands(commands: Vec<String>, with_aim: bool) -> (i64, i64) {
+fn process_commands(commands: Vec<String>, with_aim: bool) -> (u64, u64) {
     let mut horiz = 0;
     let mut depth = 0;
     let mut aim = 0;
     for command in commands.iter() {
         let splits: Vec<&str> = command.split(' ').collect();
         let dir = splits[0];
-        let num: i64 = splits[1].parse().unwrap();
+        let num: u64 = splits[1].parse().unwrap();
         match dir {
             "up" => {
                 aim -= num;
@@ -35,14 +35,27 @@ fn process_commands(commands: Vec<String>, with_aim: bool) -> (i64, i64) {
     (horiz, depth)
 }
 
+fn part1(reader: &InputReader) -> Answer {
+    let commands = reader.parsed_lines();
+    let (horiz, depth) = process_commands(commands, false);
+    horiz * depth
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let commands = reader.parsed_lines();
+    let (horiz, depth) = process_commands(commands, true);
+    horiz * depth
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Dive!");
+    puzzle.set_part1(part1, "final position (h*d)");
+    puzzle.set_part2(part2, "final position (h*d) (w/aim)");
+    puzzle
+}
+
 fn main() {
-    let commands = InputReader::new("input.txt").parsed_lines();
-    let (horiz, depth) = process_commands(commands.clone(), false);
-    let product = horiz * depth;
-    println!("Part 1: h: {}, d: {}; h * d = {}", horiz, depth, product);
-    let (horiz2, depth2) = process_commands(commands, true);
-    let product2 = horiz2 * depth2;
-    println!("Part 2: h: {}, d: {}; h * d = {}", horiz2, depth2, product2);
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -68,13 +81,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let commands = InputReader::new("input.txt").parsed_lines();
-        assert_eq!(process_commands(commands, false), (1927, 1091));
+        get_puzzle().test_part1(2102357);
     }
 
     #[test]
     fn test_part2() {
-        let commands = InputReader::new("input.txt").parsed_lines();
-        assert_eq!(process_commands(commands, true), (1927, 1090312));
+        get_puzzle().test_part2(2101031224);
     }
 }

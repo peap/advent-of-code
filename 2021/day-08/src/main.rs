@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum Segment {
@@ -165,7 +165,7 @@ impl SegmentResolver {
         }
     }
 
-    fn parse(&self, digit_codes: Vec<String>) -> i64 {
+    fn parse(&self, digit_codes: Vec<String>) -> u64 {
         let digits: String = digit_codes
             .iter()
             .map(|c| self.codes.get(c).unwrap().to_string())
@@ -197,8 +197,8 @@ fn parse_line(line: &str) -> (Vec<String>, Vec<String>) {
     (codes, digits)
 }
 
-fn part1() -> i64 {
-    let lines: Vec<String> = InputReader::new("input.txt").parsed_lines();
+fn part1(reader: &InputReader) -> Answer {
+    let lines: Vec<String> = reader.parsed_lines();
     let mut count = 0;
     for line in lines.iter() {
         let (_, out_values) = parse_line(line);
@@ -207,11 +207,11 @@ fn part1() -> i64 {
             .filter(|v| matches!(v.len(), 2 | 3 | 4 | 7))
             .count();
     }
-    count as i64
+    count as Answer
 }
 
-fn part2() -> i64 {
-    let lines: Vec<String> = InputReader::new("input.txt").parsed_lines();
+fn part2(reader: &InputReader) -> Answer {
+    let lines: Vec<String> = reader.parsed_lines();
     let mut sum = 0;
     for line in lines.iter() {
         let (codes, digits) = parse_line(line);
@@ -222,9 +222,15 @@ fn part2() -> i64 {
     sum
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Seven Segment Search");
+    puzzle.set_part1(part1, "number of 1|4|7|8");
+    puzzle.set_part2(part2, "sum of outputs");
+    puzzle
+}
+
 fn main() {
-    println!("Part 1: Number of 1|4|7|8: {}", part1());
-    println!("Part 2: Sum of outputs: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -233,11 +239,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 554);
+        get_puzzle().test_part1(554);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 990964);
+        get_puzzle().test_part2(990964);
     }
 }

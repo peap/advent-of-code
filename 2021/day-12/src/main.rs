@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::{Hash, Hasher};
 
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 const START: &str = "start";
 const END: &str = "end";
@@ -109,7 +109,7 @@ impl CaveSystem {
         rooms
     }
 
-    fn count_paths(&self, special_small_room: bool) -> i64 {
+    fn count_paths(&self, special_small_room: bool) -> u64 {
         let mut paths: HashSet<Path> = HashSet::new();
         let mut queue = VecDeque::new();
         for dest in self.connections[START].iter() {
@@ -135,25 +135,31 @@ impl CaveSystem {
                 }
             }
         }
-        paths.len() as i64
+        paths.len() as u64
     }
 }
 
-fn part1() -> i64 {
-    let lines = InputReader::new("input.txt").parsed_lines();
+fn part1(reader: &InputReader) -> Answer {
+    let lines = reader.parsed_lines();
     let cave = CaveSystem::new(&lines);
     cave.count_paths(false)
 }
 
-fn part2() -> i64 {
-    let lines = InputReader::new("input.txt").parsed_lines();
+fn part2(reader: &InputReader) -> Answer {
+    let lines = reader.parsed_lines();
     let cave = CaveSystem::new(&lines);
     cave.count_paths(true)
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Passage Pathing");
+    puzzle.set_part1(part1, "number of paths");
+    puzzle.set_part2(part2, "number of special paths");
+    puzzle
+}
+
 fn main() {
-    println!("Part 1: number of paths: {}", part1());
-    println!("Part 2: number of paths: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -213,11 +219,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 3576);
+        get_puzzle().test_part1(3576);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 84271);
+        get_puzzle().test_part2(84271);
     }
 }

@@ -1,4 +1,4 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 fn linear_cost(distance: u64) -> u64 {
     distance
@@ -54,13 +54,27 @@ fn minimize_moves(crabs: Vec<u64>, cost_fn: &dyn Fn(u64) -> u64) -> u64 {
     best_cost
 }
 
-fn main() {
-    let mut crabs = InputReader::new("input.txt").parsed_csv_line();
+fn part1(reader: &InputReader) -> Answer {
+    let mut crabs = reader.parsed_csv_line();
     crabs.sort_unstable();
-    let best_cost1 = minimize_moves(crabs.clone(), &linear_cost);
-    println!("Part 1: best position costs {}", best_cost1);
-    let best_cost2 = minimize_moves(crabs, &triangle_cost);
-    println!("Part 2: best position costs {}", best_cost2);
+    minimize_moves(crabs, &linear_cost)
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let mut crabs = reader.parsed_csv_line();
+    crabs.sort_unstable();
+    minimize_moves(crabs, &triangle_cost)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("The Treachery of Whales");
+    puzzle.set_part1(part1, "best position (linear) costs");
+    puzzle.set_part2(part2, "best position (triangle) costs");
+    puzzle
+}
+
+fn main() {
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -77,15 +91,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let mut crabs = InputReader::new("input.txt").parsed_csv_line();
-        crabs.sort_unstable();
-        assert_eq!(minimize_moves(crabs.clone(), &linear_cost), 339321);
+        get_puzzle().test_part1(339321);
     }
 
     #[test]
     fn test_part2() {
-        let mut crabs = InputReader::new("input.txt").parsed_csv_line();
-        crabs.sort_unstable();
-        assert_eq!(minimize_moves(crabs, &triangle_cost), 95476244);
+        get_puzzle().test_part2(95476244);
     }
 }

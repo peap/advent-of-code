@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 lazy_static! {
     static ref LINE_RE: Regex = Regex::new(r"^(\d+),(\d+) -> (\d+),(\d+)$").unwrap();
@@ -101,7 +101,7 @@ impl Map {
         }
     }
 
-    fn count_overlapping(&self, min: usize) -> usize {
+    fn count_overlapping(&self, min: usize) -> u64 {
         let mut overlapping = 0;
         for row in self.points.iter() {
             for point in row.iter() {
@@ -140,14 +140,27 @@ fn cloud_map(line_strings: Vec<String>, with_diagonals: bool) -> Map {
     Map::new(lines)
 }
 
+fn part1(reader: &InputReader) -> Answer {
+    let lines = reader.parsed_lines();
+    let map = cloud_map(lines, false);
+    map.count_overlapping(2)
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let lines = reader.parsed_lines();
+    let map = cloud_map(lines, true);
+    map.count_overlapping(2)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Hydrothermal Venture");
+    puzzle.set_part1(part1, "overlapping points");
+    puzzle.set_part2(part2, "overlapping points (w/diagonals)");
+    puzzle
+}
+
 fn main() {
-    let lines = InputReader::new("input.txt").parsed_lines();
-    let map1 = cloud_map(lines.clone(), false);
-    let overlaps1 = map1.count_overlapping(2);
-    println!("Part 1: overlapping points: {}", overlaps1);
-    let map2 = cloud_map(lines, true);
-    let overlaps2 = map2.count_overlapping(2);
-    println!("Part 2: overlapping points: {}", overlaps2);
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -184,15 +197,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let lines = InputReader::new("input.txt").parsed_lines();
-        let map = cloud_map(lines.clone(), false);
-        assert_eq!(map.count_overlapping(2), 5306);
+        get_puzzle().test_part1(5306);
     }
 
     #[test]
     fn test_part2() {
-        let lines = InputReader::new("input.txt").parsed_lines();
-        let map = cloud_map(lines.clone(), true);
-        assert_eq!(map.count_overlapping(2), 17787);
+        get_puzzle().test_part2(17787);
     }
 }

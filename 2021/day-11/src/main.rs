@@ -1,4 +1,4 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 struct DumboOctopi {
     grid: Vec<Vec<u8>>,
@@ -93,23 +93,29 @@ impl DumboOctopi {
     }
 }
 
-fn part1() -> u64 {
-    let lines: Vec<String> = InputReader::new("input.txt").parsed_lines();
+fn part1(reader: &InputReader) -> Answer {
+    let lines: Vec<String> = reader.parsed_lines();
     let mut octopi = DumboOctopi::new(lines);
     octopi.run_steps(100);
     octopi.flashes
 }
 
-fn part2() -> u64 {
-    let lines: Vec<String> = InputReader::new("input.txt").parsed_lines();
+fn part2(reader: &InputReader) -> Answer {
+    let lines: Vec<String> = reader.parsed_lines();
     let mut octopi = DumboOctopi::new(lines);
     while octopi.step() != 100 {}
     octopi.steps
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Dumbo Octopus");
+    puzzle.set_part1(part1, "number of flashes");
+    puzzle.set_part2(part2, "first synchronized step");
+    puzzle
+}
+
 fn main() {
-    println!("Part 1: number of flashes: {}", part1());
-    println!("Part 2: first synchronized step: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -149,11 +155,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 1675);
+        get_puzzle().test_part1(1675);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 515);
+        get_puzzle().test_part2(515);
     }
 }
