@@ -339,14 +339,23 @@ dependencies = [
 [[package]]
 name = "year-2015-day-20"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2015-day-21"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2015-day-22"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2015-day-23"
@@ -368,6 +377,9 @@ dependencies = [
 [[package]]
 name = "year-2015-day-25"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2016-day-01"

@@ -4,7 +4,7 @@ use std::str::FromStr;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{BadInput, InputReader};
+use common::{default_puzzle, Answer, BadInput, InputReader, Puzzle};
 
 type Register = char;
 type Offset = i32;
@@ -144,23 +144,30 @@ impl Computer {
     }
 }
 
-fn main() {
-    let instructions = InputReader::new("input.txt").parsed_lines();
-    // Part 1
+fn part1(reader: &InputReader) -> Answer {
+    let instructions = reader.parsed_lines();
     let mut computer = Computer::new();
     computer.process(&instructions);
-    println!(
-        "Part 1: The value in register 'b' is {}.",
-        computer.get_register('b')
-    );
-    // Part 2
+    computer.get_register('b') as u64
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let instructions = reader.parsed_lines();
     let mut computer = Computer::new();
     computer.increment('a');
     computer.process(&instructions);
-    println!(
-        "Part 2: The value in register 'b' is {}.",
-        computer.get_register('b')
-    );
+    computer.get_register('b') as u64
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Opening the Turing Lock");
+    puzzle.set_part1(part1, "final value in register b (a=0)");
+    puzzle.set_part2(part2, "final value in register b (a=1)");
+    puzzle
+}
+
+fn main() {
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -168,19 +175,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_part_1() {
-        let instructions = InputReader::new("input.txt").parsed_lines();
-        let mut computer = Computer::new();
-        computer.process(&instructions);
-        assert_eq!(computer.get_register('b'), 307);
+    fn test_part1() {
+        get_puzzle().test_part1(307);
     }
 
     #[test]
-    fn test_part_2() {
-        let instructions = InputReader::new("input.txt").parsed_lines();
-        let mut computer = Computer::new();
-        computer.increment('a');
-        computer.process(&instructions);
-        assert_eq!(computer.get_register('b'), 160);
+    fn test_part2() {
+        get_puzzle().test_part2(160);
     }
 }

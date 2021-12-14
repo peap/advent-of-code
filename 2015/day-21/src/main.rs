@@ -1,11 +1,13 @@
 use std::cmp;
 
-const BOSS_HP: i32 = 103;
-const BOSS_DAMAGE: i32 = 9;
-const BOSS_ARMOR: i32 = 2;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
+
+const BOSS_HP: i64 = 103;
+const BOSS_DAMAGE: i64 = 9;
+const BOSS_ARMOR: i64 = 2;
 
 // (cost, damage, armor)
-type Item = (i32, i32, i32);
+type Item = (i64, i64, i64);
 
 const WEAPONS: [Item; 5] = [
     (8, 4, 0),  // Dagger
@@ -36,10 +38,10 @@ const RINGS: [Item; 7] = [
 
 #[derive(Clone)]
 pub struct Combatant {
-    hp: i32,
-    damage: i32,
-    armor: i32,
-    gold: i32,
+    hp: i64,
+    damage: i64,
+    armor: i64,
+    gold: u64,
 }
 
 impl Combatant {
@@ -58,11 +60,11 @@ impl Combatant {
             hp: 100,
             damage,
             armor: armor_pts,
-            gold,
+            gold: gold as u64,
         }
     }
 
-    fn new_boss(hp: i32, damage: i32, armor: i32) -> Self {
+    fn new_boss(hp: i64, damage: i64, armor: i64) -> Self {
         Combatant {
             hp,
             damage,
@@ -88,9 +90,9 @@ impl Combatant {
     }
 }
 
-pub fn min_and_max_to_defeat_and_lose() -> (i32, i32) {
-    let mut minimum_gold: i32 = i32::max_value();
-    let mut maximum_gold: i32 = i32::min_value();
+pub fn min_and_max_to_defeat_and_lose() -> (u64, u64) {
+    let mut minimum_gold: u64 = u64::max_value();
+    let mut maximum_gold: u64 = u64::min_value();
     let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE, BOSS_ARMOR);
     for weapon in WEAPONS.iter() {
         for armor in ARMORS.iter() {
@@ -119,10 +121,22 @@ pub fn min_and_max_to_defeat_and_lose() -> (i32, i32) {
     (minimum_gold, maximum_gold)
 }
 
+fn part1(_: &InputReader) -> Answer {
+    min_and_max_to_defeat_and_lose().0
+}
+
+fn part2(_: &InputReader) -> Answer {
+    min_and_max_to_defeat_and_lose().1
+}
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("RPG Simulator 20XX");
+    puzzle.set_part1(part1, "least gold to win the fight");
+    puzzle.set_part2(part2, "most gold to lose the fight");
+    puzzle
+}
+
 fn main() {
-    let (min, max) = min_and_max_to_defeat_and_lose();
-    println!("Part 1: It costs at least {} gold to defeat the boss.", min);
-    println!("Part 2: It costs at most {} gold to lose to the boss.", max);
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -147,9 +161,12 @@ mod tests {
     }
 
     #[test]
-    fn test_parts_1_and_2() {
-        let (min, max) = min_and_max_to_defeat_and_lose();
-        assert_eq!(min, 121);
-        assert_eq!(max, 201);
+    fn test_parts1() {
+        get_puzzle().test_part1(121);
+    }
+
+    #[test]
+    fn test_parts2() {
+        get_puzzle().test_part2(201);
     }
 }

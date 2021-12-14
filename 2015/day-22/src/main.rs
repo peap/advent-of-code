@@ -1,16 +1,18 @@
 use std::cmp;
 use std::collections::VecDeque;
 
-pub const BOSS_HP: i32 = 71;
-pub const BOSS_DAMAGE: i32 = 10;
-pub const PLAYER_HP: i32 = 50;
-pub const PLAYER_MANA: i32 = 500;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
-const MANA_MAGIC_MISSILE: i32 = 53;
-const MANA_DRAIN: i32 = 73;
-const MANA_SHIELD: i32 = 113;
-const MANA_POISON: i32 = 173;
-const MANA_RECHARGE: i32 = 229;
+pub const BOSS_HP: i64 = 71;
+pub const BOSS_DAMAGE: i64 = 10;
+pub const PLAYER_HP: i64 = 50;
+pub const PLAYER_MANA: u64 = 500;
+
+const MANA_MAGIC_MISSILE: u64 = 53;
+const MANA_DRAIN: u64 = 73;
+const MANA_SHIELD: u64 = 113;
+const MANA_POISON: u64 = 173;
+const MANA_RECHARGE: u64 = 229;
 
 #[derive(Clone)]
 pub enum Mode {
@@ -31,20 +33,20 @@ enum Spell {
 
 #[derive(Clone)]
 pub struct Combatant {
-    hp: i32,
-    damage: i32,
-    armor: i32,
-    mana: i32,
-    expenses: i32,
+    hp: i64,
+    damage: i64,
+    armor: i64,
+    mana: u64,
+    expenses: u64,
     spell: Spell,
     mode: Mode,
-    t_shielded: i32,
-    t_poisoned: i32,
-    t_recharing: i32,
+    t_shielded: i64,
+    t_poisoned: i64,
+    t_recharing: i64,
 }
 
 impl Combatant {
-    fn new(hp: i32, damage: i32, mana: i32, spell: Spell, mode: Mode) -> Combatant {
+    fn new(hp: i64, damage: i64, mana: u64, spell: Spell, mode: Mode) -> Combatant {
         Combatant {
             hp,
             damage,
@@ -59,15 +61,15 @@ impl Combatant {
         }
     }
 
-    fn new_player(hp: i32, mana: i32, mode: Mode) -> Combatant {
+    fn new_player(hp: i64, mana: u64, mode: Mode) -> Combatant {
         Combatant::new(hp, 0, mana, Spell::Nothing, mode)
     }
 
-    fn new_boss(hp: i32, damage: i32) -> Combatant {
+    fn new_boss(hp: i64, damage: i64) -> Combatant {
         Combatant::new(hp, damage, 0, Spell::BossAttack, Mode::Easy)
     }
 
-    fn buy(&mut self, mana: i32) {
+    fn buy(&mut self, mana: u64) {
         self.mana -= mana;
         self.expenses += mana;
     }
@@ -159,16 +161,13 @@ impl Combatant {
     }
 }
 
-pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> i32 {
-    let mut minimum_mana = i32::max_value();
+pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> u64 {
+    let mut minimum_mana = u64::max_value();
     let mut q: VecDeque<(Combatant, Combatant)> = VecDeque::new();
     for p in player.get_next_spells(&boss).iter() {
         q.push_back((p.clone(), boss.clone()));
     }
     while !q.is_empty() {
-        if q.len() % 1000 == 0 {
-            print!("\rQueue size: {:<9}", q.len());
-        }
         let (ref mut player, ref mut boss) = q.pop_front().unwrap();
         // Player turn
         player.apply_effects(true);
@@ -200,23 +199,27 @@ pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> i32 {
     minimum_mana
 }
 
-fn main() {
-    // Part 1
+fn part1(_: &InputReader) -> Answer {
     let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Easy);
     let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
-    let mana = find_minimum_mana_to_win(player, boss);
-    println!(
-        "\nPart 1: it costs at least {} mana to win in easy mode",
-        mana
-    );
-    // Part 2
+    find_minimum_mana_to_win(player, boss)
+}
+
+fn part2(_: &InputReader) -> Answer {
     let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Hard);
     let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
-    let mana = find_minimum_mana_to_win(player, boss);
-    println!(
-        "\nPart 2: it costs at least {} mana to win in hard mode",
-        mana
-    );
+    find_minimum_mana_to_win(player, boss)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Wizard Simulator 20XX");
+    puzzle.set_part1(part1, "least mana to win (easy)");
+    puzzle.set_part2(part2, "least mana to win (hard)");
+    puzzle
+}
+
+fn main() {
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -232,18 +235,12 @@ mod tests {
     }
 
     #[test]
-    fn test_part_1() {
-        let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Easy);
-        let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
-        let mana = find_minimum_mana_to_win(player, boss);
-        assert_eq!(mana, 1824);
+    fn test_part1() {
+        get_puzzle().test_part1(1824);
     }
 
     #[test]
-    fn test_part_2() {
-        let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Hard);
-        let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
-        let mana = find_minimum_mana_to_win(player, boss);
-        assert_eq!(mana, 1937);
+    fn test_part2() {
+        get_puzzle().test_part2(1937);
     }
 }

@@ -2,9 +2,9 @@ use std::cmp;
 
 use itertools::Itertools;
 
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
-pub type Gift = i64;
+pub type Gift = u64;
 pub type Group = Vec<Gift>;
 pub type GroupArg<'a> = &'a [Gift];
 
@@ -51,26 +51,25 @@ pub fn optimize_sleigh(gifts: GroupArg, n: usize) -> Option<(usize, Gift)> {
     None
 }
 
+fn part1(reader: &InputReader) -> Answer {
+    let gifts = reader.parsed_lines();
+    optimize_sleigh(&gifts, 3).unwrap().1
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let gifts = reader.parsed_lines();
+    optimize_sleigh(&gifts, 4).unwrap().1
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("It Hangs in the Balance");
+    puzzle.set_part1(part1, "quantum entanglement (3-part)");
+    puzzle.set_part2(part2, "quantum entanglement (4-part)");
+    puzzle
+}
+
 fn main() {
-    let gifts = InputReader::new("input.txt").parsed_lines();
-    // Part 1
-    if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 3) {
-        println!(
-            "Part 1: best 3-part arrangement has n={} and QE={}",
-            min_n, min_qe
-        );
-    } else {
-        println!("Part 1: couldn't find any sleigh arrangements");
-    }
-    // Part 2
-    if let Some((min_n, min_qe)) = optimize_sleigh(&gifts, 4) {
-        println!(
-            "Part 2: best 4-part arrangement has n={} and QE={}",
-            min_n, min_qe
-        );
-    } else {
-        println!("Part 2: couldn't find any sleigh arrangements");
-    }
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -96,7 +95,23 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // 107s
+    fn test_example_2() {
+        let items = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        let optimized = optimize_sleigh(&items, 4);
+        assert_eq!(optimized, Some((2, 44)));
+    }
+
+    #[test]
+    fn test_part1() {
+        get_puzzle().test_part1(11846773891);
+    }
+
+    #[test]
+    fn test_part2() {
+        get_puzzle().test_part2(80393059);
+    }
+
+    #[test]
     fn test_someone_elses_answer() {
         // https://www.reddit.com/r/adventofcode/comments/3y1s7f/day_24_solutions/cy9v5vo/
         let items = vec![
@@ -105,27 +120,5 @@ mod tests {
         ];
         let optimized = optimize_sleigh(&items, 3);
         assert_eq!(optimized, Some((6, 10_439_961_859)));
-    }
-
-    #[test]
-    #[ignore] // 107s
-    fn test_part_1() {
-        let gifts = InputReader::new("input.txt").parsed_lines();
-        let optimized = optimize_sleigh(&gifts, 3);
-        assert_eq!(optimized, Some((6, 11846773891)));
-    }
-
-    #[test]
-    fn test_example_2() {
-        let items = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
-        let optimized = optimize_sleigh(&items, 4);
-        assert_eq!(optimized, Some((2, 44)));
-    }
-
-    #[test]
-    fn test_part_2() {
-        let gifts = InputReader::new("input.txt").parsed_lines();
-        let optimized = optimize_sleigh(&gifts, 4);
-        assert_eq!(optimized, Some((4, 80393059)));
     }
 }

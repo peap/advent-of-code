@@ -1,5 +1,6 @@
 // My input: "To continue, please consult the code grid in the manual. Enter
 // the code at row 3010, column 3019."
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 pub const ROW: usize = 3010;
 pub const COL: usize = 3019;
@@ -30,9 +31,19 @@ pub fn get_code(row: usize, col: usize) -> u64 {
     code
 }
 
+fn part1(_: &InputReader) -> Answer {
+    get_code(ROW, COL)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Let It Snow");
+    puzzle.set_part1(part1, "machine code");
+    // part2 is a freebie :)
+    puzzle
+}
+
 fn main() {
-    let code = get_code(ROW, COL);
-    println!("Part 1: The code at ({}, {}) is {}.", ROW, COL, code);
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -71,6 +82,6 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        assert_eq!(get_code(ROW, COL), 8997277);
+        get_puzzle().test_part1(8997277);
     }
 }
