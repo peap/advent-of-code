@@ -28,7 +28,7 @@ pub struct Puzzle {
 impl Puzzle {
     pub fn new(year: u16, day: u8, title: &str, input_path: &'static str) -> Self {
         Puzzle {
-            title: format!("{}, Day {}: {}", year, day, title.to_string()),
+            title: format!("{}, Day {}: {}", year, day, title),
             reader: InputReader::new(input_path),
             part1: None,
             part2: None,

@@ -55,3 +55,8 @@ docs/_build/
 
 # PyBuilder, Rust
 target/
+
+# `cargo flamegraph` profiling
+flamegraph.svg
+perf.data
+perf.data.old
