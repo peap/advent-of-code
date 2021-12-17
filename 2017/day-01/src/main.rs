@@ -14,7 +14,7 @@ fn captcha(digits: Vec<u8>, distance: usize) -> i64 {
 }
 
 fn main() {
-    let digits = InputReader::new("input.txt").u8_line();
+    let digits = InputReader::new("input.txt").digit_line(10);
     println!(
         "Part 1: Captcha for input is {}",
         captcha(digits.clone(), 1)
@@ -56,13 +56,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let digits = InputReader::new("input.txt").u8_line();
+        let digits = InputReader::new("input.txt").digit_line(10);
         assert_eq!(captcha(digits, 1), 1136);
     }
 
     #[test]
     fn test_part2() {
-        let digits = InputReader::new("input.txt").u8_line();
+        let digits = InputReader::new("input.txt").digit_line(10);
         let distance = digits.len() / 2;
         assert_eq!(captcha(digits, distance), 1092);
     }

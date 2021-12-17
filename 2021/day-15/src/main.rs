@@ -19,14 +19,6 @@ impl From<(usize, usize)> for Point {
     }
 }
 
-impl Point {
-    fn distance_to(&self, other: &Self) -> u64 {
-        let xdist = other.y as i64 - self.y as i64;
-        let ydist = other.x as i64 - self.x as i64;
-        (xdist + ydist) as u64
-    }
-}
-
 struct Cave {
     grid: Vec<Vec<u8>>,
     width: usize,
@@ -108,11 +100,7 @@ impl Cave {
             current_point = *best_paths
                 .iter()
                 .filter(|(p, _)| !visited[p.y][p.x])
-                .min_by(|(_, a), (_, b)| {
-                    let cost_a = a.1; //+ a.0.distance_to(&end_point);
-                    let cost_b = b.1; //+ b.0.distance_to(&end_point);
-                    cost_a.cmp(&cost_b)
-                })
+                .min_by(|(_, a), (_, b)| a.1.cmp(&b.1))
                 .unwrap()
                 .0;
         }

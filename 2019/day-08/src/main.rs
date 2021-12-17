@@ -80,14 +80,14 @@ impl Image {
 }
 
 fn part1() -> u32 {
-    let pixels = InputReader::new("input.txt").u8_line();
+    let pixels = InputReader::new("input.txt").digit_line(10);
     let image = Image::new(25, 6, &pixels);
     let layer = image.get_layer_with_fewest(0);
     layer.count_pixels(1) * layer.count_pixels(2)
 }
 
 fn part2() -> Layer {
-    let pixels = InputReader::new("input.txt").u8_line();
+    let pixels = InputReader::new("input.txt").digit_line(10);
     let image = Image::new(25, 6, &pixels);
     image.get_full_image()
 }

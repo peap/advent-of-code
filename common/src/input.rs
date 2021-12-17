@@ -43,11 +43,11 @@ impl InputReader {
         self.string_lines().first().unwrap().to_string()
     }
 
-    pub fn u8_line(&self) -> Vec<u8> {
+    pub fn digit_line(&self, radix: u32) -> Vec<u8> {
         self.string_line()
             .trim()
             .chars()
-            .map(|c| c.to_digit(10).unwrap() as u8)
+            .map(|c| c.to_digit(radix).unwrap() as u8)
             .collect()
     }
 
@@ -101,8 +101,8 @@ mod tests {
     }
 
     #[test]
-    fn test_u8_line() {
-        let line = InputReader::new("../2019/day-08/input.txt").u8_line();
+    fn test_digit_line_base10() {
+        let line = InputReader::new("../2019/day-08/input.txt").digit_line(10);
         assert_eq!(line.len(), 15000);
         assert_eq!(line[0..5], vec![2, 2, 2, 2, 0]);
     }
