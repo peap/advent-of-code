@@ -1,46 +1,8 @@
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use std::collections::{HashMap, HashSet};
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{Answer, InputReader, Puzzle};
 
 type Point = (usize, usize);
-
-#[derive(Eq)]
-struct Step {
-    cost: u64,
-    loc: Point,
-    dest: Point,
-}
-
-impl Step {
-    fn new(cost: u64, loc: Point, dest: Point) -> Self {
-        Step { cost, loc, dest }
-    }
-
-    fn weight(&self) -> usize {
-        // let dist = self.x + self.y;
-        // dist + dist - self.cost as usize
-        (self.dest.0 - self.loc.0) + (self.dest.1 - self.loc.1)
-    }
-}
-
-impl Ord for Step {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.weight().cmp(&other.weight())
-    }
-}
-
-impl PartialOrd for Step {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for Step {
-    fn eq(&self, other: &Self) -> bool {
-        self.weight() == other.weight()
-    }
-}
 
 struct Cave {
     grid: Vec<Vec<u8>>,
@@ -98,62 +60,62 @@ impl Cave {
             .collect()
     }
 
-    fn best_path(&self) -> u64 {
-        let xf = self.width - 1;
-        let yf = self.height - 1;
-        let mut queue = BinaryHeap::new();
-        let mut best_costs = vec![vec![u64::MAX; self.height]; self.width];
-        best_costs[0][0] = 0;
-        for (x, y) in self.get_neighbors((0, 0)).into_iter() {
-            let cost = self.grid[y][x] as u64;
-            queue.push(Step::new(cost, (x, y), (xf, yf)));
-            best_costs[y][x] = cost;
-        }
-        while !queue.is_empty() {
-            let step = queue.pop().unwrap();
-            if step.cost > best_costs[yf][xf] {
-                continue;
-            }
-            for (i, j) in self.get_neighbors(step.loc).into_iter() {
-                let step_cost = step.cost + self.grid[j][i] as u64;
-                if step_cost > best_costs[j][i] {
-                    continue;
-                }
-                if step_cost > best_costs[yf][xf] {
-                    continue;
-                }
-                best_costs[j][i] = step_cost;
-                if !(i == xf && j == yf) {
-                    queue.push(Step::new(step_cost, (i, j), (xf, yf)));
+    fn best_path_cost(&self) -> u64 {
+        let start_point: Point = (0, 0);
+        let end_point: Point = (self.width - 1, self.height - 1);
+        let mut best_paths: HashMap<Point, (Point, u64)> = HashMap::new();
+        best_paths.insert(start_point, (start_point, 0));
+        let mut visited: HashSet<Point> = HashSet::new();
+
+        let mut current_point = start_point;
+        while current_point != end_point {
+            visited.insert(current_point);
+            let destinations = self.get_neighbors(current_point);
+            let cost_so_far = best_paths.get(&current_point).unwrap().1;
+            for next_point in destinations.into_iter() {
+                let (x, y) = next_point;
+                let next_cost = cost_so_far + self.grid[y][x] as u64;
+                if let Some(current_best) = best_paths.get_mut(&next_point) {
+                    if next_cost < current_best.1 {
+                        *current_best = (current_point, next_cost);
+                    }
+                } else {
+                    best_paths.insert(next_point, (current_point, next_cost));
                 }
             }
+            current_point = *best_paths
+                .iter()
+                .filter(|(p, _)| !visited.contains(p))
+                .min_by(|(_, a), (_, b)| a.1.cmp(&b.1))
+                .unwrap()
+                .0;
         }
-        best_costs[yf][xf]
+        best_paths.get(&end_point).unwrap().1
     }
 }
 
 fn part1(reader: &InputReader) -> Answer {
     let lines: Vec<String> = reader.parsed_lines();
     let cave = Cave::new(lines);
-    cave.best_path()
+    cave.best_path_cost()
 }
 
 fn part2(reader: &InputReader) -> Answer {
     let lines: Vec<String> = reader.parsed_lines();
     let mut cave = Cave::new(lines);
     cave.expand5x();
-    cave.best_path()
+    cave.best_path_cost()
 }
 
-fn get_puzzle() -> Puzzle {
-    let mut puzzle = default_puzzle!("Chiton");
+fn get_puzzle(filename: &'static str) -> Puzzle {
+    let mut puzzle = Puzzle::new(2021, 15, "Chiton", filename);
     puzzle.set_part1(part1, "lowest total risk");
     puzzle.set_part2(part2, "lowest total risk (5x bigger)");
     puzzle
 }
 
 fn main() {
-    get_puzzle().run();
+    get_puzzle("input.txt").run();
 }
 
 #[cfg(test)]
@@ -178,19 +140,30 @@ mod tests {
         .map(|l| l.to_string())
         .collect();
         let mut cave = Cave::new(lines);
-        assert_eq!(cave.best_path(), 40);
+        assert_eq!(cave.best_path_cost(), 40);
         cave.expand5x();
-        assert_eq!(cave.best_path(), 315);
+        assert_eq!(cave.best_path_cost(), 315);
     }
 
     #[test]
     fn test_part1() {
-        get_puzzle().test_part1(361);
+        get_puzzle("input.txt").test_part1(361);
+    }
+
+    #[test]
+    fn test_another_part1() {
+        get_puzzle("input2.txt").test_part1(748);
     }
 
     #[test]
     #[ignore]
     fn test_part2() {
-        get_puzzle().test_part2(0);
+        get_puzzle("input.txt").test_part2(0);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_another_part2() {
+        get_puzzle("input2.txt").test_part2(0);
     }
 }
