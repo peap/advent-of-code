@@ -1,8 +1,31 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use common::{Answer, InputReader, Puzzle};
 
-type Point = (usize, usize);
+// type Point = (usize, usize);
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+struct Point {
+    x: usize,
+    y: usize,
+}
+
+impl From<(usize, usize)> for Point {
+    fn from(tuple: (usize, usize)) -> Self {
+        Point {
+            x: tuple.0,
+            y: tuple.1,
+        }
+    }
+}
+
+impl Point {
+    fn distance_to(&self, other: &Self) -> u64 {
+        let xdist = other.y as i64 - self.y as i64;
+        let ydist = other.x as i64 - self.x as i64;
+        (xdist + ydist) as u64
+    }
+}
 
 struct Cave {
     grid: Vec<Vec<u8>>,
@@ -48,33 +71,32 @@ impl Cave {
         self.height *= 5;
     }
 
-    fn get_neighbors(&self, p: Point) -> Vec<(usize, usize)> {
-        let x = p.0 as i64;
-        let y = p.1 as i64;
+    fn get_neighbors(&self, p: Point) -> Vec<Point> {
+        let x = p.x as i64;
+        let y = p.y as i64;
         let xmax = self.width as i64;
         let ymax = self.height as i64;
         vec![(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
             .into_iter()
             .filter(|(x, y)| (0..xmax).contains(x) && (0..ymax).contains(y))
-            .map(|(x, y)| (x as usize, y as usize))
+            .map(|(x, y)| Point::from((x as usize, y as usize)))
             .collect()
     }
 
     fn best_path_cost(&self) -> u64 {
-        let start_point: Point = (0, 0);
-        let end_point: Point = (self.width - 1, self.height - 1);
+        let start_point = Point::from((0, 0));
+        let end_point = Point::from((self.width - 1, self.height - 1));
         let mut best_paths: HashMap<Point, (Point, u64)> = HashMap::new();
         best_paths.insert(start_point, (start_point, 0));
-        let mut visited: HashSet<Point> = HashSet::new();
+        let mut visited = vec![vec![false; self.height]; self.width];
 
         let mut current_point = start_point;
         while current_point != end_point {
-            visited.insert(current_point);
+            visited[current_point.y][current_point.x] = true;
             let destinations = self.get_neighbors(current_point);
             let cost_so_far = best_paths.get(&current_point).unwrap().1;
             for next_point in destinations.into_iter() {
-                let (x, y) = next_point;
-                let next_cost = cost_so_far + self.grid[y][x] as u64;
+                let next_cost = cost_so_far + self.grid[next_point.y][next_point.x] as u64;
                 if let Some(current_best) = best_paths.get_mut(&next_point) {
                     if next_cost < current_best.1 {
                         *current_best = (current_point, next_cost);
@@ -85,8 +107,12 @@ impl Cave {
             }
             current_point = *best_paths
                 .iter()
-                .filter(|(p, _)| !visited.contains(p))
-                .min_by(|(_, a), (_, b)| a.1.cmp(&b.1))
+                .filter(|(p, _)| !visited[p.y][p.x])
+                .min_by(|(_, a), (_, b)| {
+                    let cost_a = a.1 + a.0.distance_to(&end_point);
+                    let cost_b = b.1 + b.0.distance_to(&end_point);
+                    cost_a.cmp(&cost_b)
+                })
                 .unwrap()
                 .0;
         }
@@ -116,6 +142,7 @@ fn get_puzzle(filename: &'static str) -> Puzzle {
 
 fn main() {
     get_puzzle("input.txt").run();
+    get_puzzle("input2.txt").run();
 }
 
 #[cfg(test)]
@@ -156,9 +183,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore] // long time
     fn test_part2() {
-        get_puzzle("input.txt").test_part2(0);
+        get_puzzle("input.txt").test_part2(2838);
     }
 
     #[test]
