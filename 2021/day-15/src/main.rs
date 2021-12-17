@@ -109,8 +109,8 @@ impl Cave {
                 .iter()
                 .filter(|(p, _)| !visited[p.y][p.x])
                 .min_by(|(_, a), (_, b)| {
-                    let cost_a = a.1 + a.0.distance_to(&end_point);
-                    let cost_b = b.1 + b.0.distance_to(&end_point);
+                    let cost_a = a.1; //+ a.0.distance_to(&end_point);
+                    let cost_b = b.1; //+ b.0.distance_to(&end_point);
                     cost_a.cmp(&cost_b)
                 })
                 .unwrap()
@@ -183,14 +183,14 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // long time
+    #[ignore] // several minutes
     fn test_part2() {
         get_puzzle("input.txt").test_part2(2838);
     }
 
     #[test]
-    #[ignore]
+    #[ignore] // several minutes
     fn test_another_part2() {
-        get_puzzle("input2.txt").test_part2(0);
+        get_puzzle("input2.txt").test_part2(3045);
     }
 }
