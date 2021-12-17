@@ -108,6 +108,14 @@ mod tests {
     }
 
     #[test]
+    fn test_digit_line_base16() {
+        let line = InputReader::new("../2021/day-16/input.txt").digit_line(16);
+        assert_eq!(line.len(), 1368);
+        // A20D5
+        assert_eq!(line[0..5], vec![10, 2, 0, 13, 5]);
+    }
+
+    #[test]
     fn test_parsed_csv_line() {
         let nums: Vec<u16> = InputReader::new("../2021/day-07/input.txt").parsed_csv_line();
         assert_eq!(nums.len(), 1000);
