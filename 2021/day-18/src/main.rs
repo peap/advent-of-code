@@ -1,24 +1,27 @@
-use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
 use std::str::FromStr;
 
 use common::{default_puzzle, Answer, BadInput, InputReader, Puzzle};
+
+type NumWrap = Rc<RefCell<Option<Number>>>;
 
 #[derive(Clone, Debug)]
 struct Number {
     // How far from the top-level number is this one?
     depth: u64,
 
-    parent: RefCell<Weak<Number>>,
+    // If we don't have a left or a right node, we have a value.
+    value: Cell<Option<u64>>,
 
     // A `Number` is a pair, where the left or right member can be a
     // simple number or another pair. The simplest number is [x,y],
     // where the top-level number has `value=None`, `left` is another
     // `Number` with `value=Some(x)` and right is a third `Number`
     // with `value=Some(y)`.
-    value: Option<u64>,
-    left: RefCell<Option<Rc<Number>>>,
-    right: RefCell<Option<Rc<Number>>>,
+    parent: NumWrap,
+    left: NumWrap,
+    right: NumWrap,
 }
 
 impl PartialEq for Number {
@@ -38,7 +41,7 @@ impl FromStr for Number {
     type Err = BadInput;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
-        let mut num_stack: Vec<Rc<Number>> = vec![];
+        let mut num_stack: Vec<NumWrap> = vec![];
         let mut on_the_left: Vec<bool> = vec![];
         let mut depth = 0;
         for c in string.chars() {
@@ -46,17 +49,22 @@ impl FromStr for Number {
                 '[' => {
                     depth += 1;
                     on_the_left.push(true);
-                    num_stack.push(Rc::new(Number::new(depth, None)));
+                    let num = Number::new(depth, None);
+                    num_stack.push(Rc::new(RefCell::new(Some(num))));
                 }
                 ']' => {
                     depth -= 1;
                     let finished = num_stack.pop().unwrap();
                     if let Some(current) = num_stack.pop() {
-                        finished.set_parent(&current);
+                        if let Some(f) = &*finished.borrow() {
+                            f.set_parent(current.clone());
+                        }
                         if on_the_left.pop().unwrap() {
-                            current.set_left(finished);
-                        } else {
-                            current.set_right(finished);
+                            if let Some(c) = &*current.borrow() {
+                                c.set_left(finished);
+                            }
+                        } else if let Some(c) = &*current.borrow() {
+                            c.set_right(finished);
                         }
                         num_stack.push(current);
                     } else {
@@ -69,13 +77,15 @@ impl FromStr for Number {
                 d => {
                     let val = d.to_digit(10).unwrap() as u64;
                     let current = num_stack.pop().unwrap();
-                    let mut new_num = Number::new(depth + 1, None);
-                    new_num.set_parent(&current);
-                    new_num.set_value(val);
+                    let new_num = Number::new(depth + 1, Some(val));
+                    new_num.set_parent(current.clone());
+                    let new_num_ref = Rc::new(RefCell::new(Some(new_num)));
                     if on_the_left.pop().unwrap() {
-                        current.set_left(Rc::new(new_num));
-                    } else {
-                        current.set_right(Rc::new(new_num));
+                        if let Some(c) = &*current.borrow() {
+                            c.set_left(new_num_ref);
+                        }
+                    } else if let Some(c) = &*current.borrow() {
+                        c.set_right(new_num_ref);
                     }
                     num_stack.push(current);
                 }
@@ -84,7 +94,8 @@ impl FromStr for Number {
         if num_stack.len() != 1 {
             panic!("Eric did it wrong");
         }
-        Rc::try_unwrap(num_stack.pop().unwrap()).or(Err(BadInput))
+        let root = Rc::try_unwrap(num_stack.pop().unwrap()).unwrap();
+        Ok(root.into_inner().unwrap())
     }
 }
 
@@ -92,31 +103,31 @@ impl Number {
     fn new(depth: u64, value: Option<u64>) -> Self {
         Number {
             depth,
-            parent: RefCell::new(Weak::new()),
-            value,
-            left: RefCell::new(None),
-            right: RefCell::new(None),
+            value: Cell::new(value),
+            parent: Rc::new(RefCell::new(None)),
+            left: Rc::new(RefCell::new(None)),
+            right: Rc::new(RefCell::new(None)),
         }
     }
 
-    fn set_parent(&self, parent: &Rc<Number>) {
-        *self.parent.borrow_mut() = Rc::downgrade(parent);
-    }
-
     fn get_value(&self) -> Option<u64> {
-        self.value
+        self.value.get()
     }
 
-    fn set_value(&mut self, value: u64) {
-        self.value = Some(value);
+    fn set_value(&self, value: u64) {
+        self.value.set(Some(value));
     }
 
-    fn set_left(&self, num: Rc<Number>) {
-        *self.left.borrow_mut() = Some(num);
+    fn set_parent(&self, parent: NumWrap) {
+        self.parent.replace(parent.borrow().clone());
     }
 
-    fn set_right(&self, num: Rc<Number>) {
-        *self.right.borrow_mut() = Some(num);
+    fn set_left(&self, num: NumWrap) {
+        self.left.replace(num.borrow().clone());
+    }
+
+    fn set_right(&self, num: NumWrap) {
+        self.right.replace(num.borrow().clone());
     }
 
     fn magnitude(&self) -> u64 {
@@ -188,32 +199,23 @@ impl Number {
             println!(" right: {}", right_val);
             *self.left.borrow_mut() = None;
             *self.right.borrow_mut() = None;
-            self.value = Some(0);
+            self.set_value(0);
             exploded = true;
         } else {
             // Try to explode a child number, first on the left...
             println!(" explode left...");
             let mut left = self.left.borrow_mut();
             if let Some(l) = left.as_mut() {
-                println!("  ...have mut borrow...");
-                // TODO: get_mut doesn't work when there are other
-                // references; we probably need to switch the order
-                // of Rc and RefCell in the Number struct :/.
-                if let Some(n) = Rc::get_mut(l) {
-                    println!("   ...let's go");
-                    exploded = n.explode();
-                }
+                println!("   ...let's go");
+                exploded = l.explode();
             }
             // ...then on the right.
             println!(" explode right...");
             let mut right = self.right.borrow_mut();
             if !exploded && right.is_some() {
                 if let Some(r) = right.as_mut() {
-                    println!("  ...have mut borrow...");
-                    if let Some(n) = Rc::get_mut(r) {
-                        println!("  ...let's go");
-                        exploded = n.explode();
-                    }
+                    println!("  ...let's go");
+                    exploded = r.explode();
                 }
             }
         }
@@ -225,35 +227,28 @@ impl Number {
         exploded
     }
 
-    fn move_value_left(&mut self, value: u64) {
-        let mut left = self.left.borrow_mut();
-        if let Some(l) = left.as_mut() {
+    fn move_value_left(&self, value: u64) {
+        if let Some(l) = &*self.left.borrow() {
             if let Some(v) = l.get_value() {
-                Rc::get_mut(l).unwrap().set_value(v + value);
+                l.set_value(v + value);
             }
-        } else {
-            let mut parent = self.parent.borrow_mut().upgrade();
-            if let Some(p) = parent.as_mut() {
-                Rc::get_mut(p).unwrap().move_value_left(value);
-            }
+        } else if let Some(p) = &*self.parent.borrow() {
+            p.move_value_left(value);
         }
     }
 
-    fn move_value_right(&mut self, value: u64) {
-        let mut right = self.right.borrow_mut();
-        if let Some(r) = right.as_mut() {
+    fn move_value_right(&self, value: u64) {
+        if let Some(r) = &*self.right.borrow() {
             if let Some(v) = r.get_value() {
-                Rc::get_mut(r).unwrap().set_value(v + value);
+                r.set_value(v + value);
             }
-        } else {
-            let mut parent = self.parent.borrow_mut().upgrade();
-            if let Some(p) = parent.as_mut() {
-                Rc::get_mut(p).unwrap().move_value_right(value);
-            }
+        } else if let Some(p) = &*self.parent.borrow() {
+            p.move_value_right(value);
         }
     }
 
     fn split(&mut self) -> bool {
+        // TODO
         false
     }
 }
@@ -266,8 +261,8 @@ fn part1(reader: &InputReader) -> Answer {
             let left_num = acc;
             let right_num = a;
             let mut sum = Number::new(0, None);
-            sum.set_left(Rc::new(left_num));
-            sum.set_right(Rc::new(right_num));
+            sum.set_left(Rc::new(RefCell::new(Some(left_num))));
+            sum.set_right(Rc::new(RefCell::new(Some(right_num))));
             sum.reduce();
             sum
         })
@@ -295,6 +290,10 @@ fn main() {
 mod tests {
     use super::*;
 
+    fn wrapped(depth: u64, value: Option<u64>) -> NumWrap {
+        Rc::new(RefCell::new(Some(Number::new(depth, value))))
+    }
+
     #[test]
     fn test_number_from_str_empty() {
         let num = Rc::new(Number::new(1, None));
@@ -305,78 +304,112 @@ mod tests {
     #[test]
     fn test_number_from_str_simple() {
         let num = Rc::new(Number::new(1, None));
-        num.set_left(Rc::new(Number::new(2, Some(1))));
-        num.set_right(Rc::new(Number::new(2, Some(2))));
+        num.set_left(wrapped(2, Some(1)));
+        num.set_right(wrapped(2, Some(2)));
         let got = Number::from_str("[1,2]").unwrap();
         assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
     }
 
+    fn set_left(num: NumWrap, left: NumWrap) {
+        if let Some(n) = &*num.borrow() {
+            n.set_left(left);
+        }
+    }
+
+    fn set_right(num: NumWrap, right: NumWrap) {
+        if let Some(n) = &*num.borrow() {
+            n.set_right(right);
+        }
+    }
+
+    fn set_parent(num: NumWrap, parent: NumWrap) {
+        if let Some(n) = &*num.borrow() {
+            n.set_parent(parent);
+        }
+    }
+
     #[test]
     fn test_number_from_str_nested() {
-        let num = Rc::new(Number::new(1, None));
-        num.set_left(Rc::new(Number::new(2, Some(1))));
-        let l2 = Rc::new(Number::new(2, None));
-        l2.set_parent(&num);
-        l2.set_left(Rc::new(Number::new(3, Some(2))));
-        l2.set_right(Rc::new(Number::new(3, Some(3))));
-        num.set_right(l2);
+        let num = wrapped(1, None);
+        set_left(num.clone(), wrapped(2, Some(1)));
+        let l2 = wrapped(2, None);
+        set_parent(l2.clone(), num.clone());
+        set_left(l2.clone(), wrapped(3, Some(2)));
+        set_right(l2.clone(), wrapped(3, Some(3)));
+        set_right(num.clone(), l2.clone());
         let got = Number::from_str("[1,[2,3]]").unwrap();
-        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
+        if let Some(n) = &*num.borrow() {
+            assert_eq!(got, *n, "\ngot: {:#?}\nwant: {:#?}", got, n);
+        } else {
+            panic!("Nothing to borrow");
+        };
     }
 
     #[test]
     fn test_number_from_str_nested_deep_left() {
-        let num = Rc::new(Number::new(1, None));
-        num.set_left(Rc::new(Number::new(2, Some(1))));
-        let l2 = Rc::new(Number::new(2, None));
-        l2.set_left(Rc::new(Number::new(3, Some(2))));
-        let l3 = Rc::new(Number::new(3, None));
-        l3.set_left(Rc::new(Number::new(4, Some(3))));
-        l3.set_right(Rc::new(Number::new(4, Some(4))));
-        l2.set_right(l3);
-        num.set_right(l2);
+        let num = wrapped(1, None);
+        set_left(num.clone(), wrapped(2, Some(1)));
+        let l2 = wrapped(2, None);
+        set_left(l2.clone(), wrapped(3, Some(2)));
+        let l3 = wrapped(3, None);
+        set_left(l3.clone(), wrapped(4, Some(3)));
+        set_right(l3.clone(), wrapped(4, Some(4)));
+        set_right(l2.clone(), l3.clone());
+        set_right(num.clone(), l2.clone());
         let got = Number::from_str("[1,[2,[3,4]]]").unwrap();
-        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
+        if let Some(n) = &*num.borrow() {
+            assert_eq!(got, *n, "\ngot: {:#?}\nwant: {:#?}", got, n);
+        } else {
+            panic!("Nothing to borrow");
+        };
     }
 
     #[test]
     fn test_number_from_str_nested_deep_right() {
-        let num = Rc::new(Number::new(1, None));
-        num.set_right(Rc::new(Number::new(2, Some(4))));
-        let l2 = Rc::new(Number::new(2, None));
-        l2.set_right(Rc::new(Number::new(3, Some(3))));
-        let l3 = Rc::new(Number::new(3, None));
-        l3.set_right(Rc::new(Number::new(4, Some(2))));
-        l3.set_left(Rc::new(Number::new(4, Some(1))));
-        l2.set_left(l3);
-        num.set_left(l2);
+        let num = wrapped(1, None);
+        set_right(num.clone(), wrapped(2, Some(4)));
+        let l2 = wrapped(2, None);
+        set_right(l2.clone(), wrapped(3, Some(3)));
+        let l3 = wrapped(3, None);
+        set_right(l3.clone(), wrapped(4, Some(2)));
+        set_left(l3.clone(), wrapped(4, Some(1)));
+        set_left(l2.clone(), l3.clone());
+        set_left(num.clone(), l2.clone());
         let got = Number::from_str("[[[1,2],3],4]").unwrap();
-        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
+        if let Some(n) = &*num.borrow() {
+            assert_eq!(got, *n, "\ngot: {:#?}\nwant: {:#?}", got, n);
+        } else {
+            panic!("Nothing to borrow");
+        };
     }
 
     #[test]
-    fn test_number_has_regular_pair() {
-        // Empty number.
-        let empty = Number::new(1, None);
-        assert!(!empty.has_regular_pair());
-        // Simple number.
-        let one_two = empty.clone();
-        one_two.set_left(Rc::new(Number::new(2, Some(1))));
-        one_two.set_right(Rc::new(Number::new(2, Some(2))));
-        assert!(one_two.has_regular_pair());
+    fn test_number_has_regular_pair_empty() {
+        let num = Number::from_str("[]").unwrap();
+        assert!(!num.has_regular_pair());
+    }
+
+    #[test]
+    fn test_number_has_regular_pair_simple() {
+        let num = Number::from_str("[1,2]").unwrap();
+        assert!(num.has_regular_pair());
+    }
+
+    #[test]
+    fn test_number_has_regular_pair_nested() {
         // One nested number, on the left.
-        let one_one_two = empty.clone();
-        one_one_two.set_left(Rc::new(Number::new(2, Some(1))));
-        let mut one_two_deeper = empty.clone();
-        one_two_deeper.depth = 2;
-        one_two_deeper.set_left(Rc::new(Number::new(3, Some(1))));
-        one_two_deeper.set_right(Rc::new(Number::new(3, Some(2))));
-        one_one_two.set_right(Rc::new(one_two_deeper.clone()));
-        assert!(!one_one_two.has_regular_pair());
-        assert!(one_two_deeper.has_regular_pair());
+        let num = Number::from_str("[1,[2,3]]").unwrap();
+        assert!(!num.has_regular_pair());
+        if let Some(l) = &*num.left.borrow() {
+            assert!(!l.has_regular_pair());
+        };
+        if let Some(r) = &*num.right.borrow() {
+            assert!(r.has_regular_pair());
+        };
     }
 
     #[test]
+    #[ignore]
     fn test_number_explosion() {
         // Explode examples.
         let mut num = Number::from_str("[[[[[9,8],1],2],3],4]").unwrap();
