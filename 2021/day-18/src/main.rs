@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::fmt;
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -26,14 +27,7 @@ struct Number {
 
 impl PartialEq for Number {
     fn eq(&self, other: &Self) -> bool {
-        vec![
-            self.depth == other.depth,
-            self.value == other.value,
-            self.left == other.left,
-            self.right == other.right,
-        ]
-        .iter()
-        .all(|&c| c)
+        self.to_string() == other.to_string()
     }
 }
 
@@ -99,6 +93,28 @@ impl FromStr for Number {
     }
 }
 
+impl fmt::Display for Number {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = String::new();
+        if let Some(v) = self.value.get() {
+            s.push_str(&format!("{}", v));
+        } else {
+            s.push('[');
+        }
+        if let Some(l) = &*self.left.borrow() {
+            s.push_str(&l.to_string());
+            s.push(',');
+        }
+        if let Some(r) = &*self.right.borrow() {
+            s.push_str(&r.to_string());
+        }
+        if self.value.get().is_none() {
+            s.push(']');
+        }
+        write!(f, "{}", s)
+    }
+}
+
 impl Number {
     fn new(depth: u64, value: Option<u64>) -> Self {
         Number {
@@ -148,7 +164,7 @@ impl Number {
         }
     }
 
-    fn reduce(&mut self) {
+    fn reduce(&self) {
         while self.needs_to_reduce() {
             if !self.explode() {
                 self.split();
@@ -175,79 +191,91 @@ impl Number {
         false
     }
 
-    fn explode(&mut self) -> bool {
+    fn explode(&self) -> bool {
         println!("vvvvvvvvvvvv");
-        println!(" d={},v={:?}", self.depth, self.value);
-        println!("   l={:?}", self.left);
-        println!("   r={:?}", self.right);
+        println!(" d={},v={:?}", self.depth, self.value.get());
         let mut exploded = false;
+        let mut i_exploded = false;
         let mut left_val: u64 = 0;
         let mut right_val: u64 = 0;
         if self.depth >= 4 && self.has_regular_pair() {
-            // Try to explode this number.
-            let left = self.left.borrow();
-            let right = self.right.borrow();
-            // Replace the pair with zero and move its values left
-            // and right.
-            if let Some(l) = &*left {
-                left_val = l.get_value().unwrap();
+            // Try to explode this number; replace the pair with
+            // zero and move its values left and right.
+            {
+                if let Some(l) = &*self.left.borrow() {
+                    left_val = l.get_value().unwrap();
+                }
+                println!("  left: {}", left_val);
+                if let Some(r) = &*self.right.borrow() {
+                    right_val = r.get_value().unwrap();
+                }
+                println!(" right: {}", right_val);
             }
-            println!("  left: {}", left_val);
-            if let Some(r) = &*right {
-                right_val = r.get_value().unwrap();
+            {
+                *self.left.borrow_mut() = None;
+                *self.right.borrow_mut() = None;
             }
-            println!(" right: {}", right_val);
-            *self.left.borrow_mut() = None;
-            *self.right.borrow_mut() = None;
-            self.set_value(0);
+            // self.set_value(0);
             exploded = true;
+            i_exploded = true;
         } else {
             // Try to explode a child number, first on the left...
-            println!(" explode left...");
-            let mut left = self.left.borrow_mut();
-            if let Some(l) = left.as_mut() {
-                println!("   ...let's go");
+            if let Some(l) = &*self.left.borrow() {
+                println!(" explode left...");
                 exploded = l.explode();
             }
             // ...then on the right.
-            println!(" explode right...");
-            let mut right = self.right.borrow_mut();
-            if !exploded && right.is_some() {
-                if let Some(r) = right.as_mut() {
-                    println!("  ...let's go");
+            if !exploded {
+                if let Some(r) = &*self.right.borrow() {
+                    println!(" explode right...");
                     exploded = r.explode();
                 }
             }
         }
-        if exploded {
-            self.move_value_left(left_val);
-            self.move_value_right(right_val);
+        if i_exploded {
+            if let Some(p) = &*self.parent.borrow() {
+                p.move_value_left(left_val);
+                p.move_value_right(right_val);
+            }
+            self.set_value(0);
         }
         println!("^^^^^^^^^^^^");
         exploded
     }
 
     fn move_value_left(&self, value: u64) {
+        println!("  move value left...");
+        println!("   d={},v={:?}", self.depth, self.value.get());
         if let Some(l) = &*self.left.borrow() {
             if let Some(v) = l.get_value() {
+                println!("   value moved ({})", value);
                 l.set_value(v + value);
+                return;
             }
-        } else if let Some(p) = &*self.parent.borrow() {
+        }
+        if let Some(p) = &*self.parent.borrow() {
+            println!("   try parent...");
             p.move_value_left(value);
         }
     }
 
     fn move_value_right(&self, value: u64) {
+        println!("  move value right...");
+        println!("   d={},v={:?}", self.depth, self.value.get());
         if let Some(r) = &*self.right.borrow() {
             if let Some(v) = r.get_value() {
+                println!("   value moved ({})", value);
                 r.set_value(v + value);
+                return;
             }
-        } else if let Some(p) = &*self.parent.borrow() {
+        }
+        if let Some(p) = &*self.parent.borrow() {
+            println!("   try parent...");
             p.move_value_right(value);
         }
     }
 
-    fn split(&mut self) -> bool {
+    fn split(&self) -> bool {
         // TODO
         false
     }
@@ -260,7 +288,7 @@ fn part1(reader: &InputReader) -> Answer {
         .reduce(|acc, a| {
             let left_num = acc;
             let right_num = a;
-            let mut sum = Number::new(0, None);
+            let sum = Number::new(0, None);
             sum.set_left(Rc::new(RefCell::new(Some(left_num))));
             sum.set_right(Rc::new(RefCell::new(Some(right_num))));
             sum.reduce();
@@ -294,22 +322,6 @@ mod tests {
         Rc::new(RefCell::new(Some(Number::new(depth, value))))
     }
 
-    #[test]
-    fn test_number_from_str_empty() {
-        let num = Rc::new(Number::new(1, None));
-        let got = Number::from_str("[]").unwrap();
-        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
-    }
-
-    #[test]
-    fn test_number_from_str_simple() {
-        let num = Rc::new(Number::new(1, None));
-        num.set_left(wrapped(2, Some(1)));
-        num.set_right(wrapped(2, Some(2)));
-        let got = Number::from_str("[1,2]").unwrap();
-        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
-    }
-
     fn set_left(num: NumWrap, left: NumWrap) {
         if let Some(n) = &*num.borrow() {
             n.set_left(left);
@@ -329,7 +341,27 @@ mod tests {
     }
 
     #[test]
+    fn test_number_from_str_empty() {
+        let num = Rc::new(Number::new(1, None));
+        let got = Number::from_str("[]").unwrap();
+        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
+    }
+
+    #[test]
+    fn test_number_from_str_simple() {
+        let s = "[1,2]";
+        let num = Rc::new(Number::new(1, None));
+        num.set_left(wrapped(2, Some(1)));
+        num.set_right(wrapped(2, Some(2)));
+        assert_eq!(num.to_string(), s);
+        let got = Number::from_str(s).unwrap();
+        assert_eq!(got.to_string(), s);
+        assert_eq!(got, *num, "\ngot: {:#?}\nwant: {:#?}", got, num);
+    }
+
+    #[test]
     fn test_number_from_str_nested() {
+        let s = "[1,[2,3]]";
         let num = wrapped(1, None);
         set_left(num.clone(), wrapped(2, Some(1)));
         let l2 = wrapped(2, None);
@@ -337,8 +369,10 @@ mod tests {
         set_left(l2.clone(), wrapped(3, Some(2)));
         set_right(l2.clone(), wrapped(3, Some(3)));
         set_right(num.clone(), l2.clone());
-        let got = Number::from_str("[1,[2,3]]").unwrap();
+        let got = Number::from_str(s).unwrap();
+        assert_eq!(got.to_string(), s);
         if let Some(n) = &*num.borrow() {
+            assert_eq!(n.to_string(), s);
             assert_eq!(got, *n, "\ngot: {:#?}\nwant: {:#?}", got, n);
         } else {
             panic!("Nothing to borrow");
@@ -384,6 +418,24 @@ mod tests {
     }
 
     #[test]
+    fn test_number_to_string() {
+        let strs = vec![
+            "[]",
+            "[1,2]",
+            "[1,[2,3]]",
+            "[[1,2],3]",
+            "[[1,2],[3,4]]",
+            "[[[1,2],3],4]",
+            "[7,[6,[5,[4,[3,2]]]]]",
+            "[7,[6,[5,[7,0]]]]",
+        ];
+        for s in strs.into_iter() {
+            let num = Number::from_str(s).unwrap();
+            assert_eq!(num.to_string(), s);
+        }
+    }
+
+    #[test]
     fn test_number_has_regular_pair_empty() {
         let num = Number::from_str("[]").unwrap();
         assert!(!num.has_regular_pair());
@@ -409,13 +461,76 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    fn test_number_explosion() {
-        // Explode examples.
-        let mut num = Number::from_str("[[[[[9,8],1],2],3],4]").unwrap();
+    fn test_number_explode_empty() {
+        let num = Number::from_str("[]").unwrap();
+        let want = Number::from_str("[]").unwrap();
+        assert!(!num.explode());
+        assert_eq!(num, want);
+    }
+
+    #[test]
+    fn test_number_explode_simple() {
+        let num = Number::from_str("[1,2]").unwrap();
+        let want = Number::from_str("[1,2]").unwrap();
+        assert!(!num.explode());
+        assert_eq!(num, want);
+    }
+
+    #[test]
+    fn test_number_explode_nested() {
+        let num = Number::from_str("[1,[2,3]]").unwrap();
+        let want = Number::from_str("[1,[2,3]]").unwrap();
+        assert!(!num.explode());
+        assert_eq!(num, want);
+    }
+
+    #[test]
+    fn test_number_explode_example1() {
+        let num = Number::from_str("[[[[[9,8],1],2],3],4]").unwrap();
+        let want = Number::from_str("[[[[0,9],2],3],4]").unwrap();
+        assert!(num != want);
         assert!(num.explode());
-        let exploded = Number::from_str("[[[[0,9],2],3],4]").unwrap();
-        assert_eq!(num, exploded, " got: {:#?}\nwant: {:#?}", num, exploded);
+        assert_eq!(num, want);
+    }
+
+    #[test]
+    fn test_number_explode_example2() {
+        let num = Number::from_str("[7,[6,[5,[4,[3,2]]]]]").unwrap();
+        let want = Number::from_str("[7,[6,[5,[7,0]]]]").unwrap();
+        assert!(num != want);
+        assert!(num.explode());
+        assert_eq!(num, want);
+    }
+
+    #[test]
+    fn test_number_explode_example3() {
+        let num = Number::from_str("[[6,[5,[4,[3,2]]]],1]").unwrap();
+        let want = Number::from_str("[[6,[5,[7,0]]],3]").unwrap();
+        assert!(num != want);
+        assert!(num.explode());
+        assert_eq!(num, want);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_number_explode_example4() {
+        let num = Number::from_str("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]").unwrap();
+        let want = Number::from_str("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]").unwrap();
+        assert!(num != want);
+        assert!(num.explode());
+        // assert!(num == want);
+        // assert_eq!(num, want);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_number_explode_example5() {
+        let num = Number::from_str("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]").unwrap();
+        let want = Number::from_str("[[3,[2,[8,0]]],[9,[5,[7,0]]]]").unwrap();
+        assert!(num != want);
+        assert!(num.explode());
+        // assert!(num == want);
+        // assert_eq!(num, want);
     }
 
     #[test]
