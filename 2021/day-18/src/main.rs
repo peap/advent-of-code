@@ -303,12 +303,12 @@ impl Number {
         }
         // Do we need to explode?
         if let Some(num) = &*self.left.borrow() {
-            if num.depth.get() >= 6 || num.needs_to_reduce() {
+            if num.has_regular_pair() && num.depth.get() >= 5 || num.needs_to_reduce() {
                 return true;
             }
         }
         if let Some(num) = &*self.right.borrow() {
-            if num.depth.get() >= 6 || num.needs_to_reduce() {
+            if num.has_regular_pair() && num.depth.get() >= 5 || num.needs_to_reduce() {
                 return true;
             }
         }
@@ -482,6 +482,24 @@ impl Number {
     }
 }
 
+fn max_pair_magnitude(numbers: Vec<String>) -> u64 {
+    let mut max_magnitude = 0;
+    for (i, num1_str) in numbers.iter().enumerate() {
+        for (j, num2_str) in numbers.iter().enumerate() {
+            if i == j {
+                continue;
+            }
+            let num1 = Number::from_str(num1_str).unwrap();
+            let num2 = Number::from_str(num2_str).unwrap();
+            let mag = (num1 + num2).magnitude();
+            if mag > max_magnitude {
+                max_magnitude = mag;
+            }
+        }
+    }
+    max_magnitude
+}
+
 fn part1(reader: &InputReader) -> Answer {
     let numbers: Vec<Number> = reader.parsed_lines();
     numbers
@@ -492,14 +510,14 @@ fn part1(reader: &InputReader) -> Answer {
 }
 
 fn part2(reader: &InputReader) -> Answer {
-    let _lines: Vec<String> = reader.parsed_lines();
-    0
+    let numbers: Vec<String> = reader.parsed_lines();
+    max_pair_magnitude(numbers)
 }
 
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Snailfish");
     puzzle.set_part1(part1, "magnitude of final sum");
-    puzzle.set_part2(part2, "todo");
+    puzzle.set_part2(part2, "maximum magnitude of a pair");
     puzzle
 }
 
@@ -867,10 +885,47 @@ mod tests {
         .into_iter()
         .map(|n| Number::from_str(n).unwrap())
         .collect();
-        let reduced = numbers.into_iter().reduce(|acc, a| acc + a).unwrap();
+        let reduced = numbers
+            .clone()
+            .into_iter()
+            .reduce(|acc, a| acc + a)
+            .unwrap();
         let want =
             Number::from_str("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]").unwrap();
         assert_eq!(reduced, want);
+    }
+
+    #[test]
+    fn test_max_pair_magnitude() {
+        let numbers: Vec<String> = vec![
+            "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]",
+            "[[[5,[2,8]],4],[5,[[9,9],0]]]",
+            "[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]",
+            "[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]",
+            "[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]",
+            "[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]",
+            "[[[[5,4],[7,7]],8],[[8,3],8]]",
+            "[[9,3],[[9,9],[6,[4,9]]]]",
+            "[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]",
+            "[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        assert_eq!(max_pair_magnitude(numbers), 3993);
+    }
+
+    #[test]
+    fn test_number_addition_big_example_max() {
+        let first = Number::from_str("[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]").unwrap();
+        let second = Number::from_str("[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]").unwrap();
+        let want =
+            Number::from_str("[[[[7,8],[6,6]],[[6,0],[7,7]]],[[[7,8],[8,8]],[[7,9],[0,6]]]]")
+                .unwrap();
+        assert_eq!(want.magnitude(), 3993);
+        let sum = first + second;
+        assert_eq!(sum, want);
+        assert_eq!(sum.magnitude(), 3993);
     }
 
     #[test]
@@ -879,8 +934,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_part2() {
-        get_puzzle().test_part2(0);
+        get_puzzle().test_part2(4573);
     }
 }
