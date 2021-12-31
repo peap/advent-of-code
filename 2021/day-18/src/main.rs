@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::fmt;
+use std::ops::Add;
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -11,7 +12,7 @@ type Path = Vec<bool>;
 #[derive(Clone, Debug)]
 struct Number {
     // How far from the top-level number is this one?
-    depth: u64,
+    depth: Cell<u64>,
 
     // How do you get to this one from the top-level number?
     path: RefCell<Path>,
@@ -60,7 +61,6 @@ impl FromStr for Number {
                     if let Some(current) = num_stack.pop() {
                         let otl = on_the_left.pop().unwrap();
                         if let Some(f) = &*finished.borrow() {
-                            // f.path.borrow_mut().push(otl);
                             f.set_parent(current.clone());
                         }
                         if otl {
@@ -144,10 +144,44 @@ impl fmt::Display for Number {
     }
 }
 
+impl Add for Number {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        let sum = Number::new(1, None);
+        let sum_ref = Rc::new(RefCell::new(Some(sum)));
+        if let Some(s) = &*sum_ref.borrow() {
+            self.move_under_parent(sum_ref.clone(), true);
+            other.move_under_parent(sum_ref.clone(), false);
+            s.set_left(Rc::new(RefCell::new(Some(self))));
+            s.set_right(Rc::new(RefCell::new(Some(other))));
+            s.reduce();
+        }
+        let sum_final = Rc::try_unwrap(sum_ref).unwrap();
+        sum_final.into_inner().unwrap()
+    }
+}
+
 impl Number {
+    fn move_under_parent(&self, parent: NumWrap, on_the_left: bool) {
+        if parent.borrow().is_some() {
+            self.set_parent(parent);
+        }
+        let dummy_parent = Rc::new(RefCell::new(None));
+        self.path.borrow_mut().insert(0, on_the_left);
+        let d = self.depth.get();
+        self.depth.set(d + 1);
+        if let Some(l) = &*self.left.borrow() {
+            l.move_under_parent(dummy_parent.clone(), on_the_left);
+        }
+        if let Some(r) = &*self.right.borrow() {
+            r.move_under_parent(dummy_parent, on_the_left);
+        }
+    }
+
     fn new(depth: u64, value: Option<u64>) -> Self {
         Number {
-            depth,
+            depth: Cell::new(depth),
             path: RefCell::new(vec![]),
             value: Cell::new(value),
             parent: Rc::new(RefCell::new(None)),
@@ -179,9 +213,9 @@ impl Number {
     fn get_root(&self) -> NumWrap {
         // Crawl up the tree. First, get a reference to ourself,
         // if we have a parent;
-        let i_am_left = *self.path.borrow().last().unwrap();
         let mut root: NumWrap = {
             if let Some(p) = &*self.parent.borrow() {
+                let i_am_left = *self.path.borrow().last().unwrap_or(&true);
                 if i_am_left {
                     p.left.clone()
                 } else {
@@ -264,17 +298,17 @@ impl Number {
 
     fn needs_to_reduce(&self) -> bool {
         // Do we need to split?
-        if self.get_value().unwrap_or(0) > 10 {
+        if self.get_value().unwrap_or(0) >= 10 {
             return true;
         }
         // Do we need to explode?
         if let Some(num) = &*self.left.borrow() {
-            if num.depth >= 5 || num.needs_to_reduce() {
+            if num.depth.get() >= 6 || num.needs_to_reduce() {
                 return true;
             }
         }
         if let Some(num) = &*self.right.borrow() {
-            if num.depth >= 5 || num.needs_to_reduce() {
+            if num.depth.get() >= 6 || num.needs_to_reduce() {
                 return true;
             }
         }
@@ -286,7 +320,7 @@ impl Number {
         let mut i_exploded = false;
         let mut left_val: u64 = 0;
         let mut right_val: u64 = 0;
-        if self.depth >= 5 && self.has_regular_pair() {
+        if self.depth.get() >= 5 && self.has_regular_pair() {
             // Try to explode this number; replace the pair with
             // zero and move its values left and right.
             {
@@ -322,18 +356,15 @@ impl Number {
                 p.move_value_left(left_val, from.clone());
                 p.move_value_right(right_val, from);
             }
-            // self.set_value(0);
         }
         exploded
     }
 
     fn move_value_left(&self, value: u64, from: Path) {
-        // let me = self.path.borrow().clone();
-        let me = from;
         let mut last_path: Path = vec![];
         let mut neighbor: Option<Path> = None;
         if let Some(l) = &*self.left.borrow() {
-            if l.path.borrow().clone() != me {
+            if l.path.borrow().clone() != from {
                 if let Some(v) = l.get_value() {
                     l.set_value(v + value);
                     return;
@@ -342,7 +373,7 @@ impl Number {
         }
         if let Some(r) = &*self.get_root().borrow() {
             for (i, p) in r.left_to_right().into_iter().enumerate() {
-                if i > 0 && p == me {
+                if i > 0 && p == from {
                     neighbor = Some(last_path);
                     break;
                 }
@@ -358,12 +389,10 @@ impl Number {
     }
 
     fn move_value_right(&self, value: u64, from: Path) {
-        // let me = self.path.borrow().clone();
-        let me = from;
         let mut last_path: Path = vec![];
         let mut neighbor: Option<Path> = None;
         if let Some(r) = &*self.right.borrow() {
-            if r.path.borrow().clone() != me {
+            if r.path.borrow().clone() != from {
                 if let Some(v) = r.get_value() {
                     r.set_value(v + value);
                     return;
@@ -372,7 +401,7 @@ impl Number {
         }
         if let Some(r) = &*self.get_root().borrow() {
             for p in r.left_to_right().into_iter() {
-                if last_path == me {
+                if last_path == from {
                     neighbor = Some(p);
                     break;
                 }
@@ -393,11 +422,11 @@ impl Number {
             if n >= 10 {
                 let l = n / 2;
                 let r = n - l;
-                let left = Number::new(self.depth + 1, Some(l));
+                let left = Number::new(self.depth.get() + 1, Some(l));
                 let mut left_path = self.path.borrow().clone();
                 left_path.push(true);
                 *left.path.borrow_mut() = left_path;
-                let right = Number::new(self.depth + 1, Some(r));
+                let right = Number::new(self.depth.get() + 1, Some(r));
                 let mut right_path = self.path.borrow().clone();
                 right_path.push(false);
                 *right.path.borrow_mut() = right_path;
@@ -439,7 +468,17 @@ impl Number {
     }
 
     fn magnitude(&self) -> u64 {
-        0
+        if let Some(v) = self.get_value() {
+            return v;
+        }
+        let mut sum = 0;
+        if let Some(num) = &*self.left.borrow() {
+            sum += 3 * num.magnitude();
+        }
+        if let Some(num) = &*self.right.borrow() {
+            sum += 2 * num.magnitude();
+        }
+        sum
     }
 }
 
@@ -447,15 +486,7 @@ fn part1(reader: &InputReader) -> Answer {
     let numbers: Vec<Number> = reader.parsed_lines();
     numbers
         .into_iter()
-        .reduce(|acc, a| {
-            let left_num = acc;
-            let right_num = a;
-            let sum = Number::new(0, None);
-            sum.set_left(Rc::new(RefCell::new(Some(left_num))));
-            sum.set_right(Rc::new(RefCell::new(Some(right_num))));
-            sum.reduce();
-            sum
-        })
+        .reduce(|acc, a| acc + a)
         .unwrap()
         .magnitude()
 }
@@ -774,9 +805,77 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    fn test_number_magnitude() {
+        let cases = vec![
+            ("[[1,2],[[3,4],5]]", 143),
+            ("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384),
+            ("[[[[1,1],[2,2]],[3,3]],[4,4]]", 445),
+            ("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791),
+            ("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137),
+            (
+                "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]",
+                3488,
+            ),
+            (
+                "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]",
+                4140,
+            ),
+        ];
+        for (num_str, want) in cases.into_iter() {
+            let num = Number::from_str(num_str).unwrap();
+            assert_eq!(num.magnitude(), want);
+        }
+    }
+
+    #[test]
+    fn test_number_reduce() {
+        let num = Number::from_str("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
+        num.reduce();
+        assert_eq!(num.to_string(), "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
+    }
+
+    #[test]
+    fn test_number_addition_simple() {
+        let first = Number::from_str("[1,1]").unwrap();
+        let second = Number::from_str("[2,2]").unwrap();
+        let want = Number::from_str("[[1,1],[2,2]]").unwrap();
+        assert_eq!(first + second, want);
+    }
+
+    #[test]
+    fn test_number_addition_example() {
+        let first = Number::from_str("[[[[4,3],4],4],[7,[[8,4],9]]]").unwrap();
+        let second = Number::from_str("[1,1]").unwrap();
+        let want = Number::from_str("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").unwrap();
+        assert_eq!(first + second, want);
+    }
+
+    #[test]
+    fn test_number_addition_big_example() {
+        let numbers: Vec<Number> = vec![
+            "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]",
+            "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]",
+            "[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]",
+            "[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]",
+            "[7,[5,[[3,8],[1,4]]]]",
+            "[[2,[2,2]],[8,[8,1]]]",
+            "[2,9]",
+            "[1,[[[9,3],9],[[9,0],[0,7]]]]",
+            "[[[5,[7,4]],7],1]",
+            "[[[[4,2],2],6],[8,7]]",
+        ]
+        .into_iter()
+        .map(|n| Number::from_str(n).unwrap())
+        .collect();
+        let reduced = numbers.into_iter().reduce(|acc, a| acc + a).unwrap();
+        let want =
+            Number::from_str("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]").unwrap();
+        assert_eq!(reduced, want);
+    }
+
+    #[test]
     fn test_part1() {
-        get_puzzle().test_part1(0);
+        get_puzzle().test_part1(4137);
     }
 
     #[test]
