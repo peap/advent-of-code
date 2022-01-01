@@ -1,5 +1,6 @@
-use common::InputReader;
 use std::cmp;
+
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
 fn fuel_for_weight(weight: &i64) -> i64 {
     cmp::max(0, (weight / 3) - 2)
@@ -13,14 +14,29 @@ fn fuel_for_weight_recur(weight: &i64) -> i64 {
     fuel + fuel_for_weight_recur(&fuel)
 }
 
-fn main() {
-    let weights = InputReader::new("input.txt").parsed_lines();
-    let total1 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight(w));
-    println!("Part 1: total weight is {}", total1);
-    let total2 = weights
+fn part1(reader: &InputReader) -> Answer {
+    let weights = reader.parsed_lines();
+    weights
         .iter()
-        .fold(0, |sum, w| sum + fuel_for_weight_recur(w));
-    println!("Part 2: total weight (w/fuel weight) is {}", total2);
+        .fold(0, |sum, w| sum + fuel_for_weight(w) as u64)
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let weights = reader.parsed_lines();
+    weights
+        .iter()
+        .fold(0, |sum, w| sum + fuel_for_weight_recur(w) as u64)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("The Tyranny of the Rocket Equation");
+    puzzle.set_part1(part1, "total weight");
+    puzzle.set_part2(part2, "total weight (w/fuel)");
+    puzzle
+}
+
+fn main() {
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -38,13 +54,6 @@ mod tests {
     }
 
     #[test]
-    fn test_part1() {
-        let weights = InputReader::new("input.txt").parsed_lines();
-        let total1 = weights.iter().fold(0, |sum, w| sum + fuel_for_weight(w));
-        assert_eq!(total1, 3324332);
-    }
-
-    #[test]
     fn test_fuel_for_weight_recur() {
         assert_eq!(fuel_for_weight_recur(&14), 2);
         assert_eq!(fuel_for_weight_recur(&1969), 966);
@@ -52,11 +61,12 @@ mod tests {
     }
 
     #[test]
+    fn test_part1() {
+        get_puzzle().test_part1(3324332);
+    }
+
+    #[test]
     fn test_part2() {
-        let weights = InputReader::new("input.txt").parsed_lines();
-        let total2 = weights
-            .iter()
-            .fold(0, |sum, w| sum + fuel_for_weight_recur(w));
-        assert_eq!(total2, 4983626);
+        get_puzzle().test_part2(4983626);
     }
 }
