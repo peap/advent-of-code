@@ -1,29 +1,38 @@
-use common::InputReader;
+use common::{default_puzzle, Answer, InputReader, Puzzle};
 
-fn captcha(digits: Vec<u8>, distance: usize) -> i64 {
+fn captcha(digits: Vec<u8>, distance: usize) -> u64 {
     let mut sum = 0;
     let len = digits.len();
     for i in 0..len {
         let this = digits[i];
         let next = digits[(i + distance) % len];
         if this == next {
-            sum += this as i64;
+            sum += this as u64;
         }
     }
     sum
 }
 
-fn main() {
-    let digits = InputReader::new("input.txt").digit_line(10);
-    println!(
-        "Part 1: Captcha for input is {}",
-        captcha(digits.clone(), 1)
-    );
+fn part1(reader: &InputReader) -> Answer {
+    let digits = reader.digit_line(10);
+    captcha(digits, 1)
+}
+
+fn part2(reader: &InputReader) -> Answer {
+    let digits = reader.digit_line(10);
     let distance = digits.len() / 2;
-    println!(
-        "Part 2: Captcha v2 for input is {}",
-        captcha(digits, distance)
-    );
+    captcha(digits, distance)
+}
+
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Inverse Captcha");
+    puzzle.set_part1(part1, "captcha for input");
+    puzzle.set_part2(part2, "captcha v2 for input");
+    puzzle
+}
+
+fn main() {
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -32,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_captcha_examples() {
-        let examples: Vec<(&'static str, usize, i64)> = vec![
+        let examples: Vec<(&'static str, usize, u64)> = vec![
             // Part 1 examples
             ("1122", 1, 3),
             ("1111", 1, 4),
@@ -56,14 +65,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let digits = InputReader::new("input.txt").digit_line(10);
-        assert_eq!(captcha(digits, 1), 1136);
+        get_puzzle().test_part1(1136);
     }
 
     #[test]
     fn test_part2() {
-        let digits = InputReader::new("input.txt").digit_line(10);
-        let distance = digits.len() / 2;
-        assert_eq!(captcha(digits, distance), 1092);
+        get_puzzle().test_part2(1092);
     }
 }
