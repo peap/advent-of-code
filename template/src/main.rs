@@ -1,19 +1,15 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
-
-fn part1(reader: &InputReader) -> Answer {
-    let _lines: Vec<String> = reader.parsed_lines();
-    0
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let _lines: Vec<String> = reader.parsed_lines();
-    0
-}
+use common::{default_puzzle, Puzzle};
 
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("<NAME>");
-    puzzle.set_part1(part1, "todo");
-    puzzle.set_part2(part2, "todo");
+    puzzle.set_part1("todo", |reader| {
+        let _lines: Vec<String> = reader.parsed_lines();
+        0
+    });
+    puzzle.set_part2("todo", |reader| {
+        let _lines: Vec<String> = reader.parsed_lines();
+        0
+    });
     puzzle
 }
 
