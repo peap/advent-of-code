@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use common::{BadInput, InputReader};
+use common::{default_puzzle, BadInput, Puzzle};
 
 struct Password {
     policy_min: usize,
@@ -44,19 +44,21 @@ impl FromStr for Password {
     }
 }
 
-fn part1() -> usize {
-    let pws: Vec<Password> = InputReader::new("input.txt").parsed_lines();
-    pws.iter().filter(|p| p.is_valid_v1()).count()
-}
-
-fn part2() -> usize {
-    let pws: Vec<Password> = InputReader::new("input.txt").parsed_lines();
-    pws.iter().filter(|p| p.is_valid_v2()).count()
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Password Philosophy");
+    puzzle.set_part1("", |reader| {
+        let pws: Vec<Password> = reader.parsed_lines();
+        pws.iter().filter(|p| p.is_valid_v1()).count() as u64
+    });
+    puzzle.set_part2("", |reader| {
+        let pws: Vec<Password> = reader.parsed_lines();
+        pws.iter().filter(|p| p.is_valid_v2()).count() as u64
+    });
+    puzzle
 }
 
 fn main() {
-    println!("Part 1: {}", part1());
-    println!("Part 2: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -65,11 +67,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 603);
+        get_puzzle().test_part1(603);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 404);
+        get_puzzle().test_part2(404);
     }
 }
