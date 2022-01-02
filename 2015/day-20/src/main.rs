@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 const ELF_FACTOR1: usize = 10;
 const ELF_FACTOR2: usize = 11;
@@ -39,20 +39,16 @@ pub fn find_first_house_receiving_part_2(target: u64) -> Option<u64> {
     None
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let target: u64 = reader.string_line().parse().unwrap();
-    find_first_house_receiving(target).unwrap()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let target: u64 = reader.string_line().parse().unwrap();
-    find_first_house_receiving_part_2(target).unwrap()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Infinite Elves and Infinite Houses");
-    puzzle.set_part1(part1, "lowest house number");
-    puzzle.set_part2(part2, "lowest house number");
+    puzzle.set_part1("lowest house number", |reader| {
+        let target: u64 = reader.string_line().parse().unwrap();
+        find_first_house_receiving(target).unwrap()
+    });
+    puzzle.set_part2("lowest house number", |reader| {
+        let target: u64 = reader.string_line().parse().unwrap();
+        find_first_house_receiving_part_2(target).unwrap()
+    });
     puzzle
 }
 

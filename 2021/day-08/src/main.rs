@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum Segment {
@@ -197,35 +197,31 @@ fn parse_line(line: &str) -> (Vec<String>, Vec<String>) {
     (codes, digits)
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    let mut count = 0;
-    for line in lines.iter() {
-        let (_, out_values) = parse_line(line);
-        count += out_values
-            .iter()
-            .filter(|v| matches!(v.len(), 2 | 3 | 4 | 7))
-            .count();
-    }
-    count as Answer
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    let mut sum = 0;
-    for line in lines.iter() {
-        let (codes, digits) = parse_line(line);
-        let mut resolver = SegmentResolver::new();
-        resolver.add_codes(codes);
-        sum += resolver.parse(digits);
-    }
-    sum
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Seven Segment Search");
-    puzzle.set_part1(part1, "number of 1|4|7|8");
-    puzzle.set_part2(part2, "sum of outputs");
+    puzzle.set_part1("number of 1|4|7|8", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        let mut count = 0;
+        for line in lines.iter() {
+            let (_, out_values) = parse_line(line);
+            count += out_values
+                .iter()
+                .filter(|v| matches!(v.len(), 2 | 3 | 4 | 7))
+                .count();
+        }
+        count as u64
+    });
+    puzzle.set_part2("sum of outputs", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        let mut sum = 0;
+        for line in lines.iter() {
+            let (codes, digits) = parse_line(line);
+            let mut resolver = SegmentResolver::new();
+            resolver.add_codes(codes);
+            sum += resolver.parse(digits);
+        }
+        sum
+    });
     puzzle
 }
 

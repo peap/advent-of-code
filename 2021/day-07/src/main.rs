@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn linear_cost(distance: u64) -> u64 {
     distance
@@ -54,22 +54,18 @@ fn minimize_moves(crabs: Vec<u64>, cost_fn: &dyn Fn(u64) -> u64) -> u64 {
     best_cost
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let mut crabs = reader.parsed_csv_line();
-    crabs.sort_unstable();
-    minimize_moves(crabs, &linear_cost)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let mut crabs = reader.parsed_csv_line();
-    crabs.sort_unstable();
-    minimize_moves(crabs, &triangle_cost)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("The Treachery of Whales");
-    puzzle.set_part1(part1, "best position (linear) costs");
-    puzzle.set_part2(part2, "best position (triangle) costs");
+    puzzle.set_part1("best position costs (linear)", |reader| {
+        let mut crabs = reader.parsed_csv_line();
+        crabs.sort_unstable();
+        minimize_moves(crabs, &linear_cost)
+    });
+    puzzle.set_part2("best position costs (triangle)", |reader| {
+        let mut crabs = reader.parsed_csv_line();
+        crabs.sort_unstable();
+        minimize_moves(crabs, &triangle_cost)
+    });
     puzzle
 }
 

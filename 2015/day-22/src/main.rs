@@ -1,7 +1,7 @@
 use std::cmp;
 use std::collections::VecDeque;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 pub const BOSS_HP: i64 = 71;
 pub const BOSS_DAMAGE: i64 = 10;
@@ -199,22 +199,18 @@ pub fn find_minimum_mana_to_win(player: Combatant, boss: Combatant) -> u64 {
     minimum_mana
 }
 
-fn part1(_: &InputReader) -> Answer {
-    let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Easy);
-    let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
-    find_minimum_mana_to_win(player, boss)
-}
-
-fn part2(_: &InputReader) -> Answer {
-    let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Hard);
-    let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
-    find_minimum_mana_to_win(player, boss)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Wizard Simulator 20XX");
-    puzzle.set_part1(part1, "least mana to win (easy)");
-    puzzle.set_part2(part2, "least mana to win (hard)");
+    puzzle.set_part1("least mana to win (easy)", |_| {
+        let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Easy);
+        let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
+        find_minimum_mana_to_win(player, boss)
+    });
+    puzzle.set_part2("least mana to win (hard)", |_| {
+        let player = Combatant::new_player(PLAYER_HP, PLAYER_MANA, Mode::Hard);
+        let boss = Combatant::new_boss(BOSS_HP, BOSS_DAMAGE);
+        find_minimum_mana_to_win(player, boss)
+    });
     puzzle
 }
 

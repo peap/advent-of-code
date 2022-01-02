@@ -41,14 +41,14 @@ impl Puzzle {
         &self.reader
     }
 
-    pub fn set_part1(&mut self, func: Solver, summary: &str) {
-        self.part1 = Some(func);
+    pub fn set_part1(&mut self, summary: &str, func: Solver) {
         self.part1_summary = Some(summary.to_string());
+        self.part1 = Some(func);
     }
 
-    pub fn set_part2(&mut self, func: Solver, summary: &str) {
-        self.part2 = Some(func);
+    pub fn set_part2(&mut self, summary: &str, func: Solver) {
         self.part2_summary = Some(summary.to_string());
+        self.part2 = Some(func);
     }
 
     pub fn run(&self) {

@@ -1,6 +1,6 @@
 use std::collections::{HashSet, VecDeque};
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 struct HeightMap {
     grid: Vec<Vec<u8>>,
@@ -70,32 +70,28 @@ impl HeightMap {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines = reader.parsed_lines();
-    let map = HeightMap::from_lines(lines);
-    let mut sum = 0;
-    for (x, y) in map.get_low_points().into_iter() {
-        sum += map.get_height(x, y) + 1;
-    }
-    sum
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines = reader.parsed_lines();
-    let map = HeightMap::from_lines(lines);
-    let mut basins: Vec<Answer> = map
-        .get_low_points()
-        .iter()
-        .map(|(x, y)| map.get_basin_size(*x, *y))
-        .collect();
-    basins.sort_unstable_by(|a, b| b.cmp(a));
-    basins.into_iter().take(3).reduce(|acc, b| acc * b).unwrap()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Smoke Basin");
-    puzzle.set_part1(part1, "sum of low-point risk levels");
-    puzzle.set_part2(part2, "product of three biggest basins");
+    puzzle.set_part1("sum of low-point risk levels", |reader| {
+        let lines = reader.parsed_lines();
+        let map = HeightMap::from_lines(lines);
+        let mut sum = 0;
+        for (x, y) in map.get_low_points().into_iter() {
+            sum += map.get_height(x, y) + 1;
+        }
+        sum
+    });
+    puzzle.set_part2("product of three biggest basins", |reader| {
+        let lines = reader.parsed_lines();
+        let map = HeightMap::from_lines(lines);
+        let mut basins: Vec<u64> = map
+            .get_low_points()
+            .iter()
+            .map(|(x, y)| map.get_basin_size(*x, *y))
+            .collect();
+        basins.sort_unstable_by(|a, b| b.cmp(a));
+        basins.into_iter().take(3).reduce(|acc, b| acc * b).unwrap()
+    });
     puzzle
 }
 

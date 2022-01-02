@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 const CYCLE: usize = 7;
 const NEW_FISH_BUFFER: usize = 2;
@@ -23,20 +23,16 @@ fn simulate_lanternfish(fish: Vec<u8>, days: u64) -> u64 {
     fish_timers.iter().sum()
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let fish = reader.parsed_csv_line();
-    simulate_lanternfish(fish, 80)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let fish = reader.parsed_csv_line();
-    simulate_lanternfish(fish, 256)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Lanternfish");
-    puzzle.set_part1(part1, "num fish after 80 cycles");
-    puzzle.set_part2(part2, "num fish after 256 cycles");
+    puzzle.set_part1("num fish after 80 cycles", |reader| {
+        let fish = reader.parsed_csv_line();
+        simulate_lanternfish(fish, 80)
+    });
+    puzzle.set_part2("num fish after 256 cycles", |reader| {
+        let fish = reader.parsed_csv_line();
+        simulate_lanternfish(fish, 256)
+    });
     puzzle
 }
 

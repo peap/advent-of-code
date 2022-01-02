@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn parse_bits(bits: Vec<char>) -> u64 {
     let mut n: u64 = 0;
@@ -161,22 +161,18 @@ impl Packet {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let nums: Vec<u8> = reader.digit_line(16);
-    let packet = Packet::new(nums);
-    packet.sum_of_versions()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let nums: Vec<u8> = reader.digit_line(16);
-    let packet = Packet::new(nums);
-    packet.evaluate()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Packet Decoder");
-    puzzle.set_part1(part1, "sum of version numbers");
-    puzzle.set_part2(part2, "packet evaluates to");
+    puzzle.set_part1("sum of version numbers", |reader| {
+        let nums: Vec<u8> = reader.digit_line(16);
+        let packet = Packet::new(nums);
+        packet.sum_of_versions()
+    });
+    puzzle.set_part2("packet evaluates to", |reader| {
+        let nums: Vec<u8> = reader.digit_line(16);
+        let packet = Packet::new(nums);
+        packet.evaluate()
+    });
     puzzle
 }
 

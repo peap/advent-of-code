@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn count_increases(nums: Vec<u64>, window: usize) -> u64 {
     let mut count = 0;
@@ -17,20 +17,16 @@ fn count_increases(nums: Vec<u64>, window: usize) -> u64 {
     count
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let depths = reader.parsed_lines();
-    count_increases(depths, 1)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let depths = reader.parsed_lines();
-    count_increases(depths, 3)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Sonar Sweep");
-    puzzle.set_part1(part1, "depth increases (w=1)");
-    puzzle.set_part2(part2, "depth increases (w=3)");
+    puzzle.set_part1("depth increases (w=1)", |reader| {
+        let depths = reader.parsed_lines();
+        count_increases(depths, 1)
+    });
+    puzzle.set_part2("depth increases (w=3)", |reader| {
+        let depths = reader.parsed_lines();
+        count_increases(depths, 3)
+    });
     puzzle
 }
 

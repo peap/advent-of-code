@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 struct Fold {
     x_axis: bool,
@@ -125,27 +125,23 @@ impl Paper {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    let mut paper = Paper::new(lines);
-    paper.fold();
-    paper.count_dots()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    let mut paper = Paper::new(lines);
-    paper.fold_all();
-    paper.print();
-    paper.count_dots()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Transparent Origami");
-    puzzle.set_part1(part1, "dots after first fold");
+    puzzle.set_part1("dots after first fold", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        let mut paper = Paper::new(lines);
+        paper.fold();
+        paper.count_dots()
+    });
     puzzle.set_part2(
-        part2,
         "see print-out above (FJAHJGAH); answer is not this value",
+        |reader| {
+            let lines: Vec<String> = reader.parsed_lines();
+            let mut paper = Paper::new(lines);
+            paper.fold_all();
+            paper.print();
+            paper.count_dots()
+        },
     );
     puzzle
 }

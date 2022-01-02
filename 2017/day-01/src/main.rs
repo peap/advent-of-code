@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn captcha(digits: Vec<u8>, distance: usize) -> u64 {
     let mut sum = 0;
@@ -13,21 +13,17 @@ fn captcha(digits: Vec<u8>, distance: usize) -> u64 {
     sum
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let digits = reader.digit_line(10);
-    captcha(digits, 1)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let digits = reader.digit_line(10);
-    let distance = digits.len() / 2;
-    captcha(digits, distance)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Inverse Captcha");
-    puzzle.set_part1(part1, "captcha for input");
-    puzzle.set_part2(part2, "captcha v2 for input");
+    puzzle.set_part1("captcha for input", |reader| {
+        let digits = reader.digit_line(10);
+        captcha(digits, 1)
+    });
+    puzzle.set_part2("captcha v2 for input", |reader| {
+        let digits = reader.digit_line(10);
+        let distance = digits.len() / 2;
+        captcha(digits, distance)
+    });
     puzzle
 }
 

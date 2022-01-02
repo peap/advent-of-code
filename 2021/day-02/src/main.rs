@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn process_commands(commands: Vec<String>, with_aim: bool) -> (u64, u64) {
     let mut horiz = 0;
@@ -35,22 +35,18 @@ fn process_commands(commands: Vec<String>, with_aim: bool) -> (u64, u64) {
     (horiz, depth)
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let commands = reader.parsed_lines();
-    let (horiz, depth) = process_commands(commands, false);
-    horiz * depth
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let commands = reader.parsed_lines();
-    let (horiz, depth) = process_commands(commands, true);
-    horiz * depth
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Dive!");
-    puzzle.set_part1(part1, "final position (h*d)");
-    puzzle.set_part2(part2, "final position (h*d) (w/aim)");
+    puzzle.set_part1("final position (h*d)", |reader| {
+        let commands = reader.parsed_lines();
+        let (horiz, depth) = process_commands(commands, false);
+        horiz * depth
+    });
+    puzzle.set_part2("final position (h*d) (w/aim)", |reader| {
+        let commands = reader.parsed_lines();
+        let (horiz, depth) = process_commands(commands, true);
+        horiz * depth
+    });
     puzzle
 }
 

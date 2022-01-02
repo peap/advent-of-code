@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use common::{Answer, InputReader, Puzzle};
+use common::Puzzle;
 
 // type Point = (usize, usize);
 
@@ -108,23 +108,19 @@ impl Cave {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    let cave = Cave::new(lines);
-    cave.best_path_cost()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    let mut cave = Cave::new(lines);
-    cave.expand5x();
-    cave.best_path_cost()
-}
-
 fn get_puzzle(filename: &'static str) -> Puzzle {
     let mut puzzle = Puzzle::new(2021, 15, "Chiton", filename);
-    puzzle.set_part1(part1, "lowest total risk");
-    puzzle.set_part2(part2, "lowest total risk (5x bigger)");
+    puzzle.set_part1("lowest total risk", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        let cave = Cave::new(lines);
+        cave.best_path_cost()
+    });
+    puzzle.set_part2("lowest total risk (5x bigger)", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        let mut cave = Cave::new(lines);
+        cave.expand5x();
+        cave.best_path_cost()
+    });
     puzzle
 }
 

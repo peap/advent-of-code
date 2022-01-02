@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 lazy_static! {
     static ref LINE_RE: Regex = Regex::new(r"^(\d+),(\d+) -> (\d+),(\d+)$").unwrap();
@@ -140,22 +140,18 @@ fn cloud_map(line_strings: Vec<String>, with_diagonals: bool) -> Map {
     Map::new(lines)
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines = reader.parsed_lines();
-    let map = cloud_map(lines, false);
-    map.count_overlapping(2)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines = reader.parsed_lines();
-    let map = cloud_map(lines, true);
-    map.count_overlapping(2)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Hydrothermal Venture");
-    puzzle.set_part1(part1, "overlapping points");
-    puzzle.set_part2(part2, "overlapping points (w/diagonals)");
+    puzzle.set_part1("overlapping points", |reader| {
+        let lines = reader.parsed_lines();
+        let map = cloud_map(lines, false);
+        map.count_overlapping(2)
+    });
+    puzzle.set_part2("overlapping points (w/diagonals)", |reader| {
+        let lines = reader.parsed_lines();
+        let map = cloud_map(lines, true);
+        map.count_overlapping(2)
+    });
     puzzle
 }
 

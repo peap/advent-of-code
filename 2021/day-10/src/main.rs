@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use common::{default_puzzle, Answer, BadInput, InputReader, Puzzle};
+use common::{default_puzzle, BadInput, Puzzle};
 
 struct NavLine {
     line: String,
@@ -81,26 +81,22 @@ impl NavLine {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines: Vec<NavLine> = reader.parsed_lines();
-    lines.iter().fold(0, |acc, l| acc + l.get_illegal_score())
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines: Vec<NavLine> = reader.parsed_lines();
-    let mut scores: Vec<u64> = lines
-        .iter()
-        .map(|l| l.get_completion_score())
-        .filter(|s| *s > 0)
-        .collect();
-    scores.sort_unstable();
-    scores[scores.len() / 2]
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Syntax Scoring");
-    puzzle.set_part1(part1, "total syntax error score");
-    puzzle.set_part2(part2, "middle completion score");
+    puzzle.set_part1("total syntax error score", |reader| {
+        let lines: Vec<NavLine> = reader.parsed_lines();
+        lines.iter().fold(0, |acc, l| acc + l.get_illegal_score())
+    });
+    puzzle.set_part2("middle completion score", |reader| {
+        let lines: Vec<NavLine> = reader.parsed_lines();
+        let mut scores: Vec<u64> = lines
+            .iter()
+            .map(|l| l.get_completion_score())
+            .filter(|s| *s > 0)
+            .collect();
+        scores.sort_unstable();
+        scores[scores.len() / 2]
+    });
     puzzle
 }
 

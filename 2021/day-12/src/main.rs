@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::{Hash, Hasher};
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 const START: &str = "start";
 const END: &str = "end";
@@ -139,22 +139,18 @@ impl CaveSystem {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines = reader.parsed_lines();
-    let cave = CaveSystem::new(&lines);
-    cave.count_paths(false)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines = reader.parsed_lines();
-    let cave = CaveSystem::new(&lines);
-    cave.count_paths(true)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Passage Pathing");
-    puzzle.set_part1(part1, "number of paths");
-    puzzle.set_part2(part2, "number of special paths");
+    puzzle.set_part1("number of paths", |reader| {
+        let lines = reader.parsed_lines();
+        let cave = CaveSystem::new(&lines);
+        cave.count_paths(false)
+    });
+    puzzle.set_part2("number of special paths", |reader| {
+        let lines = reader.parsed_lines();
+        let cave = CaveSystem::new(&lines);
+        cave.count_paths(true)
+    });
     puzzle
 }
 

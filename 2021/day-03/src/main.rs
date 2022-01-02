@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn sum_digits(numbers: &[String]) -> Vec<u64> {
     let mut sums = vec![0; numbers[0].len()];
@@ -55,23 +55,19 @@ fn gas_rating(numbers: Vec<String>, most_common: bool) -> u64 {
     u64::from_str_radix(&remaining[0], 2).unwrap()
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let numbers = reader.parsed_lines();
-    let (g, e) = gamma_epsilon(numbers);
-    g * e
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let numbers = reader.parsed_lines();
-    let o2 = gas_rating(numbers.clone(), true);
-    let co2 = gas_rating(numbers, false);
-    o2 * co2
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Binary Diagnostic");
-    puzzle.set_part1(part1, "power consumption");
-    puzzle.set_part2(part2, "life support rating");
+    puzzle.set_part1("power consumption", |reader| {
+        let numbers = reader.parsed_lines();
+        let (g, e) = gamma_epsilon(numbers);
+        g * e
+    });
+    puzzle.set_part2("life support rating", |reader| {
+        let numbers = reader.parsed_lines();
+        let o2 = gas_rating(numbers.clone(), true);
+        let co2 = gas_rating(numbers, false);
+        o2 * co2
+    });
     puzzle
 }
 

@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 struct Polymer {
     template: String,
@@ -61,20 +61,16 @@ impl Polymer {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    Polymer::new(lines, 10).most_minus_least()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let lines: Vec<String> = reader.parsed_lines();
-    Polymer::new(lines, 40).most_minus_least()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Extended Polymerization");
-    puzzle.set_part1(part1, "most common minus least common (n=10)");
-    puzzle.set_part2(part2, "most common minus least common (n=40)");
+    puzzle.set_part1("most common minus least common (n=10)", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        Polymer::new(lines, 10).most_minus_least()
+    });
+    puzzle.set_part2("most common minus least common (n=40)", |reader| {
+        let lines: Vec<String> = reader.parsed_lines();
+        Polymer::new(lines, 40).most_minus_least()
+    });
     puzzle
 }
 

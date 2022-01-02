@@ -1,6 +1,6 @@
 use std::cmp;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 fn fuel_for_weight(weight: &i64) -> i64 {
     cmp::max(0, (weight / 3) - 2)
@@ -14,24 +14,20 @@ fn fuel_for_weight_recur(weight: &i64) -> i64 {
     fuel + fuel_for_weight_recur(&fuel)
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let weights = reader.parsed_lines();
-    weights
-        .iter()
-        .fold(0, |sum, w| sum + fuel_for_weight(w) as u64)
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let weights = reader.parsed_lines();
-    weights
-        .iter()
-        .fold(0, |sum, w| sum + fuel_for_weight_recur(w) as u64)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("The Tyranny of the Rocket Equation");
-    puzzle.set_part1(part1, "total weight");
-    puzzle.set_part2(part2, "total weight (w/fuel)");
+    puzzle.set_part1("total weight", |reader| {
+        let weights = reader.parsed_lines();
+        weights
+            .iter()
+            .fold(0, |sum, w| sum + fuel_for_weight(w) as u64)
+    });
+    puzzle.set_part2("total weight (w/fuel)", |reader| {
+        let weights = reader.parsed_lines();
+        weights
+            .iter()
+            .fold(0, |sum, w| sum + fuel_for_weight_recur(w) as u64)
+    });
     puzzle
 }
 

@@ -4,7 +4,7 @@ use std::str::FromStr;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{default_puzzle, Answer, BadInput, InputReader, Puzzle};
+use common::{default_puzzle, BadInput, Puzzle};
 
 type Register = char;
 type Offset = i32;
@@ -144,25 +144,21 @@ impl Computer {
     }
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let instructions = reader.parsed_lines();
-    let mut computer = Computer::new();
-    computer.process(&instructions);
-    computer.get_register('b') as u64
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let instructions = reader.parsed_lines();
-    let mut computer = Computer::new();
-    computer.increment('a');
-    computer.process(&instructions);
-    computer.get_register('b') as u64
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Opening the Turing Lock");
-    puzzle.set_part1(part1, "final value in register b (a=0)");
-    puzzle.set_part2(part2, "final value in register b (a=1)");
+    puzzle.set_part1("final value in register b (a=0)", |reader| {
+        let instructions = reader.parsed_lines();
+        let mut computer = Computer::new();
+        computer.process(&instructions);
+        computer.get_register('b') as u64
+    });
+    puzzle.set_part2("final value in register b (a=1)", |reader| {
+        let instructions = reader.parsed_lines();
+        let mut computer = Computer::new();
+        computer.increment('a');
+        computer.process(&instructions);
+        computer.get_register('b') as u64
+    });
     puzzle
 }
 

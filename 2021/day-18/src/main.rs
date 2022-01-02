@@ -4,7 +4,7 @@ use std::ops::Add;
 use std::rc::Rc;
 use std::str::FromStr;
 
-use common::{default_puzzle, Answer, BadInput, InputReader, Puzzle};
+use common::{default_puzzle, BadInput, Puzzle};
 
 type NumWrap = Rc<RefCell<Option<Number>>>;
 type Path = Vec<bool>;
@@ -500,24 +500,20 @@ fn max_pair_magnitude(numbers: Vec<String>) -> u64 {
     max_magnitude
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let numbers: Vec<Number> = reader.parsed_lines();
-    numbers
-        .into_iter()
-        .reduce(|acc, a| acc + a)
-        .unwrap()
-        .magnitude()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let numbers: Vec<String> = reader.parsed_lines();
-    max_pair_magnitude(numbers)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Snailfish");
-    puzzle.set_part1(part1, "magnitude of final sum");
-    puzzle.set_part2(part2, "maximum magnitude of a pair");
+    puzzle.set_part1("magnitude of final sum", |reader| {
+        let numbers: Vec<Number> = reader.parsed_lines();
+        numbers
+            .into_iter()
+            .reduce(|acc, a| acc + a)
+            .unwrap()
+            .magnitude()
+    });
+    puzzle.set_part2("maximum magnitude of a pair", |reader| {
+        let numbers: Vec<String> = reader.parsed_lines();
+        max_pair_magnitude(numbers)
+    });
     puzzle
 }
 

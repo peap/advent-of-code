@@ -1,6 +1,6 @@
 use std::cmp;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 const BOSS_HP: i64 = 103;
 const BOSS_DAMAGE: i64 = 9;
@@ -121,17 +121,14 @@ pub fn min_and_max_to_defeat_and_lose() -> (u64, u64) {
     (minimum_gold, maximum_gold)
 }
 
-fn part1(_: &InputReader) -> Answer {
-    min_and_max_to_defeat_and_lose().0
-}
-
-fn part2(_: &InputReader) -> Answer {
-    min_and_max_to_defeat_and_lose().1
-}
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("RPG Simulator 20XX");
-    puzzle.set_part1(part1, "least gold to win the fight");
-    puzzle.set_part2(part2, "most gold to lose the fight");
+    puzzle.set_part1("least gold to win the fight", |_| {
+        min_and_max_to_defeat_and_lose().0
+    });
+    puzzle.set_part2("most gold to lose the fight", |_| {
+        min_and_max_to_defeat_and_lose().1
+    });
     puzzle
 }
 

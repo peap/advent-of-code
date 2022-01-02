@@ -2,7 +2,7 @@ use std::cmp;
 
 use itertools::Itertools;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 pub type Gift = u64;
 pub type Group = Vec<Gift>;
@@ -51,20 +51,16 @@ pub fn optimize_sleigh(gifts: GroupArg, n: usize) -> Option<(usize, Gift)> {
     None
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let gifts = reader.parsed_lines();
-    optimize_sleigh(&gifts, 3).unwrap().1
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let gifts = reader.parsed_lines();
-    optimize_sleigh(&gifts, 4).unwrap().1
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("It Hangs in the Balance");
-    puzzle.set_part1(part1, "quantum entanglement (3-part)");
-    puzzle.set_part2(part2, "quantum entanglement (4-part)");
+    puzzle.set_part1("quantum entanglement (3-part)", |reader| {
+        let gifts = reader.parsed_lines();
+        optimize_sleigh(&gifts, 3).unwrap().1
+    });
+    puzzle.set_part2("quantum entanglement (4-part)", |reader| {
+        let gifts = reader.parsed_lines();
+        optimize_sleigh(&gifts, 4).unwrap().1
+    });
     puzzle
 }
 

@@ -1,4 +1,4 @@
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 use ansi_term::Style;
 
@@ -136,28 +136,24 @@ fn play_bingo(nums: Vec<u64>, mut boards: Vec<Board>) -> Vec<Board> {
     winners
 }
 
-fn part1(reader: &InputReader) -> Answer {
-    let bingo = reader.parsed_lines();
-    let (nums, boards) = parse_bingo(&bingo);
-    let winners = play_bingo(nums, boards);
-    let first = winners.first().unwrap();
-    first.print();
-    first.final_score()
-}
-
-fn part2(reader: &InputReader) -> Answer {
-    let bingo = reader.parsed_lines();
-    let (nums, boards) = parse_bingo(&bingo);
-    let winners = play_bingo(nums, boards);
-    let last = winners.last().unwrap();
-    last.print();
-    last.final_score()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Giant Squid");
-    puzzle.set_part1(part1, "winning board score");
-    puzzle.set_part2(part2, "last winner's score");
+    puzzle.set_part1("winning board score", |reader| {
+        let bingo = reader.parsed_lines();
+        let (nums, boards) = parse_bingo(&bingo);
+        let winners = play_bingo(nums, boards);
+        let first = winners.first().unwrap();
+        first.print();
+        first.final_score()
+    });
+    puzzle.set_part2("last winner's score", |reader| {
+        let bingo = reader.parsed_lines();
+        let (nums, boards) = parse_bingo(&bingo);
+        let winners = play_bingo(nums, boards);
+        let last = winners.last().unwrap();
+        last.print();
+        last.final_score()
+    });
     puzzle
 }
 

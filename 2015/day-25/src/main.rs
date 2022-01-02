@@ -1,6 +1,6 @@
 // My input: "To continue, please consult the code grid in the manual. Enter
 // the code at row 3010, column 3019."
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 pub const ROW: usize = 3010;
 pub const COL: usize = 3019;
@@ -31,13 +31,9 @@ pub fn get_code(row: usize, col: usize) -> u64 {
     code
 }
 
-fn part1(_: &InputReader) -> Answer {
-    get_code(ROW, COL)
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Let It Snow");
-    puzzle.set_part1(part1, "machine code");
+    puzzle.set_part1("machine code", |_| get_code(ROW, COL));
     // part2 is a freebie :)
     puzzle
 }

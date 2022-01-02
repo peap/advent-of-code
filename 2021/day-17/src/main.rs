@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::ops::Range;
 
-use common::{default_puzzle, Answer, InputReader, Puzzle};
+use common::{default_puzzle, Puzzle};
 
 #[derive(Clone)]
 struct Probe {
@@ -79,20 +79,14 @@ impl Probe {
     }
 }
 
-fn part1(_: &InputReader) -> Answer {
-    let probe = Probe::new(217..241, -126..-68);
-    probe.max_height() as u64
-}
-
-fn part2(_: &InputReader) -> Answer {
-    let probe = Probe::new(217..241, -126..-68);
-    probe.count_velocities()
-}
-
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Trick Shot");
-    puzzle.set_part1(part1, "highest possible height");
-    puzzle.set_part2(part2, "number of initial velocities");
+    puzzle.set_part1("highest possible height", |_| {
+        Probe::new(217..241, -126..-68).max_height() as u64
+    });
+    puzzle.set_part2("number of initial velocities", |_| {
+        Probe::new(217..241, -126..-68).count_velocities()
+    });
     puzzle
 }
 
