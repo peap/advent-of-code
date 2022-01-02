@@ -46,11 +46,11 @@ impl FromStr for Password {
 
 fn get_puzzle() -> Puzzle {
     let mut puzzle = default_puzzle!("Password Philosophy");
-    puzzle.set_part1("", |reader| {
+    puzzle.set_part1("number of valid passwords", |reader| {
         let pws: Vec<Password> = reader.parsed_lines();
         pws.iter().filter(|p| p.is_valid_v1()).count() as u64
     });
-    puzzle.set_part2("", |reader| {
+    puzzle.set_part2("number of valid passwords (v2)", |reader| {
         let pws: Vec<Password> = reader.parsed_lines();
         pws.iter().filter(|p| p.is_valid_v2()).count() as u64
     });

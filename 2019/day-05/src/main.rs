@@ -1,22 +1,25 @@
-use intcode::{Computer, Val};
+use common::{default_puzzle, Puzzle};
+use intcode::Computer;
 
-fn part1() -> Val {
-    let mut comp = Computer::from_file("input.txt");
-    comp.set_input(1);
-    comp.execute();
-    *comp.final_output().unwrap()
-}
-
-fn part2() -> Val {
-    let mut comp = Computer::from_file("input.txt");
-    comp.set_input(5);
-    comp.execute();
-    *comp.final_output().unwrap()
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Sunny with a Chance of Asteroids");
+    puzzle.set_part1("diagnostic code (input=1)", |reader| {
+        let mut comp = Computer::from_reader(reader);
+        comp.set_input(1);
+        comp.execute();
+        *comp.final_output().unwrap() as u64
+    });
+    puzzle.set_part2("diagnostic code (input=5)", |reader| {
+        let mut comp = Computer::from_reader(reader);
+        comp.set_input(5);
+        comp.execute();
+        *comp.final_output().unwrap() as u64
+    });
+    puzzle
 }
 
 fn main() {
-    println!("Part 1: The final output is {}", part1());
-    println!("Part 2: The final output is {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -25,11 +28,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 13087969);
+        get_puzzle().test_part1(13087969);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 14110739);
+        get_puzzle().test_part2(14110739);
     }
 }

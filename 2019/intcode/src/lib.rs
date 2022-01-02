@@ -1,10 +1,11 @@
-extern crate num;
 #[macro_use]
 extern crate num_derive;
 
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use num::FromPrimitive;
 
+use common::InputReader;
+
+// Negative values are allowed in intcode programs.
 pub type Val = i64;
 
 #[derive(Debug, Eq, FromPrimitive, PartialEq)]
@@ -23,8 +24,7 @@ enum Instruction {
 
 impl From<Val> for Instruction {
     fn from(value: Val) -> Instruction {
-        num::FromPrimitive::from_i64(value)
-            .unwrap_or_else(|| panic!("Unknown Instruction {}", value))
+        FromPrimitive::from_i64(value).unwrap_or_else(|| panic!("Unknown Instruction {}", value))
     }
 }
 
@@ -55,7 +55,7 @@ enum ParamMode {
 
 impl From<Val> for ParamMode {
     fn from(value: Val) -> ParamMode {
-        num::FromPrimitive::from_i64(value).unwrap_or_else(|| panic!("Unknown ParamMode {}", value))
+        FromPrimitive::from_i64(value).unwrap_or_else(|| panic!("Unknown ParamMode {}", value))
     }
 }
 
@@ -219,21 +219,8 @@ impl Computer {
         }
     }
 
-    pub fn from_file(filename: &'static str) -> Computer {
-        let file = File::open(filename).unwrap();
-        let reader = BufReader::new(file);
-        Computer::new(
-            reader
-                .split(b',')
-                .map(|c| {
-                    String::from_utf8(c.unwrap())
-                        .unwrap()
-                        .trim()
-                        .parse()
-                        .unwrap()
-                })
-                .collect(),
-        )
+    pub fn from_reader(reader: &InputReader) -> Computer {
+        Computer::new(reader.parsed_csv_line())
     }
 
     pub fn set_noun_verb(&mut self, noun: Val, verb: Val) {

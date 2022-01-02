@@ -1,3 +1,4 @@
+use common::{default_puzzle, Puzzle};
 use intcode::{Computer, Val};
 
 fn find_inputs(comp: &mut Computer, target: Val) -> (Val, Val) {
@@ -13,13 +14,25 @@ fn find_inputs(comp: &mut Computer, target: Val) -> (Val, Val) {
     panic!("Could not find the target output!");
 }
 
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("1202 Program Alarm");
+    puzzle.set_part1("position 0", |reader| {
+        // let mut comp = Computer::from_file("input.txt");
+        let mut comp = Computer::from_reader(reader);
+        comp.set_noun_verb(12, 2);
+        comp.execute() as u64
+    });
+    puzzle.set_part2("100 * noun + verb", |reader| {
+        // let mut comp = Computer::from_file("input.txt");
+        let mut comp = Computer::from_reader(reader);
+        let (noun, verb) = find_inputs(&mut comp, 19690720);
+        (100 * noun + verb) as u64
+    });
+    puzzle
+}
+
 fn main() {
-    let mut comp = Computer::from_file("input.txt");
-    comp.set_noun_verb(12, 2);
-    let output = comp.execute();
-    println!("Part 1: position 0 --> {}", output);
-    let (noun, verb) = find_inputs(&mut comp, 19690720);
-    println!("Part 2: 100 * {} + {} = {}", noun, verb, 100 * noun + verb);
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -28,16 +41,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let mut comp = Computer::from_file("input.txt");
-        comp.set_noun_verb(12, 2);
-        assert_eq!(comp.execute(), 3409710);
+        get_puzzle().test_part1(3409710);
     }
 
     #[test]
     fn test_part2() {
-        let mut comp = Computer::from_file("input.txt");
-        let (noun, verb) = find_inputs(&mut comp, 19690720);
-        assert_eq!(noun, 79);
-        assert_eq!(verb, 12);
+        get_puzzle().test_part2(7912);
     }
 }

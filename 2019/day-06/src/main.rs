@@ -1,4 +1,4 @@
-use common::InputReader;
+use common::{default_puzzle, Puzzle};
 use std::collections::HashMap;
 
 // With thanks to
@@ -44,7 +44,7 @@ impl System {
         self.bodies[body_idx].focus = Some(focus_idx);
     }
 
-    fn count_orbits(&self, body_idx: usize) -> i32 {
+    fn count_orbits(&self, body_idx: usize) -> u64 {
         if let Some(focus_idx) = self.bodies[body_idx].focus {
             1 + self.count_orbits(focus_idx)
         } else {
@@ -52,7 +52,7 @@ impl System {
         }
     }
 
-    fn total_orbits(&self) -> i32 {
+    fn total_orbits(&self) -> u64 {
         self.map
             .values()
             .fold(0, |acc, idx| acc + self.count_orbits(*idx))
@@ -68,7 +68,7 @@ impl System {
         path
     }
 
-    fn minimal_transfer(&self, body_name: &str, target_name: &str) -> i32 {
+    fn minimal_transfer(&self, body_name: &str, target_name: &str) -> i64 {
         let body_idx = self.map.get(body_name).unwrap();
         let target_idx = self.map.get(target_name).unwrap();
         let body_path = self.build_path(*body_idx);
@@ -92,21 +92,23 @@ struct Body {
     focus: Option<usize>,
 }
 
-fn part1() -> i32 {
-    let lines = InputReader::new("input.txt").parsed_lines();
-    let system = System::from_lines(lines);
-    system.total_orbits()
-}
-
-fn part2() -> i32 {
-    let lines = InputReader::new("input.txt").parsed_lines();
-    let system = System::from_lines(lines);
-    system.minimal_transfer("YOU", "SAN")
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Universal Orbit Map");
+    puzzle.set_part1("total orbits", |reader| {
+        let lines = reader.parsed_lines();
+        let system = System::from_lines(lines);
+        system.total_orbits()
+    });
+    puzzle.set_part2("minimum transfer", |reader| {
+        let lines = reader.parsed_lines();
+        let system = System::from_lines(lines);
+        system.minimal_transfer("YOU", "SAN") as u64
+    });
+    puzzle
 }
 
 fn main() {
-    println!("Part1: Total orbits: {}", part1());
-    println!("Part2: Minimum transfer: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -162,11 +164,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 171213);
+        get_puzzle().test_part1(171213);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 292);
+        get_puzzle().test_part2(292);
     }
 }

@@ -1,5 +1,7 @@
 use std::ops::RangeInclusive;
 
+use common::{default_puzzle, Puzzle};
+
 const INPUT: RangeInclusive<i32> = 134564..=585159;
 
 fn is_valid(password: i32, exact_double: bool) -> bool {
@@ -35,17 +37,19 @@ fn find_valid_passwords(range: RangeInclusive<i32>, exact_doubles: bool) -> Vec<
     range.filter(|p| is_valid(*p, exact_doubles)).collect()
 }
 
-fn part1() -> i32 {
-    find_valid_passwords(INPUT, false).len() as i32
-}
-
-fn part2() -> i32 {
-    find_valid_passwords(INPUT, true).len() as i32
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Secure Container");
+    puzzle.set_part1("number of passwords", |_| {
+        find_valid_passwords(INPUT, false).len() as u64
+    });
+    puzzle.set_part2("number of passwords (v2)", |_| {
+        find_valid_passwords(INPUT, true).len() as u64
+    });
+    puzzle
 }
 
 fn main() {
-    println!("Part 1: Number of passwords found: {}", part1());
-    println!("Part 2: Number of passwords found: {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -64,11 +68,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 1929);
+        get_puzzle().test_part1(1929);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 1306);
+        get_puzzle().test_part2(1306);
     }
 }

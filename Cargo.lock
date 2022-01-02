@@ -52,6 +52,7 @@ checksum = "8f5f3913fa0bfe7ee1fd8248b6b9f42a5af4b9d65ec2dd2c3c26132b950ecfc2"
 name = "intcode"
 version = "0.1.0"
 dependencies = [
+ "common",
  "num",
  "num-derive",
  "num-traits",
@@ -571,6 +572,7 @@ dependencies = [
 name = "year-2019-day-02"
 version = "0.1.0"
 dependencies = [
+ "common",
  "intcode",
 ]
 
@@ -584,11 +586,15 @@ dependencies = [
 [[package]]
 name = "year-2019-day-04"
 version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "year-2019-day-05"
 version = "0.1.0"
 dependencies = [
+ "common",
  "intcode",
 ]
 
@@ -603,6 +609,7 @@ dependencies = [
 name = "year-2019-day-07"
 version = "0.1.0"
 dependencies = [
+ "common",
  "intcode",
 ]
 
@@ -617,14 +624,8 @@ dependencies = [
 name = "year-2019-day-09"
 version = "0.1.0"
 dependencies = [
- "intcode",
-]
-
-[[package]]
-name = "year-2019-day-10"
-version = "0.1.0"
-dependencies = [
  "common",
+ "intcode",
 ]
 
 [[package]]

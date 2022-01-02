@@ -1,4 +1,4 @@
-use common::InputReader;
+use common::{default_puzzle, Puzzle};
 
 struct Layer {
     pixels: Vec<Vec<u8>>,
@@ -18,12 +18,12 @@ impl Layer {
         Layer { pixels }
     }
 
-    fn count_pixels(&self, value: u8) -> u32 {
+    fn count_pixels(&self, value: u8) -> u64 {
         self.pixels
             .iter()
             .flatten()
             .filter(|p| **p == value)
-            .count() as u32
+            .count() as u64
     }
 }
 
@@ -79,40 +79,44 @@ impl Image {
     }
 }
 
-fn part1() -> u32 {
-    let pixels = InputReader::new("input.txt").digit_line(10);
-    let image = Image::new(25, 6, &pixels);
-    let layer = image.get_layer_with_fewest(0);
-    layer.count_pixels(1) * layer.count_pixels(2)
-}
-
-fn part2() -> Layer {
-    let pixels = InputReader::new("input.txt").digit_line(10);
-    let image = Image::new(25, 6, &pixels);
-    image.get_full_image()
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Space Image Format");
+    puzzle.set_part1(
+        "product of ones and twos in layer with fewest zeroes",
+        |reader| {
+            let pixels = reader.digit_line(10);
+            let image = Image::new(25, 6, &pixels);
+            let layer = image.get_layer_with_fewest(0);
+            layer.count_pixels(1) * layer.count_pixels(2)
+        },
+    );
+    puzzle.set_part2(
+        "the message is printed above; the following is not the answer",
+        |reader| {
+            let pixels = reader.digit_line(10);
+            let image = Image::new(25, 6, &pixels);
+            let full_image = image.get_full_image();
+            for y in 0..6 {
+                for x in 0..25 {
+                    let pixel = match full_image.pixels[y][x] {
+                        0 => "⚫",
+                        1 => "⚪",
+                        2 => "⚫",
+                        _ => " ",
+                    };
+                    print!("{}", pixel);
+                }
+                println!();
+            }
+            println!("--> CJZHR");
+            0
+        },
+    );
+    puzzle
 }
 
 fn main() {
-    println!(
-        "Part 1: the product of ones and twos in the layer with the \
-        fewest '0' digits is {}",
-        part1()
-    );
-    println!("Part 2: the message is...");
-    let image = part2();
-    for y in 0..6 {
-        for x in 0..25 {
-            let pixel = match image.pixels[y][x] {
-                0 => "⚫",
-                1 => "⚪",
-                2 => "⚫",
-                _ => " ",
-            };
-            print!("{}", pixel);
-        }
-        println!();
-    }
-    println!("--> CJZHR");
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -131,6 +135,12 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 2159);
+        get_puzzle().test_part1(2159);
+    }
+
+    #[test]
+    fn test_part2() {
+        // The answer is visual.
+        get_puzzle().test_part2(0);
     }
 }

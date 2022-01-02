@@ -1,3 +1,4 @@
+use common::{default_puzzle, Puzzle};
 use intcode::{Computer, Val};
 
 type PhaseSettings = Vec<Val>;
@@ -50,21 +51,23 @@ fn maximize_amplifiers(comp: Computer, settings: Vec<PhaseSettings>) -> Val {
     maximum
 }
 
-fn part1() -> Val {
-    let comp = Computer::from_file("input.txt");
-    let settings = all_phase_settings((0..5).collect());
-    maximize_amplifiers(comp, settings)
-}
-
-fn part2() -> Val {
-    let comp = Computer::from_file("input.txt");
-    let settings = all_phase_settings((5..10).collect());
-    maximize_amplifiers(comp, settings)
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Amplification Circuit");
+    puzzle.set_part1("highest thruster signal", |reader| {
+        let comp = Computer::from_reader(reader);
+        let settings = all_phase_settings((0..5).collect());
+        maximize_amplifiers(comp, settings) as u64
+    });
+    puzzle.set_part2("highest thruster signal (new settings)", |reader| {
+        let comp = Computer::from_reader(reader);
+        let settings = all_phase_settings((5..10).collect());
+        maximize_amplifiers(comp, settings) as u64
+    });
+    puzzle
 }
 
 fn main() {
-    println!("Part 1: The maximum output is {}", part1());
-    println!("Part 2: The maximum output is {}", part2());
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -116,11 +119,6 @@ mod tests {
     }
 
     #[test]
-    fn test_part1() {
-        assert_eq!(part1(), 225056);
-    }
-
-    #[test]
     fn test_example_4() {
         let comp = Computer::new(vec![
             3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26, 27, 4, 27, 1001, 28, -1,
@@ -142,7 +140,12 @@ mod tests {
     }
 
     #[test]
+    fn test_part1() {
+        get_puzzle().test_part1(225056);
+    }
+
+    #[test]
     fn test_part2() {
-        assert_eq!(part2(), 14260332);
+        get_puzzle().test_part2(14260332);
     }
 }

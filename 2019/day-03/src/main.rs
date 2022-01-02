@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use common::{BadInput, InputReader};
+use common::{default_puzzle, BadInput, Puzzle};
 
 enum Direction {
     Up,
@@ -189,30 +189,23 @@ fn find_intersections(wire1: &Wire, wire2: &Wire) -> Vec<Intersection> {
     intersections
 }
 
-fn setup() -> Vec<Intersection> {
-    let wires = InputReader::new("input.txt").parsed_lines();
-    find_intersections(&wires[0], &wires[1])
-}
-
-fn part1() -> i32 {
-    let intersections = setup();
-    intersections.iter().map(|i| i.taxicab()).min().unwrap()
-}
-
-fn part2() -> i32 {
-    let intersections = setup();
-    intersections.iter().map(|i| i.steps).min().unwrap()
+fn get_puzzle() -> Puzzle {
+    let mut puzzle = default_puzzle!("Crossed Wires");
+    puzzle.set_part1("closest intersection (taxicab)", |reader| {
+        let wires = reader.parsed_lines();
+        let intersections = find_intersections(&wires[0], &wires[1]);
+        intersections.iter().map(|i| i.taxicab()).min().unwrap() as u64
+    });
+    puzzle.set_part2("closest intersection (steps)", |reader| {
+        let wires = reader.parsed_lines();
+        let intersections = find_intersections(&wires[0], &wires[1]);
+        intersections.iter().map(|i| i.steps).min().unwrap() as u64
+    });
+    puzzle
 }
 
 fn main() {
-    println!(
-        "Part 1: The closest intersection is {} away (taxicab)",
-        part1()
-    );
-    println!(
-        "Part 2: The closest intersection is {} away (steps)",
-        part2()
-    );
+    get_puzzle().run();
 }
 
 #[cfg(test)]
@@ -257,11 +250,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 1674);
+        get_puzzle().test_part1(1674);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 14012);
+        get_puzzle().test_part2(14012);
     }
 }
